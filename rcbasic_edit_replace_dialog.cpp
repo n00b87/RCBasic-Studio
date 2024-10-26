@@ -32,7 +32,7 @@ void rcbasic_edit_replace_dialog::replaceInFile(rcbasic_edit_txtCtrl* txtCtrl_ob
 
 
     wxString selText= search_txt;
-    int selLen = selText.Len();
+    int repLen = replace_txt.Len();
     int selStart= 0;
 
     int totalLen = t->GetTextLength();
@@ -54,24 +54,21 @@ void rcbasic_edit_replace_dialog::replaceInFile(rcbasic_edit_txtCtrl* txtCtrl_ob
         }
     }
 
+
     while(foundLoc!=-1)
     {
+    	totalLen = t->GetTextLength();
+
         t->SetTargetStart(searchStart);
         t->SetTargetEnd(totalLen);
 
         foundLoc= t->SearchInTarget(selText);
-        searchStart= foundLoc+selLen;
+        searchStart= foundLoc+repLen;
 
         if(foundLoc!=-1)
         {
             t->Replace(foundLoc, foundLoc + selText.length(), replace_txt);
             txtCtrl_obj->setTextChangedFlag(true);
-            //r.pos = foundLoc;
-            //r.line = t->LineFromPosition(foundLoc);
-            //wxString line_str;
-            //line_str.Printf(_(":%d:    "), r.line+1);
-            //m_searchResults_listBox->AppendAndEnsureVisible( fname.GetFullName() + line_str + t->GetLineText(r.line) );
-            //search_results.push_back(r);
         }
     }
 
@@ -90,7 +87,7 @@ void rcbasic_edit_replace_dialog::replaceInSelection(rcbasic_edit_txtCtrl* txtCt
 
 
     wxString selText= search_txt;
-    int selLen = selText.Len();
+    int repLen = replace_txt.Len();
     int selStart= 0;
 
     int totalLen = t->GetTextLength();
@@ -126,7 +123,7 @@ void rcbasic_edit_replace_dialog::replaceInSelection(rcbasic_edit_txtCtrl* txtCt
         t->SetTargetEnd(searchEnd);
 
         foundLoc= t->SearchInTarget(selText);
-        searchStart= foundLoc+selLen;
+        searchStart= foundLoc+repLen;
 
         if(foundLoc!=-1)
         {

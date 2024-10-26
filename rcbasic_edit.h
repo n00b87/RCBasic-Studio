@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3)
+// C++ code generated with wxFormBuilder (version 4.2.1-0-g80c4cb6-dirty)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
@@ -43,7 +43,6 @@
 #include <wx/gauge.h>
 
 ///////////////////////////////////////////////////////////////////////////
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class rc_ideFrame
@@ -166,6 +165,7 @@ class rc_ideFrame : public wxFrame
 		virtual void onFindNextMenuSelect( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onFindPreviousMenuSelect( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onReplaceMenuSelect( wxCommandEvent& event ) { event.Skip(); }
+		virtual void onClearMarkerMenuSelect( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onGotoMenuSelect( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onChangeFontMenuSelect( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onChangeSchemeMenuSelect( wxCommandEvent& event ) { event.Skip(); }

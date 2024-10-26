@@ -36,33 +36,15 @@ void parserThread::readContents()
 {
     contents.clear();
     rcbasic_edit_frame* frame = (rcbasic_edit_frame*) parent_frame;
-    notebook_mutex.Lock();
-    if(frame->getCurrentFile())
-    {
-        if(frame->getCurrentFile()->getTextCtrl())
-        {
-            file_text = frame->getCurrentFile()->getTextCtrl()->GetText() + _(" \n");
-        }
-        else
-        {
-            notebook_mutex.Unlock();
-            return;
-        }
-    }
-    else
-    {
-        notebook_mutex.Unlock();
-        return;
-    }
 
-    notebook_mutex.Unlock();
+    current_parse_string += _("\n");
 
     wxString current_line = _("");
     wxString current_char;
 
-    for(int i = 0; i < file_text.length(); i++)
+    for(int i = 0; i < current_parse_string.length(); i++)
     {
-        current_char = file_text.substr(i,1);
+        current_char = current_parse_string.substr(i,1);
         if(current_char.compare(_("\n"))==0)
         {
             contents.push_back(current_line);
@@ -131,32 +113,14 @@ void* parserThread::Entry()
         }
 
         notebook_mutex.Lock();
-        current_file_flag = (frame->getCurrentFile()!=NULL);
+        if(!parse_ready)
+		{
+			notebook_mutex.Unlock();
+			continue;
+		}
+		notebook_mutex.Unlock();
 
-        if(current_file_flag)
-        {
-            current_file_flag = (frame->getCurrentFile()->getTextCtrl() && !frame->symbolUpdateInProgress);
-
-            if(current_file_flag)
-            {
-                frame->symbolUpdateInProgress = true;
-                frame->pre_parsed_page = frame->getCurrentFile()->getTextCtrl();
-                notebook_mutex.Unlock();
-                runParser(evt);
-            }
-            else
-            {
-                notebook_mutex.Unlock();
-            }
-        }
-        else
-        {
-            frame->symbolUpdateInProgress = true;
-            frame->pre_parsed_page = NULL;
-            notebook_mutex.Unlock();
-            //contents.clear();
-            wxPostEvent(m_pParent, evt);
-        }
+		runParser(evt);
 
         wxMilliSleep(400);
     }
@@ -172,6 +136,8 @@ bool parserThread::runParser(wxCommandEvent evt)
         //sym_list = NULL;
         sym_list->clear();
     }
+
+    //wxPuts(_("dbg: ") + wxString(rc_intToString(current_parse_string.length())));
 
     rcbasic_edit_frame* frame = (rcbasic_edit_frame*) parent_frame;
 
@@ -207,9 +173,9 @@ bool parserThread::runParser(wxCommandEvent evt)
             if(!inSymbolList(sym))
                 contents_changed = 1;
 
-            notebook_mutex.Lock();
+            //notebook_mutex.Lock();
             addSymbol(sym);
-            notebook_mutex.Unlock();
+            //notebook_mutex.Unlock();
 
             if(sw_timer.Time()>5)
             {
@@ -227,19 +193,24 @@ bool parserThread::runParser(wxCommandEvent evt)
 
     }
 
-    notebook_mutex.Lock();
+    //notebook_mutex.Lock();
     if(sym_list->size() != s_list.size())
         contents_changed = 1;
 
     //can be used to set some identifier for the data
-    evt.SetInt(contents_changed);
+    //evt.SetInt(contents_changed);
+    evt.SetInt(1);
 
-    frame->parsed_page = frame->pre_parsed_page;
+    //frame->parsed_page = frame->pre_parsed_page;
     evt.SetClientData((void*)sym_list);
 
     wxPostEvent(m_pParent, evt);
 
-    notebook_mutex.Unlock();
+    notebook_mutex.Lock();
+	parse_ready = false;
+	notebook_mutex.Unlock();
+
+    //notebook_mutex.Unlock();
 
 
     return true;

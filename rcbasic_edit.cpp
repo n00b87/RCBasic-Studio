@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3)
+// C++ code generated with wxFormBuilder (version 4.2.1-0-g80c4cb6-dirty)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
@@ -148,6 +148,12 @@ rc_ideFrame::rc_ideFrame( wxWindow* parent, wxWindowID id, const wxString& title
 
 	m_search_menu->AppendSeparator();
 
+	wxMenuItem* m_clearMarker_menuItem;
+	m_clearMarker_menuItem = new wxMenuItem( m_search_menu, wxID_ANY, wxString( wxT("Clear Marker") ) , wxEmptyString, wxITEM_NORMAL );
+	m_search_menu->Append( m_clearMarker_menuItem );
+
+	m_search_menu->AppendSeparator();
+
 	m_goto_menuItem = new wxMenuItem( m_search_menu, wxID_ANY, wxString( wxT("Go To Line") ) + wxT('\t') + wxT("Ctrl+L"), wxEmptyString, wxITEM_NORMAL );
 	m_search_menu->Append( m_goto_menuItem );
 
@@ -249,13 +255,13 @@ rc_ideFrame::rc_ideFrame( wxWindow* parent, wxWindowID id, const wxString& title
 	mainWindowSizer = new wxBoxSizer( wxVERTICAL );
 
 	m_toolBar = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL );
-	m_new_tool = m_toolBar->AddTool( wxID_ANY, wxT("New File"), wxArtProvider::GetBitmap( wxART_NEW, wxART_TOOLBAR ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+	m_new_tool = m_toolBar->AddTool( wxID_ANY, wxT("New File"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_NEW), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
 
-	m_open_tool = m_toolBar->AddTool( wxID_ANY, wxT("Open"), wxArtProvider::GetBitmap( wxART_FILE_OPEN, wxART_TOOLBAR ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+	m_open_tool = m_toolBar->AddTool( wxID_ANY, wxT("Open"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_FILE_OPEN), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
 
-	m_save_tool = m_toolBar->AddTool( wxID_ANY, wxT("Save"), wxArtProvider::GetBitmap( wxART_FILE_SAVE, wxART_TOOLBAR ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+	m_save_tool = m_toolBar->AddTool( wxID_ANY, wxT("Save"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_FILE_SAVE), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
 
-	m_saveas_tool = m_toolBar->AddTool( wxID_ANY, wxT("Save As"), wxArtProvider::GetBitmap( wxART_FILE_SAVE_AS, wxART_TOOLBAR ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
+	m_saveas_tool = m_toolBar->AddTool( wxID_ANY, wxT("Save As"), wxArtProvider::GetBitmap( wxASCII_STR(wxART_FILE_SAVE_AS), wxASCII_STR(wxART_TOOLBAR) ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL );
 
 	m_toolBar->AddSeparator();
 
@@ -416,6 +422,7 @@ rc_ideFrame::rc_ideFrame( wxWindow* parent, wxWindowID id, const wxString& title
 	m_search_menu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( rc_ideFrame::onFindNextMenuSelect ), this, m_findNext_menuItem->GetId());
 	m_search_menu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( rc_ideFrame::onFindPreviousMenuSelect ), this, m_findPrevious_menuItem->GetId());
 	m_search_menu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( rc_ideFrame::onReplaceMenuSelect ), this, m_replace_menuItem->GetId());
+	m_search_menu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( rc_ideFrame::onClearMarkerMenuSelect ), this, m_clearMarker_menuItem->GetId());
 	m_search_menu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( rc_ideFrame::onGotoMenuSelect ), this, m_goto_menuItem->GetId());
 	m_view_menu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( rc_ideFrame::onChangeFontMenuSelect ), this, m_changeFont_menuItem->GetId());
 	m_view_menu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( rc_ideFrame::onChangeSchemeMenuSelect ), this, m_changeColors_menuItem->GetId());
@@ -823,6 +830,7 @@ rc_newFile_dialog::rc_newFile_dialog( wxWindow* parent, wxWindowID id, const wxS
 	bSizer25->Add( 0, 0, 1, wxEXPAND, 5 );
 
 	createNewSource_addToProject_checkBox = new wxCheckBox( this, wxID_ANY, wxT("Add New File to Current Project"), wxDefaultPosition, wxDefaultSize, 0 );
+	createNewSource_addToProject_checkBox->SetValue(true);
 	bSizer25->Add( createNewSource_addToProject_checkBox, 6, wxALL, 5 );
 
 

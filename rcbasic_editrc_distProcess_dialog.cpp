@@ -80,7 +80,9 @@ void rcbasic_editrc_distProcess_dialog::onCancelButtonClick( wxCommandEvent& eve
     isRunning = false;
     dist_process->CloseOutput();
 
+    #ifdef _WIN32
     wxExecute(_("taskkill /F /IM rcbasic_studio_run.exe"), wxEXEC_SYNC);
+    #endif // _WIN32
 
     wxKill(dist_pid);
     if(dist_process)

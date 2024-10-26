@@ -154,7 +154,7 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
     m_results_notebook->SetSelection(RESULTS_LISTBOX_BUILDMSG);
 
 
-    notebook_mutex.Lock();
+
 
 
     //-----------
@@ -205,7 +205,7 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
     build_run_project->saveProject(project_fname);
     //------------------
 
-    notebook_mutex.Unlock();
+
 
 
     wxFile build_script;
@@ -562,7 +562,7 @@ void rcbasic_edit_frame::buildCurrentFile()
     m_results_notebook->SetSelection(RESULTS_LISTBOX_BUILDMSG);
 
 
-    notebook_mutex.Lock();
+
 
     //-----------
     wxFileName project_fname = getCurrentFile()->getSourcePath();
@@ -570,7 +570,7 @@ void rcbasic_edit_frame::buildCurrentFile()
 
     //------------------
 
-    notebook_mutex.Unlock();
+
 
     build_files.clear();
 

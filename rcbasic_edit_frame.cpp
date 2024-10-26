@@ -26,7 +26,7 @@ void rcbasic_edit_frame::pfile_readContents(wxString file_path)
     pfile_contents.clear();
 
     //rcbasic_edit_frame* frame = (rcbasic_edit_frame*) parent_frame;
-    notebook_mutex.Lock();
+
 
     wxFile f(file_path, wxFile::read);
 
@@ -36,7 +36,7 @@ void rcbasic_edit_frame::pfile_readContents(wxString file_path)
 
     f.Close();
 
-    notebook_mutex.Unlock();
+
 
     wxString current_line = _("");
     wxString current_char;
@@ -108,9 +108,9 @@ bool rcbasic_edit_frame::pfile_runParser(rcbasic_project* p)
                 sym.in_list = id_tokens[t_count].is_in_list;
 
 
-                notebook_mutex.Lock();
+
                 pfile_addSymbol(p, sym);
-                notebook_mutex.Unlock();
+
             }
 
         }
@@ -258,34 +258,23 @@ void rcbasic_edit_frame::updateSymbolTree()
 
 void rcbasic_edit_frame::OnParserThread(wxCommandEvent& event)
 {
-    notebook_mutex.Lock();
+
     thread_returned = true;
 
     std::vector<rcbasic_symbol>* sym_list = NULL;
 
-    if(!pre_parsed_page)
-    {
-        sym_list = NULL;
-    }
-    else
-    {
-        sym_list = (std::vector<rcbasic_symbol>*) event.GetClientData();
-    }
+    if(event.GetInt() != 0)
+		sym_list = (std::vector<rcbasic_symbol>*) event.GetClientData();
+
 
     if(sym_list)
     {
-        /*for(int i = 0; i < symbols.size(); i++)
-        {
-            if(symbols[i])
-            {
-                delete symbols[i];
-                symbols[i] = NULL;
-            }
-        }*/
         symbols.clear();
         user_id_list.Clear();
 
         user_id_list = id_list;
+
+        //wxPuts(_("D1\n"));
 
         if(active_project)
         {
@@ -293,19 +282,18 @@ void rcbasic_edit_frame::OnParserThread(wxCommandEvent& event)
                 user_id_list.Add(active_project->project_symbols[i].id);
         }
 
-        if(pre_parsed_page)
-        {
-            for(int i = 0; i < sym_list->size(); i++)
-            {
-                rcbasic_symbol s = sym_list[0][i];
-                if(s.in_list)
-                    symbols.push_back(s);
+        //wxPuts(_("D2\n"));
 
-                user_id_list.Add(s.id);
+        for(int i = 0; i < sym_list->size(); i++)
+		{
+			rcbasic_symbol s = sym_list[0][i];
+			if(s.in_list)
+				symbols.push_back(s);
 
-                //wxPuts(_("VAR --- ") + s->id);
-            }
-        }
+			user_id_list.Add(s.id);
+
+			//wxPuts(_("VAR --- ") + s.id);
+		}
 
         user_id_list.Sort();
 
@@ -317,15 +305,13 @@ void rcbasic_edit_frame::OnParserThread(wxCommandEvent& event)
 
     parsed_page = pre_parsed_page;
     symbolUpdateInProgress = false;
-
-    notebook_mutex.Unlock();
 }
 
 rcbasic_edit_frame::rcbasic_edit_frame( wxWindow* parent, int argc, wxArrayString argv )
 :
 rc_ideFrame( parent )
 {
-    RCBasic_Studio_Version = _("v1.3");
+    RCBasic_Studio_Version = _("v2.0");
 
     build_run_project = NULL;
     current_file_project = new rcbasic_project();
@@ -599,6 +585,7 @@ rc_ideFrame( parent )
 
     if(enable_parser)
     {
+    	//wxPrintf(_("parser start"));
         token_parser = new parserThread(this, 0, this);
         token_parser->Run();
     }
@@ -1348,13 +1335,13 @@ void rcbasic_edit_frame::onRecentProjectSelect( wxCommandEvent& event )
 
     if(item >= 0 && item < 10)
     {
-        notebook_mutex.Lock();
+
         wxFileName project_fname(recent_projects_items[item]);
         if(project_fname.Exists())
             openProject(project_fname);
         else
             wxMessageBox(_("Could not locate project:\n") + project_fname.GetFullPath());
-        notebook_mutex.Unlock();
+
     }
 }
 
@@ -1366,19 +1353,19 @@ void rcbasic_edit_frame::onRecentFileSelect( wxCommandEvent& event )
 
     if(item >= 0 && item < 10)
     {
-        notebook_mutex.Lock();
+
         wxFileName fname(recent_files_items[item]);
         if(fname.Exists())
             openSourceFile(fname);
         else
             wxMessageBox(_("Could not locate file:\n") + fname.GetFullPath());
-        notebook_mutex.Unlock();
+
     }
 }
 
 void rcbasic_edit_frame::onEditorClose( wxCloseEvent& event )
 {
-    notebook_mutex.Unlock();
+
 
     for(int i = 0; i < open_files.size(); i++)
     {
@@ -1408,6 +1395,7 @@ void rcbasic_edit_frame::onEditorClose( wxCloseEvent& event )
             token_parser->Delete();
             sym_sem->Wait();
             delete sym_sem;
+            token_parser = NULL;
             //wxPuts(_("thread successfully ended"));
         }
     }
@@ -1472,6 +1460,7 @@ void rcbasic_edit_frame::onEditorClose( wxCloseEvent& event )
         //wxPuts(_("***end project write***"));
         f.Close();
     }
+
     this->Destroy();
 }
 
@@ -1546,7 +1535,7 @@ void rcbasic_edit_frame::newProjectMenuSelect( wxCommandEvent& event)
             updateProjectTree(new_project_index);
 
         //----
-        notebook_mutex.Lock();
+
         wxString cwd = wxGetCwd();
         wxSetWorkingDirectory(new_project->getLocation());
         wxFileName main_fname = new_project->getMainSource();
@@ -1554,7 +1543,7 @@ void rcbasic_edit_frame::newProjectMenuSelect( wxCommandEvent& event)
         rcbasic_edit_txtCtrl* txtCtrl_obj = openFileTab(new_project, new_project->getMainSource());
         wxSetWorkingDirectory(cwd);
         txtCtrl_obj->setTextChangedFlag(false);
-        notebook_mutex.Unlock();
+
 
         addRecentProject(new_project);
     }
@@ -1568,27 +1557,27 @@ void rcbasic_edit_frame::newProjectMenuSelect( wxCommandEvent& event)
 void rcbasic_edit_frame::newFileMenuSelect( wxCommandEvent& event)
 {
     //wxPuts(_("New file Dialog"));
-    notebook_mutex.Lock();
+
     createNewFile(active_project);
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::openProjectMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
     wxFileName project_fname = openFileDialog(_("Open Project"), _("RCBasic Project (*.rcprj)|*.rcprj"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     //wxPuts(_("project_fname: ") + project_fname.GetLongPath());
     if(project_fname.GetFullPath().compare(_(""))!=0)
         openProject(project_fname);
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::openFileMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
     wxFileName fname = openFileDialog( _("Open RCBasic Source file"), _("RCBasic Source files (*.bas)|*.bas"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     openSourceFile(fname);
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::openProject(wxFileName project_path)
@@ -1918,16 +1907,16 @@ void rcbasic_edit_frame::saveFile(int openFile_index, int flag=0)
 
 void rcbasic_edit_frame::onSaveFileMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
     saveFile(getOpenFileFromSelection());
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onSaveFileAsMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
     saveFile(getOpenFileFromSelection(), FILE_SAVEAS_FLAG);
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onSaveProjectMenuSelect( wxCommandEvent& event )
@@ -1947,7 +1936,7 @@ void rcbasic_edit_frame::onSaveProjectMenuSelect( wxCommandEvent& event )
             return;
     }
 
-    notebook_mutex.Lock();
+
     //SAVE FILES IN PROJECT
     std::vector<rcbasic_project_node*> pf_nodes = active_project->getSourceFiles();
     for(int i = 0; i < open_files.size(); i++)
@@ -1973,7 +1962,7 @@ void rcbasic_edit_frame::onSaveProjectMenuSelect( wxCommandEvent& event )
     active_project->saveProject(project_fname);
     pfile_runParser(active_project);
 
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onSaveProjectAsMenuSelect( wxCommandEvent& event )
@@ -1990,7 +1979,7 @@ void rcbasic_edit_frame::onSaveProjectAsMenuSelect( wxCommandEvent& event )
     if(project_fname.GetFullPath().compare(_(""))==0)
         return;
 
-    notebook_mutex.Lock();
+
     for(int i = 0; i < open_files.size(); i++)
     {
         if(!open_files[i])
@@ -2009,12 +1998,12 @@ void rcbasic_edit_frame::onSaveProjectAsMenuSelect( wxCommandEvent& event )
     }
 
     active_project->saveProject(project_fname);
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onSaveAllMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
     for(int i = 0; i < open_files.size(); i++)
     {
         if(!open_files[i])
@@ -2033,7 +2022,7 @@ void rcbasic_edit_frame::onSaveAllMenuSelect( wxCommandEvent& event )
 
         open_projects[i]->saveProject(wxFileName(open_projects[i]->getProjectFileLocation()));
     }
-    notebook_mutex.Unlock();
+
 }
 
 int rcbasic_edit_frame::closeFile(int notebook_page)
@@ -2080,17 +2069,17 @@ int rcbasic_edit_frame::closeFile(int notebook_page)
 
 void rcbasic_edit_frame::onCloseFileMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
     int current_file = sourceFile_auinotebook->GetSelection();
 
     if(current_file < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
     closeFile(current_file);
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onCloseProjectMenuSelect( wxCommandEvent& event )
@@ -2098,9 +2087,9 @@ void rcbasic_edit_frame::onCloseProjectMenuSelect( wxCommandEvent& event )
     if(!active_project)
         return;
 
-    notebook_mutex.Lock();
+
     closeProject(active_project);
-    notebook_mutex.Unlock();
+
 }
 
 int rcbasic_edit_frame::getProjectFromRoot(wxTreeItemId node)
@@ -2299,7 +2288,7 @@ int rcbasic_edit_frame::closeProject(rcbasic_project* project)
 void rcbasic_edit_frame::onCloseAllMenuSelect( wxCommandEvent& event )
 {
     int i = 0;
-    notebook_mutex.Lock();
+
     while(open_files.size() > i)
     {
         int close_val = closeFile(sourceFile_auinotebook->GetPageIndex(open_files[i]->getTextCtrl()));
@@ -2316,7 +2305,7 @@ void rcbasic_edit_frame::onCloseAllMenuSelect( wxCommandEvent& event )
         if(close_val==projectCloseFlag_CANCEL)
             i++;
     }
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onExitMenuSelect( wxCommandEvent& event )
@@ -2326,111 +2315,111 @@ void rcbasic_edit_frame::onExitMenuSelect( wxCommandEvent& event )
 
 void rcbasic_edit_frame::onSaveProject(wxCommandEvent& event)
 {
-    notebook_mutex.Lock();
+
     saveProject(active_project);
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onSaveProjectAs(wxCommandEvent& event)
 {
     if(active_project)
     {
-        notebook_mutex.Lock();
+
         active_project->saveProject(openFileDialog(_("Save Project As"), _("RCBasic Project (*.rcprj)|*.rcprj"),wxFD_SAVE));
-        notebook_mutex.Unlock();
+
     }
 }
 
 void rcbasic_edit_frame::onUndoMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
     wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     t->Undo();
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onRedoMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
     wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     t->Redo();
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onCutMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
     wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     t->Cut();
 
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onCopyMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
     wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     t->Copy();
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onPasteMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
 
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
     wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     t->Paste();
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onDeleteMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -2438,17 +2427,17 @@ void rcbasic_edit_frame::onDeleteMenuSelect( wxCommandEvent& event )
     //wxPrintf(_("Line: %d to %d"), t->LineFromPosition(t->GetSelectionStart()), t->LineFromPosition(t->GetSelectionEnd()));
     t->Clear();
 
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onSelectAllMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -2456,18 +2445,18 @@ void rcbasic_edit_frame::onSelectAllMenuSelect( wxCommandEvent& event )
     //wxPrintf(_("Line: %d to %d"), t->LineFromPosition(t->GetSelectionStart()), t->LineFromPosition(t->GetSelectionEnd()));
     t->SelectAll();
 
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onCommentMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
 
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -2475,7 +2464,7 @@ void rcbasic_edit_frame::onCommentMenuSelect( wxCommandEvent& event )
 
     if(!t)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -2496,18 +2485,18 @@ void rcbasic_edit_frame::onCommentMenuSelect( wxCommandEvent& event )
 
     t->EndUndoAction();
 
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onBlockCommentMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
 
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -2515,7 +2504,7 @@ void rcbasic_edit_frame::onBlockCommentMenuSelect( wxCommandEvent& event )
 
     if(!t)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -2536,18 +2525,18 @@ void rcbasic_edit_frame::onBlockCommentMenuSelect( wxCommandEvent& event )
 
     t->EndUndoAction();
 
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onUnCommentMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
 
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -2555,7 +2544,7 @@ void rcbasic_edit_frame::onUnCommentMenuSelect( wxCommandEvent& event )
 
     if(!t)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -2580,7 +2569,7 @@ void rcbasic_edit_frame::onUnCommentMenuSelect( wxCommandEvent& event )
 
     t->EndUndoAction();
 
-    notebook_mutex.Unlock();
+
 }
 
 wxString rcbasic_edit_frame::getRCBasicBasePath()
@@ -2625,7 +2614,7 @@ wxString rcbasic_edit_frame::getStudioDocLink()
 
 void rcbasic_edit_frame::onPreferenceMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
 
     rcbasic_edit_preference_dialog* pref_dialog = new rcbasic_edit_preference_dialog(this);
     pref_dialog->ShowModal();
@@ -2648,7 +2637,7 @@ void rcbasic_edit_frame::onPreferenceMenuSelect( wxCommandEvent& event )
         saveEditorProperties(edit_config);
     }
 
-    notebook_mutex.Unlock();
+
 }
 
 int rcbasic_edit_frame::getOpenFileFromPath(wxFileName f_path)
@@ -2677,7 +2666,7 @@ void rcbasic_edit_frame::onSearchResultSelection(wxCommandEvent& event)
     if(search_results.size() <= selection)
         return;
 
-    notebook_mutex.Lock();
+
     int open_files_index = getOpenFileFromPath(search_results[selection].result_file);
 
     if(open_files_index < 0)
@@ -2686,20 +2675,20 @@ void rcbasic_edit_frame::onSearchResultSelection(wxCommandEvent& event)
         open_files_index = getOpenFileFromPath(search_results[selection].result_file);
         if(open_files_index < 0)
         {
-            notebook_mutex.Unlock();
+
             return;
         }
     }
 
     if(open_files_index >= open_files.size())
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
     if(!open_files[open_files_index]->getTextCtrl())
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -2709,7 +2698,7 @@ void rcbasic_edit_frame::onSearchResultSelection(wxCommandEvent& event)
 
     if(page_index < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -2719,7 +2708,7 @@ void rcbasic_edit_frame::onSearchResultSelection(wxCommandEvent& event)
     t->GotoPos( search_results[selection].pos );
     t->SetSelection(t->GetCurrentPos(), t->GetCurrentPos() + search_term.length());
 
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::setSearchResultsInFile(int findDialog_flag, wxString txt)
@@ -2803,7 +2792,7 @@ void rcbasic_edit_frame::setSearchResultsInProject(int findDialog_flag, wxString
     wxString selText= txt;
     int selLen = selText.Len();
 
-    notebook_mutex.Lock();
+
     for(int p_file=0; p_file < active_project->getSourceFiles().size(); p_file++)
     {
         p_node = active_project->getSourceFiles()[p_file];
@@ -2901,14 +2890,14 @@ void rcbasic_edit_frame::onFindMenuSelect( wxCommandEvent& event )
     switch(find_dialog.getValue())
     {
         case find_dialog_value_INFILE:
-            notebook_mutex.Lock();
+
             setSearchResultsInFile(find_dialog.getFlags(), find_dialog.getSearchText());
-            notebook_mutex.Unlock();
+
             break;
         case find_dialog_value_INPROJECT:
-            notebook_mutex.Lock();
+
             setSearchResultsInProject(find_dialog.getFlags(), find_dialog.getSearchText());
-            notebook_mutex.Unlock();
+
             break;
     }
 
@@ -2943,10 +2932,10 @@ int rcbasic_edit_frame::searchNextPrev(wxStyledTextCtrl* t, int search_type)
 
 void rcbasic_edit_frame::onFindNextMenuSelect(wxCommandEvent& event)
 {
-    notebook_mutex.Lock();
+
     if(sourceFile_auinotebook->GetSelection() < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -2954,11 +2943,8 @@ void rcbasic_edit_frame::onFindNextMenuSelect(wxCommandEvent& event)
 
     if(!t)
     {
-        notebook_mutex.Unlock();
-        //wxPuts(_("No TXT_CTRL\n"));
-        return;
+    	return;
     }
-
 
     if(searchNextPrev(t, search_type_NEXT) < 0)
     {
@@ -2976,16 +2962,16 @@ void rcbasic_edit_frame::onFindNextMenuSelect(wxCommandEvent& event)
             }
         }
     }
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onFindPreviousMenuSelect(wxCommandEvent& event)
 {
-    notebook_mutex.Lock();
+
 
     if(sourceFile_auinotebook->GetSelection() < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -2993,7 +2979,7 @@ void rcbasic_edit_frame::onFindPreviousMenuSelect(wxCommandEvent& event)
 
     if(!t)
     {
-        notebook_mutex.Unlock();
+
         //wxPuts(_("No TXT_CTRL\n"));
         return;
     }
@@ -3014,7 +3000,7 @@ void rcbasic_edit_frame::onFindPreviousMenuSelect(wxCommandEvent& event)
             }
         }
     }
-    notebook_mutex.Unlock();
+
 }
 
 
@@ -3189,16 +3175,19 @@ void rcbasic_edit_frame::onReplaceMenuSelect(wxCommandEvent& event)
     rcbasic_edit_replace_dialog r_dialog(this);
     r_dialog.ShowModal();
 
-    switch(r_dialog.getValue())
-    {
-        case replace_dialog_INFILE:
-            notebook_mutex.Lock();
-            replaceInFile(r_dialog.getFlags(), r_dialog.getSearchText(), r_dialog.getReplaceText());
-            notebook_mutex.Unlock();
-            break;
-    }
+    return;
 }
 
+void rcbasic_edit_frame::onClearMarkerMenuSelect(wxCommandEvent& event)
+{
+	int selected_page = sourceFile_auinotebook->GetSelection();
+
+    if(selected_page >= 0)
+    {
+        wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+        t->IndicatorClearRange(0, t->GetTextLength());
+    }
+}
 
 void rcbasic_edit_frame::onGotoMenuSelect( wxCommandEvent& event )
 {
@@ -3240,20 +3229,20 @@ void rcbasic_edit_frame::onChangeFontMenuSelect( wxCommandEvent& event )
 
     for(int i = 0; i < open_files.size(); i++)
     {
-        notebook_mutex.Lock();
+
         applyScheme(open_files[i]->getTextCtrl());
-        notebook_mutex.Unlock();
+
     }
 }
 
 void rcbasic_edit_frame::onChangeSchemeMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
 
     rcbasic_edit_setColorScheme_dialog scheme_dialog(this);
     scheme_dialog.ShowModal();
 
-    notebook_mutex.Unlock();
+
 }
 
 
@@ -3306,12 +3295,12 @@ void rcbasic_edit_frame::toggleSideBar( wxCommandEvent& event )
 
 void rcbasic_edit_frame::onZoomInMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -3319,23 +3308,23 @@ void rcbasic_edit_frame::onZoomInMenuSelect( wxCommandEvent& event )
 
     if(!t)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
     t->ZoomIn();
 
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onZoomOutMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -3343,23 +3332,23 @@ void rcbasic_edit_frame::onZoomOutMenuSelect( wxCommandEvent& event )
 
     if(!t)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
     t->ZoomOut();
 
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onNormalSizeMenuSelect( wxCommandEvent& event )
 {
-    notebook_mutex.Lock();
+
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -3367,13 +3356,13 @@ void rcbasic_edit_frame::onNormalSizeMenuSelect( wxCommandEvent& event )
 
     if(!t)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
     t->SetZoom(0);
 
-    notebook_mutex.Unlock();
+
 }
 
 
@@ -3388,12 +3377,12 @@ void rcbasic_edit_frame::onProjectSettingsMenuSelect( wxCommandEvent& event )
     if(ps_dialog.getFlag()==PROJECT_SETTINGS_CANCEL)
         return;
 
-    notebook_mutex.Lock();
+
     active_project = ps_dialog.getNewProject();
 
     int project_index = getProjectFromRoot(active_project->getRootNode());
     updateProjectTree(project_index);
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onProjectEnvironmentMenuSelect( wxCommandEvent& event )
@@ -3590,24 +3579,24 @@ void rcbasic_edit_frame::createNewFile(rcbasic_project* project)
         {
             wxMessageBox(_("There is no active project to add new file to."));
         }
-        notebook_mutex.Lock();
+
         txtCtrl_obj = openFileTab(project, newFile);
-        notebook_mutex.Unlock();
+
     }
     else
     {
-        notebook_mutex.Lock();
+
         txtCtrl_obj = openFileTab(NULL, newFile);
-        notebook_mutex.Unlock();
+
     }
 
-    notebook_mutex.Lock();
+
     if(txtCtrl_obj)
         txtCtrl_obj->setTextChangedFlag(false);
 
     if(project)
         updateProjectTree(getProjectFromRoot(project->getRootNode()));
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onTreeContextClick(wxCommandEvent &evt)
@@ -3616,7 +3605,7 @@ void rcbasic_edit_frame::onTreeContextClick(wxCommandEvent &evt)
     if((!context_project) || open_projects.size()<=0)
             return;
 
-    notebook_mutex.Lock();
+
 
     if(active_project != NULL)
     {
@@ -3667,7 +3656,7 @@ void rcbasic_edit_frame::onTreeContextClick(wxCommandEvent &evt)
 
             if(ps_dialog.getFlag()==PROJECT_SETTINGS_CANCEL)
             {
-                notebook_mutex.Unlock();
+
                 return;
             }
 
@@ -3680,7 +3669,7 @@ void rcbasic_edit_frame::onTreeContextClick(wxCommandEvent &evt)
             break;
     }
 
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::openFileProperties(rcbasic_project* f_project, rcbasic_project_node* f_node)
@@ -3723,7 +3712,7 @@ void rcbasic_edit_frame::onTreeFileContextClick(wxCommandEvent &evt)
     wxString cwd = wxGetCwd();
     wxSetWorkingDirectory(context_project->getLocation());
 
-    notebook_mutex.Lock();
+
 
     if(evt.GetId() == PT_OPEN_FILE)
     {
@@ -3746,7 +3735,7 @@ void rcbasic_edit_frame::onTreeFileContextClick(wxCommandEvent &evt)
         updateProjectTree(getProjectFromRoot(context_project->getRootNode()));
     }
 
-    notebook_mutex.Unlock();
+
 
     wxSetWorkingDirectory(cwd);
 }
@@ -3839,7 +3828,7 @@ void rcbasic_edit_frame::onProjectTreeNodeActivated( wxTreeEvent& event )
         wxPuts(_("Node Data: ")+data->node_file_path.GetFullPath()+_(", ")+data->parent_project->getName());
     }*/
 
-    notebook_mutex.Lock();
+
     for(int i = 0; i < open_projects.size(); i++)
     {
         if(open_projects[i]->getRootNode()==selected_node)
@@ -3857,7 +3846,7 @@ void rcbasic_edit_frame::onProjectTreeNodeActivated( wxTreeEvent& event )
 
             project_tree->SetItemBold(active_project->getRootNode(), true);
             //project_tree->SelectItem(active_project->getRootNode(), true);
-            notebook_mutex.Unlock();
+
             return;
         }
         else
@@ -3884,7 +3873,7 @@ void rcbasic_edit_frame::onProjectTreeNodeActivated( wxTreeEvent& event )
                         file_node->setTextCtrl(openFileTab(open_projects[i], file_node->getPath())->getTextCtrl());
                         //wxPuts(_("File Opened"));
                         //wxPrintf(_("file_node t_Ctrl = %p\n"), file_node->getTextCtrl());
-                        notebook_mutex.Unlock();
+
                         int new_page_index = sourceFile_auinotebook->GetPageCount()-1;
                         //wxPrintf(_("new_page_index=%d\n"), new_page_index);
                         sourceFile_auinotebook->SetSelection(new_page_index);
@@ -3910,7 +3899,7 @@ void rcbasic_edit_frame::onProjectTreeNodeActivated( wxTreeEvent& event )
             }
         }
     }
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onProjectTreeSelectionChanged( wxTreeEvent& event )
@@ -3978,7 +3967,7 @@ void rcbasic_edit_frame::onProjectTreeSelectionChanging( wxTreeEvent& event )
 
 void rcbasic_edit_frame::onSourceFileTabClose( wxAuiNotebookEvent& event )
 {
-    notebook_mutex.Lock();
+
 
     int selected_page = event.GetSelection();
 
@@ -4012,7 +4001,7 @@ void rcbasic_edit_frame::onSourceFileTabClose( wxAuiNotebookEvent& event )
                         break;
                     case fileCloseFlag_CANCEL:
                         event.Veto();
-                        notebook_mutex.Unlock();
+
                         return;
                 }
             }
@@ -4040,7 +4029,7 @@ void rcbasic_edit_frame::onSourceFileTabClose( wxAuiNotebookEvent& event )
 
     }
 
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::addRecentProject(rcbasic_project* project)
@@ -4088,7 +4077,7 @@ void rcbasic_edit_frame::addRecentFile(wxFileName file)
 void rcbasic_edit_frame::onTextCtrlUpdated( wxStyledTextEvent& event )
 {
     //event here
-    notebook_mutex.Lock();
+
     int selected_tab = sourceFile_auinotebook->GetSelection();
     wxString selection_string = sourceFile_auinotebook->GetPageText(selected_tab);
     wxStyledTextCtrl* rc_txtCtrl = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_tab);
@@ -4106,15 +4095,15 @@ void rcbasic_edit_frame::onTextCtrlUpdated( wxStyledTextEvent& event )
             sourceFile_auinotebook->SetPageText(selected_tab, _("[*]") + selection_string.substr(selection_string.find_first_not_of(_("[*]"))) );
         }
     }
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
 {
-    notebook_mutex.Lock();
+
     if(sourceFile_auinotebook->GetSelection() < 0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -4122,7 +4111,7 @@ void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
 
     if(!t)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
@@ -4145,7 +4134,7 @@ void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
         }
         if(indent == 0)
         {
-            notebook_mutex.Unlock();
+
             return;
         }
         //wxMessageBox(_("Position from line = ") + wxString::Format("%i",t->PositionFromLine(currentLine)));
@@ -4187,7 +4176,7 @@ void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
         }
     }
 
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::addSymbol(rcbasic_symbol sym)
@@ -4207,7 +4196,7 @@ void rcbasic_edit_frame::addSymbol(rcbasic_symbol sym)
             var_nodes.push_back(symbol_tree->AppendItem( variable_root_node, node_label, symbol_tree_varImage, -1, new rc_symbol_treeItem_data(sym)));
             break;
         case TOKEN_TYPE_FUNCTION:
-            //wxPuts(_("ADD FUNCTION NODE")+sym->id);
+            //wxPuts(_("ADD FUNCTION NODE")+sym.id);
             fn_nodes.push_back(symbol_tree->AppendItem( function_root_node, node_label, symbol_tree_fnImage, -1, new rc_symbol_treeItem_data(sym)));
             break;
     }
@@ -4244,16 +4233,16 @@ void rcbasic_edit_frame::onSymbolSelectionChanged( wxTreeEvent& event )
     wxTreeItemId selected_symbol = event.GetItem();
     #endif
 
-    notebook_mutex.Lock();
+
     if(sourceFile_auinotebook->GetSelection()<0)
     {
-        notebook_mutex.Unlock();
+
         return;
     }
 
     if(sourceFile_auinotebook->GetPage(sourceFile_auinotebook->GetSelection())!=parsed_page)
     {
-        notebook_mutex.Unlock();
+
         #ifdef _WIN32
         symbol_tree->UnselectAll();
         #endif
@@ -4262,7 +4251,7 @@ void rcbasic_edit_frame::onSymbolSelectionChanged( wxTreeEvent& event )
 
     if(selected_symbol==symbol_tree->GetRootItem() || selected_symbol==variable_root_node || selected_symbol==function_root_node)
     {
-        notebook_mutex.Unlock();
+
         #ifdef _WIN32
         symbol_tree->UnselectAll();
         #endif
@@ -4273,14 +4262,14 @@ void rcbasic_edit_frame::onSymbolSelectionChanged( wxTreeEvent& event )
     rc_symbol_treeItem_data* sym_data = (rc_symbol_treeItem_data*)symbol_tree->GetItemData(selected_symbol);
     rcbasic_symbol sym = sym_data->symbol;
 
-    //wxPrintf(_("Symbol: ") + sym.id + _(" -- line=%d"), sym.line );
+    wxPrintf(_("Symbol: ") + sym.id + _(" -- line=%d"), sym.line );
 
 
     wxStyledTextCtrl* t = (wxStyledTextCtrl*) sourceFile_auinotebook->GetPage(sourceFile_auinotebook->GetSelection());
 
     if(!t)
     {
-        notebook_mutex.Unlock();
+
         #ifdef _WIN32
         symbol_tree->UnselectAll();
         #endif
@@ -4297,12 +4286,12 @@ void rcbasic_edit_frame::onSymbolSelectionChanged( wxTreeEvent& event )
     symbol_tree->UnselectAll();
     #endif
 
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onSymbolSelectionChanging( wxTreeEvent& event )
 {
-    notebook_mutex.Lock();
+
     #ifdef _WIN32
     symbol_tree->UnselectAll();
 
@@ -4322,12 +4311,12 @@ void rcbasic_edit_frame::onSymbolSelectionChanging( wxTreeEvent& event )
         symbol_tree->SetItemTextColour(selected_symbol_item, wxColour(240, 240, 240));
     }
     #endif
-    notebook_mutex.Unlock();
+
 }
 
 void rcbasic_edit_frame::onNotebookPageChanged( wxAuiNotebookEvent& event )
 {
-    notebook_mutex.Lock();
+
     for(int i = 0; i < var_nodes.size(); i++)
     {
         rcbasic_treeItem_data * data = NULL;
@@ -4351,7 +4340,7 @@ void rcbasic_edit_frame::onNotebookPageChanged( wxAuiNotebookEvent& event )
     symbols.clear();
     var_nodes.clear();
     fn_nodes.clear();
-    notebook_mutex.Unlock();
+
 }
 
 
@@ -4380,7 +4369,7 @@ void rcbasic_edit_frame::onDropFiles( wxDropFilesEvent& event )
         }
 
 
-        notebook_mutex.Lock();
+
         for (size_t i = 0; i < files.size(); i++)
         {
             //wxMessageBox( files[i] + _("\n"));
@@ -4391,25 +4380,36 @@ void rcbasic_edit_frame::onDropFiles( wxDropFilesEvent& event )
                 openProject(fname);
 
         }
-        notebook_mutex.Unlock();
+
     }
 }
 
 
 void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
 {
-    notebook_mutex.Lock();
+
     int selected_page = sourceFile_auinotebook->GetSelection();
     int selected_file_index = -1;
+
 
     int line_num = 0;
     int total_lines = 0;
     int col_num = 0;
     int total_col = 0;
 
+
     if(selected_page >= 0)
     {
         wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+
+        notebook_mutex.Lock();
+        if(!parse_ready)
+		{
+			parsed_page = t;
+			current_parse_string = t->GetText();
+			parse_ready = true;
+		}
+		notebook_mutex.Unlock();
 
         if(t)
         {
@@ -4432,7 +4432,7 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
         }
     }
 
-    notebook_mutex.Unlock();
+
 
     wxString line_status;
     wxString column_status;
