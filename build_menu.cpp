@@ -490,7 +490,7 @@ void rcbasic_edit_frame::onStopExecuteMenuSelect( wxCommandEvent& event )
             wxRemove(pid_filename.GetFullPath());
         }
 
-        wxString term_cmd = _("cd [editor_path] && echo $( ps ax | grep rcbasic_studio_run | grep [editor_path] ) > run_pid.txt");
+        wxString term_cmd = _("cd [editor_path]/bin && ./stop_process");
         term_cmd.Replace(_("[editor_path]"), editor_path_dir.GetFullPath());
         //wxPuts(_("-------------DEBUG-----------------"));
         //wxPuts(_("get pid: ") + term_cmd);
@@ -498,6 +498,7 @@ void rcbasic_edit_frame::onStopExecuteMenuSelect( wxCommandEvent& event )
 
         wxFile pid_file;
 
+        /*
         if(pid_file.Open(pid_filename.GetFullPath()))
         {
             wxString rpid;
@@ -511,6 +512,7 @@ void rcbasic_edit_frame::onStopExecuteMenuSelect( wxCommandEvent& event )
                 wxSystem(_("kill ") + rpid);
             }
         }
+        */
 
         #else
         //wxPuts(_("STOPPING NOW: ") + _("taskkill /f /im ") + rcbasic_run_path.GetFullName());
