@@ -1733,7 +1733,7 @@ void rcbasic_edit_frame::openProject(wxFileName project_path)
         }
 
         //add to project parser list
-        pfile_runParser(project);
+        //pfile_runParser(project);
 
         project->setVars(project_vars);
         project->setRootNode(project_tree->AppendItem(project_tree->GetRootItem(), project_name, project_tree_folderImage));
