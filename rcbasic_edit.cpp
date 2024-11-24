@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version 4.2.1-0-g80c4cb6-dirty)
+// C++ code generated with wxFormBuilder (version 4.2.1-0-g80c4cb6)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
@@ -1283,7 +1283,6 @@ rc_gotoLine_dialog::rc_gotoLine_dialog( wxWindow* parent, wxWindowID id, const w
 
 	// Connect Events
 	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( rc_gotoLine_dialog::onCancelButtonClick ) );
-	m_goto_textCtrl->Connect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( rc_gotoLine_dialog::onOKButtonClick ), NULL, this );
 	m_button28->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( rc_gotoLine_dialog::onCancelButtonClick ), NULL, this );
 	m_button29->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( rc_gotoLine_dialog::onOKButtonClick ), NULL, this );
 }
@@ -1292,7 +1291,6 @@ rc_gotoLine_dialog::~rc_gotoLine_dialog()
 {
 	// Disconnect Events
 	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( rc_gotoLine_dialog::onCancelButtonClick ) );
-	m_goto_textCtrl->Disconnect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( rc_gotoLine_dialog::onOKButtonClick ), NULL, this );
 	m_button28->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( rc_gotoLine_dialog::onCancelButtonClick ), NULL, this );
 	m_button29->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( rc_gotoLine_dialog::onOKButtonClick ), NULL, this );
 

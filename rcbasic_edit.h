@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version 4.2.1-0-g80c4cb6-dirty)
+// C++ code generated with wxFormBuilder (version 4.2.1-0-g80c4cb6)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
@@ -435,8 +435,8 @@ class rc_gotoLine_dialog : public wxDialog
 
 		// Virtual event handlers, override them in your derived class
 		virtual void onCancelButtonClick( wxCloseEvent& event ) { event.Skip(); }
-		virtual void onOKButtonClick( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onCancelButtonClick( wxCommandEvent& event ) { event.Skip(); }
+		virtual void onOKButtonClick( wxCommandEvent& event ) { event.Skip(); }
 
 
 	public:

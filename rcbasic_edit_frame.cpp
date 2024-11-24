@@ -598,6 +598,8 @@ rc_ideFrame( parent )
         else if(f.GetExt().compare(_("bas"))==0 || f.GetExt().compare(_("txt"))==0)
             openSourceFile(f);
     }
+
+    wxSizerFlags::DisableConsistencyChecks();
 }
 
 bool rcbasic_edit_frame::loadDefaultViewProperties(wxFileName fname)
@@ -1479,12 +1481,19 @@ void rcbasic_edit_frame::newProjectMenuSelect( wxCommandEvent& event)
             return;
 
         wxString project_location = newProject_win->projectLocation_picker->GetPath();
+
+        if(!wxDirExists(project_location))
+            return;
+
         int main_source_flag = newProject_win->projectCreateMain_radio->GetValue() ? 0 : 1;
         #ifdef _WIN32
         wxString main_source_value = main_source_flag==0 ? newProject_win->projectNewMain_field->GetValue() : newProject_win->projectExistingFile_picker->GetTextCtrlValue();
         #else
         wxString main_source_value = main_source_flag==0 ? newProject_win->projectNewMain_field->GetValue() : newProject_win->projectExistingFile_picker->GetFileName().GetFullPath();
         #endif
+
+        main_source_value = main_source_value.compare(_(""))==0 ? _("main.bas") : main_source_value;
+
         wxString project_author = newProject_win->projectAuthor_field->GetValue();
         wxString project_website = newProject_win->projectWebsite_field->GetValue();
         wxString project_description = newProject_win->projectDescription_field->GetValue();

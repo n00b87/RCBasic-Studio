@@ -4,8 +4,8 @@
 
 void rcbasic_edit_frame::onDistributeMenuSelect( wxCommandEvent& event )
 {
-	wxMessageBox(_("Work In Progress"));
-	return; //TODO
+	//wxMessageBox(_("Work In Progress"));
+	//return; //TODO
 
     if(!active_project)
         return;
