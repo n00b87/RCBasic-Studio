@@ -454,8 +454,7 @@ void rcbasic_editrc_distribute_dialog::onMakeAppButtonClick( wxCommandEvent& eve
         //MAIN APP SETTINGS
     app_pkg_args.Replace(_("[TGT_ARGS]"), getPropertyValue(_("TGT_PLATFORM")));
     wxString p_name = getPropertyValue(_("PROJECT_NAME"));
-    p_name.Replace(_(" "), _("/"));
-	app_pkg_args.Replace(_("[PRJ_NAME]"), p_name);
+    app_pkg_args.Replace(_("[PRJ_NAME]"), p_name);
 	app_pkg_args.Replace(_("[PRJ_CAT]"), getPropertyValue(_("PROJECT_CATEGORY")));
 	app_pkg_args.Replace(_("[APT]"), getPropertyValue(_("APP_TYPE")));
 	app_pkg_args.Replace(_("[TRM_FLG]"), getPropertyValue(_("TERMINAL_FLAG")));
