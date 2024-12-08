@@ -371,7 +371,7 @@ rc_ideFrame( parent )
 
     wxFileName rcbasic_dir(editor_path);
 #ifdef _WIN32
-    rcbasic_dir.AppendDir(_("rcbasic"));
+    //rcbasic_dir.AppendDir(_("rcbasic"));
 #endif
     rcbasic_dir.SetFullName(_(""));
     rcbasic_dir.MakeAbsolute();

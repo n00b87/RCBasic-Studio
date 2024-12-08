@@ -12,8 +12,8 @@ rc_distProcess_dialog( parent )
 
     wxFileName dist_script_fname(dist_script_path);
     #ifdef _WIN32
-    dist_script_fname.AppendDir(_("tools"));
-    dist_script_fname.AppendDir(_("scripts"));
+    //dist_script_fname.AppendDir(_("tools"));
+    dist_script_fname.AppendDir(_("bin"));
     dist_script_fname.SetFullName(_("dist.bat"));
     #else
     dist_script_fname.AppendDir(_("bin"));
