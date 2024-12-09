@@ -637,6 +637,22 @@ bool dist_web()
 	return true;
 }
 
+string strip_path(string full_path)
+{
+    string d_sep = "";
+    #if defined(WIN32) || defined(WIN64)
+    d_sep = "\\";
+    #else
+    d_sep = "/";
+    #endif // defined
+
+    int last_delim = full_path.find_last_of(d_sep);
+    if(last_delim < 0 || last_delim >= full_path.length())
+        return full_path;
+
+    return full_path.substr(last_delim+1);
+}
+
 
 int main(int argc, char * argv[])
 {
@@ -668,8 +684,9 @@ int main(int argc, char * argv[])
         while(!dist_file.eof())
         {
             getline(dist_file, dist_line);
+            dist_line = strip_path(dist_line.substr(2));
             if(dist_line.substr(0,2).compare("X:")==0)
-                exclude_files.push_back(dist_line.substr(2));
+                exclude_files.push_back(dist_line);
         }
         dist_file.close();
         exclude_files.push_back((string)argv[1]);

@@ -490,6 +490,13 @@ void rcbasic_editrc_distribute_dialog::onMakeAppButtonClick( wxCommandEvent& eve
 
         rc_distcmd_file.Write(app_pkg_args + _("\n"));
 
+        rc_distcmd_file.Write(_("P:") + current_project->getProjectFileLocation() + _("\n"));
+
+        for(int i = 0; i < source_files.size(); i++)
+        {
+            rc_distcmd_file.Write(_("X:") + source_files[i]->getPath().GetFullName() + _("\n"));
+        }
+
         rc_distcmd_file.Close();
     }
 
