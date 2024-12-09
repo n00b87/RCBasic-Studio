@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <codecvt>
+#include <vector>
 
 using namespace std;
 
@@ -47,6 +48,8 @@ string PROJECT_OUTDIR_NAME = "";
 
 string PROJECT_CBC = "";
 
+vector<string> exclude_files;
+
 string DIST_PKG_PATH = "";
 
 struct dirent *rc_entry;
@@ -63,6 +66,8 @@ int dirExist(std::string d_path)
     else
         return 0;
 }
+
+
 
 std::string dirFirst (std::string rc_dir_path)
 {
@@ -84,9 +89,14 @@ std::string dirNext()
     return "";
 }
 
+
 int dirCreate(std::string d_path)
 {
+    #if defined(WIN32) || defined(WIN64)
     if(mkdir(d_path.c_str())!=0)
+    #else
+    if(mkdir(d_path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)!=0)
+    #endif
     {
         cout << "ERROR: Could not make directory" << endl;
         return 0;
@@ -100,6 +110,17 @@ int dirDelete(std::string d_path)
     string cmd = "rmdir /S /Q \"" + d_path + "\"";
     #else
     string cmd = "rm -rf \"" + d_path + "\"";
+    #endif // defined
+
+    return system(cmd.c_str());
+}
+
+int dirCopy(std::string d_path_src, std::string d_path_dst)
+{
+    #if defined(WIN32) || defined(WIN64)
+    string cmd = "xcopy \"" + d_path_src + "\" \"" + d_path_dst + "\" /S /E /Y";
+    #else
+    string cmd = "cp -R \"" + d_path_src + "\" \"" + d_path_dst + "\"";
     #endif // defined
 
     return system(cmd.c_str());
@@ -412,55 +433,94 @@ string appendFileToPath(string path, string file)
     return path;
 }
 
-bool dist_win(int arch)
+bool fileInExcludeList(string file)
+{
+    for(int i = 0; i < exclude_files.size(); i++)
+    {
+        if(exclude_files[i].compare(file)==0)
+            return true;
+    }
+    return false;
+}
+
+#define DIST_OS_WIN     1
+#define DIST_OS_LINUX   2
+
+bool dist_desktop(int dist_os, int arch)
 {
     string arch_label = "";
-    string WIN_DIST_DIR = DIST_PKG_PATH;
+    string OS_DIST_DIR = DIST_PKG_PATH;
 
-    if(arch == 32)
+    switch(dist_os)
     {
-        if(!PLATFORM_WIN_32)
-            return true;
-        arch_label = "_WIN32";
-        WIN_DIST_DIR = appendFileToPath(WIN_DIST_DIR, "WIN_32");
-    }
-    else if(arch == 64)
-    {
-        if(!PLATFORM_WIN_64)
-            return true;
-        arch_label = "_WIN64";
-        WIN_DIST_DIR = appendFileToPath(WIN_DIST_DIR, "WIN_64");
-    }
-    else
-    {
-        cout << "Error: Invalid Window Arch -> " << arch << endl;
-        return false;
+        case DIST_OS_WIN:
+            if(arch == 32)
+            {
+                if(!PLATFORM_WIN_32)
+                    return true;
+                arch_label = "_WIN32";
+                OS_DIST_DIR = appendFileToPath(OS_DIST_DIR, "WIN_32");
+            }
+            else if(arch == 64)
+            {
+                if(!PLATFORM_WIN_64)
+                    return true;
+                arch_label = "_WIN64";
+                OS_DIST_DIR = appendFileToPath(OS_DIST_DIR, "WIN_64");
+            }
+            else
+            {
+                cout << "Error: Invalid Window Arch -> " << arch << endl;
+                return false;
+            }
+            break;
+        case DIST_OS_LINUX:
+            if(arch == 32)
+            {
+                if(!PLATFORM_LINUX_32)
+                    return true;
+                arch_label = "_LX32";
+                OS_DIST_DIR = appendFileToPath(OS_DIST_DIR, "LINUX_32");
+            }
+            else if(arch == 64)
+            {
+                if(!PLATFORM_LINUX_64)
+                    return true;
+                arch_label = "_LX64";
+                OS_DIST_DIR = appendFileToPath(OS_DIST_DIR, "LINUX_64");
+            }
+            else
+            {
+                cout << "Error: Invalid Linux Arch -> " << arch << endl;
+                return false;
+            }
+            break;
     }
 
-    string WIN_OUTPUT_DIR = OUTPUT_DIR;
+    string DIST_OUTPUT_DIR = OUTPUT_DIR;
 
-    string end_char = WIN_OUTPUT_DIR.substr(WIN_OUTPUT_DIR.length()-1, 1);
+    string end_char = DIST_OUTPUT_DIR.substr(DIST_OUTPUT_DIR.length()-1, 1);
 
     #if defined(WIN32) || defined(WIN64)
     if(end_char.compare("\\")!=0)
     {
-        WIN_OUTPUT_DIR += "\\";
+        DIST_OUTPUT_DIR += "\\";
     }
     #else
     if(end_char.compare("/")!=0)
     {
-        WIN_OUTPUT_DIR += "/";
+        DIST_OUTPUT_DIR += "/";
     }
     #endif // defined
 
-    WIN_OUTPUT_DIR += PROJECT_OUTDIR_NAME + arch_label;
+    DIST_OUTPUT_DIR += PROJECT_OUTDIR_NAME + arch_label;
 
-    if(dirExist(WIN_OUTPUT_DIR))
-        dirDelete(WIN_OUTPUT_DIR);
+    if(dirExist(DIST_OUTPUT_DIR))
+        dirDelete(DIST_OUTPUT_DIR);
 
-    dirCreate(WIN_OUTPUT_DIR);
+    dirCreate(DIST_OUTPUT_DIR);
 
-    if(!dirExist(WIN_OUTPUT_DIR))
+    if(!dirExist(DIST_OUTPUT_DIR))
         return false;
 
     //cout << "WIN32_DIR = " << WIN32_OUTPUT_DIR << endl;
@@ -473,25 +533,44 @@ bool dist_win(int arch)
     {
 
         string dfile_src = appendFileToPath(PROJECT_DIR, dfile);
-        string dfile_dst = appendFileToPath(WIN_OUTPUT_DIR, dfile);
+        string dfile_dst = appendFileToPath(DIST_OUTPUT_DIR, dfile);
         //cout << "file: " << dfile << endl;
 
-        fileCopy(dfile_src, dfile_dst);
+        if(!fileInExcludeList(dfile))
+        {
+            if(dirExist(dfile_src))
+                dirCopy(dfile_src, dfile_dst);
+            else if(fileExist(dfile_src))
+                fileCopy(dfile_src, dfile_dst);
+        }
 
         dfile = dirNext();
     }
 
     //-----COPY DISTRIBUTABLE BINARIES TO OUTPUT DIRECTORY-----
-    dfile = dirFirst(WIN_DIST_DIR);
+    dfile = dirFirst(OS_DIST_DIR);
+
+    //cout << "OS_DIR::" << OS_DIST_DIR << endl;
 
     while(dfile.compare("") != 0)
     {
+        string dfile_src = appendFileToPath(OS_DIST_DIR, dfile);
+        string dfile_dst = appendFileToPath(DIST_OUTPUT_DIR, dfile);
+        //cout << "binaries: " << dfile_src << " <---> " << dfile_dst << endl;
 
-        string dfile_src = appendFileToPath(WIN_DIST_DIR, dfile);
-        string dfile_dst = appendFileToPath(WIN_OUTPUT_DIR, dfile);
-        //cout << "file: " << dfile << endl;
-
-        fileCopy(dfile_src, dfile_dst);
+        if(dfile.compare("..")!=0 && dfile.compare(".")!=0)
+        {
+            if(dirExist(dfile_src))
+            {
+                //cout << "DIR" << endl;
+                dirCopy(dfile_src, dfile_dst);
+            }
+            else if(fileExist(dfile_src))
+            {
+                //cout << "FILE" << endl;
+                fileCopy(dfile_src, dfile_dst);
+            }
+        }
 
         dfile = dirNext();
     }
@@ -499,11 +578,71 @@ bool dist_win(int arch)
     return true;
 }
 
+bool dist_web()
+{
+    //cout << "PLATFORM_WEB: " << (int)PLATFORM_WEB << endl;
+    if(!PLATFORM_WEB)
+        return true;
+
+    string arch_label = "";
+    string OS_DIST_DIR = DIST_PKG_PATH;
+
+    arch_label = "_WEB";
+    OS_DIST_DIR = appendFileToPath(OS_DIST_DIR, "EM");
+
+    string DIST_OUTPUT_DIR = OUTPUT_DIR;
+
+    string end_char = DIST_OUTPUT_DIR.substr(DIST_OUTPUT_DIR.length()-1, 1);
+
+    #if defined(WIN32) || defined(WIN64)
+    if(end_char.compare("\\")!=0)
+    {
+        DIST_OUTPUT_DIR += "\\";
+    }
+    #else
+    if(end_char.compare("/")!=0)
+    {
+        DIST_OUTPUT_DIR += "/";
+    }
+    #endif // defined
+
+    DIST_OUTPUT_DIR += PROJECT_OUTDIR_NAME + arch_label;
+
+    if(dirExist(DIST_OUTPUT_DIR))
+        dirDelete(DIST_OUTPUT_DIR);
+
+    dirCreate(DIST_OUTPUT_DIR);
+
+    if(!dirExist(DIST_OUTPUT_DIR))
+        return false;
+
+    //-----COPY PROJECT FILES TO OUTPUT DIRECTORY-----
+    string out_file = appendFileToPath(DIST_OUTPUT_DIR, PROJECT_OUTDIR_NAME + ".html");
+
+    string em_cmd = DIST_PKG_PATH;
+    em_cmd = appendFileToPath(em_cmd, "EM");
+    #if defined(WIN32) || defined(WIN64)
+    em_cmd = appendFileToPath(em_cmd, "em_build.bat");
+    #else
+    em_cmd = appendFileToPath(em_cmd, "em_build.sh");
+    #endif // defined
+    em_cmd += " \"" + PROJECT_DIR + "\" " + out_file;
+
+    system(em_cmd.c_str());
+
+
+    if(!fileExist(out_file))
+        return false;
+
+	return true;
+}
+
 
 int main(int argc, char * argv[])
 {
     string args = "";
-    args = "TGT_PLATFORM=WIN_32,WIN_64,LINUX_64,WEB PROJECT_NAME=\"tile demo\" PROJECT_CATEGORY=AudioVideo APP_TYPE=Application TERMINAL_FLAG=false PROJECT_DIR=\"C:\\dev_libs\\RCBasic-Studio\\bin\\Release305\\examples\\tile_demo\" OUTPUT_DIR=\"C:\\Users\\Shadow\\Desktop\\test\" ENABLE_WEB_THREADS=false ICON=\"C:\\dev_libs\\RCBasic-Studio\\gfx\\symbol_fn_item.png\" SOURCE=\"test_demo.bas\" ANDROID_APP_ID=\"app.test.com\" ANDROID_ORIENTATION=\"default\" ANDROID_KEYSTORE=\"mykeystore.ts\" ANDROID_KEYSTORE_PASS=\"\" ANDROID_ALIAS=\"myAlias\" ANDROID_ALIAS_PASS=\"\" ANDROID_RELEASE=1 ANDROID_DEBUG=0 ANDROID_JAVA_DIR=\"jv_src.java\" RCBASIC_STUDIO=1";
+    //args = "TGT_PLATFORM=WIN_32,WIN_64,LINUX_64,WEB PROJECT_NAME=\"tile demo\" PROJECT_CATEGORY=AudioVideo APP_TYPE=Application TERMINAL_FLAG=false PROJECT_DIR=\"C:\\dev_libs\\RCBasic-Studio\\bin\\Release305\\examples\\tile_demo\" OUTPUT_DIR=\"C:\\Users\\Shadow\\Desktop\\test\" ENABLE_WEB_THREADS=false ICON=\"C:\\dev_libs\\RCBasic-Studio\\gfx\\symbol_fn_item.png\" SOURCE=\"test_demo.bas\" ANDROID_APP_ID=\"app.test.com\" ANDROID_ORIENTATION=\"default\" ANDROID_KEYSTORE=\"mykeystore.ts\" ANDROID_KEYSTORE_PASS=\"\" ANDROID_ALIAS=\"myAlias\" ANDROID_ALIAS_PASS=\"\" ANDROID_RELEASE=1 ANDROID_DEBUG=0 ANDROID_JAVA_DIR=\"jv_src.java\" RCBASIC_STUDIO=1";
+    //args = "TGT_PLATFORM=WIN_32,WIN_64,LINUX_32,LINUX_64 PROJECT_NAME=\"tile_demo\" PROJECT_CATEGORY=AudioVideo APP_TYPE=Application TERMINAL_FLAG=true PROJECT_DIR=\"/home/n00bc0de/Projects/rcbasic_v400_linux/examples/tile_demo/\" OUTPUT_DIR=\"/home/n00bc0de/Documents/\" ENABLE_WEB_THREADS=true ICON=\"/home/n00bc0de/Projects/rcbasic_v400_linux/gfx/rcbasic.png\" SOURCE=\"main.bas\" ANDROID_APP_ID=\"\" ANDROID_ORIENTATION=\"default\" ANDROID_KEYSTORE=\"\" ANDROID_KEYSTORE_PASS=\"\" ANDROID_ALIAS=\"\" ANDROID_ALIAS_PASS=\"\" ANDROID_RELEASE=0 ANDROID_DEBUG=0 ANDROID_JAVA_DIR=\"\" RCBASIC_STUDIO=1";
 
     DIST_PKG_PATH = getDirPath(argv[0]);
     DIST_PKG_PATH = appendFileToPath(DIST_PKG_PATH, "..");
@@ -511,8 +650,35 @@ int main(int argc, char * argv[])
 
     //cout << "dist path = " << DIST_PKG_PATH << endl;
 
+    fstream dist_file;
+    string ex_list = "";
+    string dist_line = "";
+    exclude_files.push_back(".");
+    exclude_files.push_back("..");
+
     if(argc > 1)
-        args = argv[1];
+    {
+        dist_file.open(argv[1], fstream::in);
+        if(!dist_file.is_open())
+        {
+            cout << "Could not open distribution file: " << argv[1] << endl;
+            return 1;
+        }
+        getline(dist_file, args);
+        while(!dist_file.eof())
+        {
+            getline(dist_file, dist_line);
+            if(dist_line.substr(0,2).compare("X:")==0)
+                exclude_files.push_back(dist_line.substr(2));
+        }
+        dist_file.close();
+        exclude_files.push_back((string)argv[1]);
+    }
+    else
+    {
+        cout << "Expected distribution file" << endl;
+        return 1;
+    }
 
     if(!parse(args))
         return 1;
@@ -548,10 +714,62 @@ int main(int argc, char * argv[])
         PROJECT_CBC = "main.cbc";
     }
 
-    dist_win(32);
-    dist_win(64);
+    if(dirExist(appendFileToPath(PROJECT_DIR,".shaders")))
+        dirDelete(appendFileToPath(PROJECT_DIR,".shaders"));
 
-    debug_output();
+    dirCopy(appendFileToPath(DIST_PKG_PATH,".shaders"), appendFileToPath(PROJECT_DIR,".shaders"));
+
+    bool win32_status = dist_desktop(DIST_OS_WIN, 32);
+    bool win64_status = dist_desktop(DIST_OS_WIN, 64);
+
+    bool linux32_status = dist_desktop(DIST_OS_LINUX, 32);
+    bool linux64_status = dist_desktop(DIST_OS_LINUX, 64);
+
+    bool web_status = dist_web();
+
+    cout << endl << endl;
+
+    if(PLATFORM_WIN_32)
+    {
+        if(win32_status)
+            cout << "RCBASIC PACKAGE SUCCESS: Windows 32-bit distributable created" << endl;
+        else
+            cout << "Error: Failed to package Win32 distributable" << endl;
+    }
+
+    if(PLATFORM_WIN_64)
+    {
+        if(win64_status)
+            cout << "RCBASIC PACKAGE SUCCESS: Windows 64-bit distributable created" << endl;
+        else
+            cout << "Error: Failed to package Win64 distributable" << endl;
+    }
+
+    if(PLATFORM_LINUX_32)
+    {
+        if(linux32_status)
+            cout << "RCBASIC PACKAGE SUCCESS: Linux 32-bit distributable created" << endl;
+        else
+            cout << "Error: Failed to package Linux 32-bit distributable" << endl;
+    }
+
+    if(PLATFORM_LINUX_64)
+    {
+        if(linux64_status)
+            cout << "RCBASIC PACKAGE SUCCESS: Linux 64-bit distributable created" << endl;
+        else
+            cout << "Error: Failed to package Linux 64-bit distributable" << endl;
+    }
+
+    if(PLATFORM_WEB)
+    {
+        if(web_status)
+            cout << "RCBASIC PACKAGE SUCCESS: Web distributable created" << endl;
+        else
+            cout << "Error: Failed to package Web distributable" << endl;
+    }
+
+    //debug_output();
 
     return 0;
 }
