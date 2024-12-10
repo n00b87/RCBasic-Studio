@@ -556,6 +556,11 @@ bool dist_desktop(int dist_os, int arch)
     {
         string dfile_src = appendFileToPath(OS_DIST_DIR, dfile);
         string dfile_dst = appendFileToPath(DIST_OUTPUT_DIR, dfile);
+
+        if(dfile.compare("rcbasic")==0)
+            dfile_dst = appendFileToPath(DIST_OUTPUT_DIR, PROJECT_OUTDIR_NAME);
+        else if(dfile.compare("rcbasic.exe")==0)
+            dfile_dst = appendFileToPath(DIST_OUTPUT_DIR, PROJECT_OUTDIR_NAME + ".exe");
         //cout << "binaries: " << dfile_src << " <---> " << dfile_dst << endl;
 
         if(dfile.compare("..")!=0 && dfile.compare(".")!=0)
