@@ -480,7 +480,7 @@ void rcbasic_editrc_distribute_dialog::onMakeAppButtonClick( wxCommandEvent& eve
 
     wxFile rc_distcmd_file;
 	wxFileName rc_distcmd_fname(current_project->getProjectFileLocation());
-	rc_distcmd_fname.SetFullName("dist_cmd.txt");
+	rc_distcmd_fname.SetFullName("rcbasic_studio_dist_cmd.txt");
 
 	//wxMessageBox(_("DistCMD: ") + rc_distcmd_fname.GetFullPath());
 
@@ -490,7 +490,11 @@ void rcbasic_editrc_distribute_dialog::onMakeAppButtonClick( wxCommandEvent& eve
 
         rc_distcmd_file.Write(app_pkg_args + _("\n"));
 
-        rc_distcmd_file.Write(_("P:") + current_project->getProjectFileLocation() + _("\n"));
+        rc_distcmd_file.Write(_("X:") + current_project->getProjectFileLocation() + _("\n"));
+        rc_distcmd_file.Write(_("X:app.properties\n"));
+        rc_distcmd_file.Write(_("X:rcbasic_studio_dist_cmd.txt\n"));
+        rc_distcmd_file.Write(_("X:rcbasic.dbgi\n"));
+        rc_distcmd_file.Write(_("X:rcbasic.dbgs\n"));
 
         for(int i = 0; i < source_files.size(); i++)
         {

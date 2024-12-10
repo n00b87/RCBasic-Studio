@@ -131,6 +131,15 @@ void rcbasic_editrc_distProcess_dialog::onDistProcessTerminate( wxProcessEvent& 
     while(dist_process->IsInputAvailable())
     {
         wxString console_line = dist_stream.ReadLine();
+
+        if(console_line.find(_("RCBASIC PACKAGE SUCCESS:")) != wxString::npos)
+        {
+            //wxPuts(_("\n\n####FOUND IT#####\n\n"));
+            current_count++;
+            m_status_gauge->SetValue(current_count);
+            //wxPrintf(_("Current Value = %d out of %d\n"), m_status_gauge->GetValue(), m_status_gauge->GetRange());
+        }
+
         m_consoleLog_textCtrl->AppendText(console_line + _("\n"));
     }
 

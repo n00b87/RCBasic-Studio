@@ -684,7 +684,9 @@ int main(int argc, char * argv[])
         while(!dist_file.eof())
         {
             getline(dist_file, dist_line);
-            dist_line = strip_path(dist_line.substr(2));
+            if(dist_line.length() > 2)
+                dist_line = dist_line.substr(2);
+            dist_line = strip_path(dist_line);
             if(dist_line.substr(0,2).compare("X:")==0)
                 exclude_files.push_back(dist_line);
         }
@@ -696,6 +698,8 @@ int main(int argc, char * argv[])
         cout << "Expected distribution file" << endl;
         return 1;
     }
+
+    //std::cout << "test" << endl;
 
     if(!parse(args))
         return 1;
@@ -736,57 +740,95 @@ int main(int argc, char * argv[])
 
     dirCopy(appendFileToPath(DIST_PKG_PATH,".shaders"), appendFileToPath(PROJECT_DIR,".shaders"));
 
+
     bool win32_status = dist_desktop(DIST_OS_WIN, 32);
-    bool win64_status = dist_desktop(DIST_OS_WIN, 64);
-
-    bool linux32_status = dist_desktop(DIST_OS_LINUX, 32);
-    bool linux64_status = dist_desktop(DIST_OS_LINUX, 64);
-
-    bool web_status = dist_web();
-
-    cout << endl << endl;
-
     if(PLATFORM_WIN_32)
     {
         if(win32_status)
             cout << "RCBASIC PACKAGE SUCCESS: Windows 32-bit distributable created" << endl;
         else
-            cout << "Error: Failed to package Win32 distributable" << endl;
+            cout << "RCBASIC PACKAGE ERROR: Failed to package Win32 distributable" << endl;
     }
 
+    bool win64_status = dist_desktop(DIST_OS_WIN, 64);
     if(PLATFORM_WIN_64)
     {
         if(win64_status)
             cout << "RCBASIC PACKAGE SUCCESS: Windows 64-bit distributable created" << endl;
         else
-            cout << "Error: Failed to package Win64 distributable" << endl;
+            cout << "RCBASIC PACKAGE ERROR: Failed to package Win64 distributable" << endl;
     }
 
+    bool linux32_status = dist_desktop(DIST_OS_LINUX, 32);
     if(PLATFORM_LINUX_32)
     {
         if(linux32_status)
             cout << "RCBASIC PACKAGE SUCCESS: Linux 32-bit distributable created" << endl;
         else
-            cout << "Error: Failed to package Linux 32-bit distributable" << endl;
+            cout << "RCBASIC PACKAGE ERROR: Failed to package Linux 32-bit distributable" << endl;
     }
 
+    bool linux64_status = dist_desktop(DIST_OS_LINUX, 64);
     if(PLATFORM_LINUX_64)
     {
         if(linux64_status)
             cout << "RCBASIC PACKAGE SUCCESS: Linux 64-bit distributable created" << endl;
         else
-            cout << "Error: Failed to package Linux 64-bit distributable" << endl;
+            cout << "RCBASIC PACKAGE ERROR: Failed to package Linux 64-bit distributable" << endl;
     }
 
+    bool web_status = dist_web();
     if(PLATFORM_WEB)
     {
         if(web_status)
             cout << "RCBASIC PACKAGE SUCCESS: Web distributable created" << endl;
         else
-            cout << "Error: Failed to package Web distributable" << endl;
+            cout << "RCBASIC PACKAGE ERROR: Failed to package Web distributable" << endl;
     }
 
-    //debug_output();
+    debug_output();
+
+    cout << endl << endl << endl;
+
+    if(PLATFORM_WIN_32)
+    {
+        if(win32_status)
+            cout << "PACKAGE SUCCESS: Windows 32-bit distributable created" << endl;
+        else
+            cout << "PACKAGE ERROR: Failed to package Win32 distributable" << endl;
+    }
+
+    if(PLATFORM_WIN_64)
+    {
+        if(win64_status)
+            cout << "PACKAGE SUCCESS: Windows 64-bit distributable created" << endl;
+        else
+            cout << "PACKAGE ERROR: Failed to package Win64 distributable" << endl;
+    }
+
+    if(PLATFORM_LINUX_32)
+    {
+        if(linux32_status)
+            cout << "PACKAGE SUCCESS: Linux 32-bit distributable created" << endl;
+        else
+            cout << "PACKAGE ERROR: Failed to package Linux 32-bit distributable" << endl;
+    }
+
+    if(PLATFORM_LINUX_64)
+    {
+        if(linux64_status)
+            cout << "PACKAGE SUCCESS: Linux 64-bit distributable created" << endl;
+        else
+            cout << "PACKAGE ERROR: Failed to package Linux 64-bit distributable" << endl;
+    }
+
+    if(PLATFORM_WEB)
+    {
+        if(web_status)
+            cout << "PACKAGE SUCCESS: Web distributable created" << endl;
+        else
+            cout << "PACKAGE ERROR: Failed to package Web distributable" << endl;
+    }
 
     return 0;
 }
