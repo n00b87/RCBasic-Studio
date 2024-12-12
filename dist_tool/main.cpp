@@ -118,7 +118,7 @@ int dirDelete(std::string d_path)
 int dirCopy(std::string d_path_src, std::string d_path_dst)
 {
     #if defined(WIN32) || defined(WIN64)
-    string cmd = "xcopy \"" + d_path_src + "\" \"" + d_path_dst + "\" /S /E /Y";
+    string cmd = "xcopy \"" + d_path_src + "\" \"" + d_path_dst + "\" /S /E /Y /I";
     #else
     string cmd = "cp -R \"" + d_path_src + "\" \"" + d_path_dst + "\"";
     #endif // defined
@@ -685,15 +685,26 @@ int main(int argc, char * argv[])
             cout << "Could not open distribution file: " << argv[1] << endl;
             return 1;
         }
+
+        bool is_ex = false;
         getline(dist_file, args);
         while(!dist_file.eof())
         {
+            is_ex = false;
             getline(dist_file, dist_line);
+            cout << "DST_LINE: " << dist_line << endl;
             if(dist_line.length() > 2)
+            {
+                if(dist_line.substr(0,2).compare("X:")==0)
+                    is_ex = true;
+
                 dist_line = dist_line.substr(2);
+            }
             dist_line = strip_path(dist_line);
-            if(dist_line.substr(0,2).compare("X:")==0)
+            if(is_ex)
                 exclude_files.push_back(dist_line);
+            //else
+            //    cout << "SUB: " << dist_line.substr(0,2) << endl;
         }
         dist_file.close();
         exclude_files.push_back((string)argv[1]);
@@ -703,6 +714,11 @@ int main(int argc, char * argv[])
         cout << "Expected distribution file" << endl;
         return 1;
     }
+
+    for(int i = 0; i < exclude_files.size(); i++)
+        cout << "EXCLUDE: " << exclude_files[i] << endl;
+
+    cout << endl;
 
     //std::cout << "test" << endl;
 
