@@ -725,7 +725,7 @@ int main(int argc, char * argv[])
     if(!parse(args))
         return 1;
 
-    string build_cmd = "rcbasic_build4 \"" + appendFileToPath(PROJECT_DIR, SOURCE) + "\"";
+    string build_cmd = "pushd \"" + PROJECT_DIR + "\" && " "rcbasic_build4 \"" + appendFileToPath(PROJECT_DIR, SOURCE) + "\" && popd ";
 
     if(SOURCE.length() < 5)
     {
