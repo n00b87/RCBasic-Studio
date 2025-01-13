@@ -1875,7 +1875,16 @@ void rcbasic_edit_frame::saveFile(int openFile_index, int flag=0)
         }
     }
 
-    f.Write( open_files[openFile_index]->getTextCtrl()->GetText() );
+    wxString file_text = open_files[openFile_index]->getTextCtrl()->GetText();
+    if(file_text.length() > 0)
+    {
+        if(file_text.substr(file_text.length()-1, 1).compare(_("\n"))!=0)
+            file_text.Append(_("\n"));
+    }
+    else
+        file_text.Append(_("\n"));
+
+    f.Write( file_text );
     f.Close();
 
     if(flag==FILE_SAVEAS_FLAG)
