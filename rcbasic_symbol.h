@@ -12,6 +12,7 @@ struct rcbasic_symbol
     int token_type;
     bool in_list;
     wxString upper_id; //storing id uppercase to speed up sort
+    wxString user_type;
 };
 
 class rc_symbol_treeItem_data : public wxTreeItemData

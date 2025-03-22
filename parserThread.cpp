@@ -148,6 +148,7 @@ bool parserThread::runParser(wxCommandEvent evt)
     int contents_changed = 0;
 
     bool fn_define = false;
+    bool udt_define = false;
 
     sw_timer.Start(0);
 
@@ -157,7 +158,7 @@ bool parserThread::runParser(wxCommandEvent evt)
         if(TestDestroy())
             break;
 
-        rc_eval(std::string(contents[i].mb_str()), &fn_define);
+        rc_eval(std::string(contents[i].mb_str()), &fn_define, &udt_define);
         //wxPuts(_("EVAL RAN"));
         for(int t_count = 0; t_count < id_tokens.size(); t_count++)
         {
@@ -169,6 +170,7 @@ bool parserThread::runParser(wxCommandEvent evt)
             sym.dimensions = id_tokens[t_count].dimensions;
             sym.token_type = id_tokens[t_count].token_type;
             sym.in_list = id_tokens[t_count].is_in_list;
+            sym.user_type = id_tokens[t_count].user_type;
 
             if(!inSymbolList(sym))
                 contents_changed = 1;

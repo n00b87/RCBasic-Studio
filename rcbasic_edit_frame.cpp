@@ -89,12 +89,13 @@ bool rcbasic_edit_frame::pfile_runParser(rcbasic_project* p)
         int contents_changed = 0;
 
         bool fn_define = false;
+        bool udt_define = false;
 
 
         for(int i = 0; i < pfile_contents.size(); i++)
         {
 
-            rc_eval(std::string(pfile_contents[i].mb_str()), &fn_define);
+            rc_eval(std::string(pfile_contents[i].mb_str()), &fn_define, &udt_define);
             //wxPuts(_("EVAL RAN"));
             for(int t_count = 0; t_count < id_tokens.size(); t_count++)
             {
@@ -188,6 +189,8 @@ void rcbasic_edit_frame::updateSymbolTree()
     //symbol_tree->DeleteChildren(function_root_node);
     int v_index = 0;
     int f_index = 0;
+    int u_index = 0;
+    int c_index = 0;
 
     //int v_count = symbol_tree->GetChildrenCount(variable_root_node);
     //int f_count = symbol_tree->GetChildrenCount(function_root_node);
@@ -224,6 +227,26 @@ void rcbasic_edit_frame::updateSymbolTree()
                     addSymbol(symbols[i]);
                 f_index++;
                 break;
+            case TOKEN_TYPE_UDT:
+                if(u_index < udt_nodes.size())
+                {
+                    setSymbol(udt_nodes[u_index], symbols[i]);
+                    //f_child = symbol_tree->GetNextChild(function_root_node, f_cookie);
+                }
+                else
+                    addSymbol(symbols[i]);
+                u_index++;
+                break;
+            case TOKEN_TYPE_CONSTANT:
+                if(c_index < const_nodes.size())
+                {
+                    setSymbol(const_nodes[c_index], symbols[i]);
+                    //f_child = symbol_tree->GetNextChild(function_root_node, f_cookie);
+                }
+                else
+                    addSymbol(symbols[i]);
+                c_index++;
+                break;
         }
     }
 
@@ -249,6 +272,28 @@ void rcbasic_edit_frame::updateSymbolTree()
             delete data;
         symbol_tree->Delete(fn_nodes[f_index]);
         fn_nodes.erase(fn_nodes.begin()+f_index);
+        //f_child = symbol_tree->GetNextChild(function_root_node, f_cookie);
+    }
+
+    while(u_index < udt_nodes.size())
+    {
+        rcbasic_treeItem_data* data = (rcbasic_treeItem_data*)symbol_tree->GetItemData(udt_nodes[u_index]);
+        symbol_tree->SetItemData(udt_nodes[u_index], NULL);
+        if(data)
+            delete data;
+        symbol_tree->Delete(udt_nodes[u_index]);
+        udt_nodes.erase(udt_nodes.begin()+u_index);
+        //f_child = symbol_tree->GetNextChild(function_root_node, f_cookie);
+    }
+
+    while(c_index < const_nodes.size())
+    {
+        rcbasic_treeItem_data* data = (rcbasic_treeItem_data*)symbol_tree->GetItemData(const_nodes[c_index]);
+        symbol_tree->SetItemData(const_nodes[c_index], NULL);
+        if(data)
+            delete data;
+        symbol_tree->Delete(const_nodes[c_index]);
+        const_nodes.erase(const_nodes.begin()+c_index);
         //f_child = symbol_tree->GetNextChild(function_root_node, f_cookie);
     }
 
@@ -425,6 +470,12 @@ rc_ideFrame( parent )
     wxFileName symbol_fn_item_image = gfx_path;
     symbol_fn_item_image.SetFullName(_("symbol_fn_item.png"));
 
+    wxFileName symbol_udt_item_image = gfx_path;
+    symbol_udt_item_image.SetFullName(_("symbol_udt_item.png"));
+
+    wxFileName symbol_const_item_image = gfx_path;
+    symbol_const_item_image.SetFullName(_("symbol_const_item.png"));
+
     project_tree_imageList = new wxImageList(16,16,true);
     project_tree_rootImage = project_tree_imageList->Add(wxBitmap(wxImage(root_image.GetFullPath())));
     project_tree_folderImage  = project_tree_imageList->Add(wxArtProvider::GetBitmap( wxART_FOLDER, wxART_MENU ));
@@ -448,9 +499,13 @@ rc_ideFrame( parent )
     symbol_tree_rootImage = symbol_tree_imageList->Add(wxBitmap(wxImage(symbol_root_image.GetFullPath())));
     symbol_tree_varImage  = symbol_tree_imageList->Add(wxBitmap(wxImage(symbol_item_image.GetFullPath())));
     symbol_tree_fnImage = symbol_tree_imageList->Add(wxBitmap(wxImage(symbol_fn_item_image.GetFullPath())));
+    symbol_tree_udtImage = symbol_tree_imageList->Add(wxBitmap(wxImage(symbol_udt_item_image.GetFullPath())));
+    symbol_tree_constImage = symbol_tree_imageList->Add(wxBitmap(wxImage(symbol_const_item_image.GetFullPath())));
     symbol_tree->AssignImageList(symbol_tree_imageList);
 
     symbol_tree->AddRoot(_("Symbols"), symbol_tree_rootImage);
+    const_root_node = symbol_tree->AppendItem(symbol_tree->GetRootItem(), _("Constants"), symbol_tree_constImage, -1, NULL);
+    udt_root_node = symbol_tree->AppendItem(symbol_tree->GetRootItem(), _("Types"), symbol_tree_udtImage, -1, NULL);
     function_root_node = symbol_tree->AppendItem(symbol_tree->GetRootItem(), _("Function"), symbol_tree_fnImage, -1, NULL);
     variable_root_node = symbol_tree->AppendItem(symbol_tree->GetRootItem(), _("Variables"), symbol_tree_varImage, -1, NULL);
 
@@ -1301,6 +1356,18 @@ void rcbasic_edit_frame::applyScheme(wxStyledTextCtrl* rc_txtCtrl)
         symbol_tree->SetItemTextColour(function_root_node, item_fg);
     }
 
+    if(udt_root_node.IsOk())
+    {
+        symbol_tree->SetItemBackgroundColour(udt_root_node, item_bkg);
+        symbol_tree->SetItemTextColour(udt_root_node, item_fg);
+    }
+
+    if(const_root_node.IsOk())
+    {
+        symbol_tree->SetItemBackgroundColour(const_root_node, item_bkg);
+        symbol_tree->SetItemTextColour(const_root_node, item_fg);
+    }
+
     for(int i = 0; i < var_nodes.size(); i++)
     {
         if(var_nodes[i].IsOk())
@@ -1316,6 +1383,24 @@ void rcbasic_edit_frame::applyScheme(wxStyledTextCtrl* rc_txtCtrl)
         {
             symbol_tree->SetItemBackgroundColour(fn_nodes[i], item_bkg);
             symbol_tree->SetItemTextColour(fn_nodes[i], item_fg);
+        }
+    }
+
+    for(int i = 0; i < udt_nodes.size(); i++)
+    {
+        if(udt_nodes[i].IsOk())
+        {
+            symbol_tree->SetItemBackgroundColour(udt_nodes[i], item_bkg);
+            symbol_tree->SetItemTextColour(udt_nodes[i], item_fg);
+        }
+    }
+
+    for(int i = 0; i < const_nodes.size(); i++)
+    {
+        if(const_nodes[i].IsOk())
+        {
+            symbol_tree->SetItemBackgroundColour(const_nodes[i], item_bkg);
+            symbol_tree->SetItemTextColour(const_nodes[i], item_fg);
         }
     }
 
@@ -4217,6 +4302,14 @@ void rcbasic_edit_frame::addSymbol(rcbasic_symbol sym)
             //wxPuts(_("ADD FUNCTION NODE")+sym.id);
             fn_nodes.push_back(symbol_tree->AppendItem( function_root_node, node_label, symbol_tree_fnImage, -1, new rc_symbol_treeItem_data(sym)));
             break;
+        case TOKEN_TYPE_UDT:
+            //wxPuts(_("ADD FUNCTION NODE")+sym.id);
+            udt_nodes.push_back(symbol_tree->AppendItem( udt_root_node, node_label, symbol_tree_udtImage, -1, new rc_symbol_treeItem_data(sym)));
+            break;
+        case TOKEN_TYPE_CONSTANT:
+            //wxPuts(_("ADD FUNCTION NODE")+sym.id);
+            const_nodes.push_back(symbol_tree->AppendItem( const_root_node, node_label, symbol_tree_constImage, -1, new rc_symbol_treeItem_data(sym)));
+            break;
     }
 }
 
@@ -4224,7 +4317,7 @@ void rcbasic_edit_frame::setSymbol(wxTreeItemId s_node, rcbasic_symbol sym)
 {
     wxString node_label = sym.id;
 
-    if(s_node == variable_root_node || s_node == function_root_node)
+    if(s_node == variable_root_node || s_node == function_root_node || s_node == udt_root_node)
         return;
 
     if(sym.dimensions > 0)
@@ -4239,7 +4332,25 @@ void rcbasic_edit_frame::setSymbol(wxTreeItemId s_node, rcbasic_symbol sym)
 
     symbol_tree->SetItemText(s_node, node_label);
     symbol_tree->SetItemData(s_node, new rc_symbol_treeItem_data(sym));
-    symbol_tree->SetItemImage(s_node, sym.token_type==TOKEN_TYPE_VARIABLE ? symbol_tree_varImage : symbol_tree_fnImage);
+
+    switch(sym.token_type)
+    {
+        case TOKEN_TYPE_VARIABLE:
+            symbol_tree->SetItemImage(s_node, symbol_tree_varImage);
+            break;
+
+        case TOKEN_TYPE_FUNCTION:
+            symbol_tree->SetItemImage(s_node, symbol_tree_fnImage);
+            break;
+
+        case TOKEN_TYPE_UDT:
+            symbol_tree->SetItemImage(s_node, symbol_tree_udtImage);
+            break;
+
+        case TOKEN_TYPE_CONSTANT:
+            symbol_tree->SetItemImage(s_node, symbol_tree_constImage);
+            break;
+    }
 
 }
 
@@ -4267,7 +4378,7 @@ void rcbasic_edit_frame::onSymbolSelectionChanged( wxTreeEvent& event )
         return;
     }
 
-    if(selected_symbol==symbol_tree->GetRootItem() || selected_symbol==variable_root_node || selected_symbol==function_root_node)
+    if(selected_symbol==symbol_tree->GetRootItem() || selected_symbol==variable_root_node || selected_symbol==function_root_node || selected_symbol==udt_root_node || selected_symbol==const_root_node)
     {
 
         #ifdef _WIN32
@@ -4353,11 +4464,33 @@ void rcbasic_edit_frame::onNotebookPageChanged( wxAuiNotebookEvent& event )
             delete data;
     }
 
+    for(int i = 0; i < udt_nodes.size(); i++)
+    {
+        rcbasic_treeItem_data * data = NULL;
+        data = (rcbasic_treeItem_data*)symbol_tree->GetItemData(udt_nodes[i]);
+        symbol_tree->SetItemData(udt_nodes[i], NULL);
+        if(data)
+            delete data;
+    }
+
+    for(int i = 0; i < const_nodes.size(); i++)
+    {
+        rcbasic_treeItem_data * data = NULL;
+        data = (rcbasic_treeItem_data*)symbol_tree->GetItemData(const_nodes[i]);
+        symbol_tree->SetItemData(const_nodes[i], NULL);
+        if(data)
+            delete data;
+    }
+
     symbol_tree->DeleteChildren(variable_root_node);
     symbol_tree->DeleteChildren(function_root_node);
+    symbol_tree->DeleteChildren(udt_root_node);
+    symbol_tree->DeleteChildren(const_root_node);
     symbols.clear();
     var_nodes.clear();
     fn_nodes.clear();
+    udt_nodes.clear();
+    const_nodes.clear();
 
 }
 

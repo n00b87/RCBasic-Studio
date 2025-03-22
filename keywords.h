@@ -40,8 +40,10 @@ string keyWords[] = {
     "REDIM", //, //36
     "CONST", //37
     "ONCE", //38
-    "CONTINUE" //39
-    //"AS" //40
+    "CONTINUE", //39
+    "TYPE", //40
+    "AS", //41
+    "CONST" //42
 };
 
 #endif // KEYWORDS_H_INCLUDED

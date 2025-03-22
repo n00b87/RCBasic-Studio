@@ -157,12 +157,18 @@ class rcbasic_edit_frame : public rc_ideFrame
         int symbol_tree_rootImage;
         int symbol_tree_varImage;
         int symbol_tree_fnImage;
+        int symbol_tree_udtImage;
+        int symbol_tree_constImage;
 
         wxTreeItemId function_root_node;
         wxTreeItemId variable_root_node;
+        wxTreeItemId const_root_node;
+        wxTreeItemId udt_root_node;
 
         std::vector<wxTreeItemId> fn_nodes;
         std::vector<wxTreeItemId> var_nodes;
+        std::vector<wxTreeItemId> const_nodes;
+        std::vector<wxTreeItemId> udt_nodes;
 
         wxString recent_projects[10];
         wxString recent_files[10];

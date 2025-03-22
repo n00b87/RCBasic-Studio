@@ -8,6 +8,8 @@ using namespace std;
 
 #define TOKEN_TYPE_VARIABLE 0
 #define TOKEN_TYPE_FUNCTION 1
+#define TOKEN_TYPE_UDT      2
+#define TOKEN_TYPE_CONSTANT 3
 
 struct rcbasic_id_token
 {
@@ -18,6 +20,7 @@ struct rcbasic_id_token
     string d2;
     string d3;
     bool is_in_list;
+    string user_type;
 };
 
 vector<rcbasic_id_token> id_tokens;
@@ -40,12 +43,13 @@ void add_id_token_other(rcbasic_id_token t)
     id_tokens.push_back(t);
 }
 
-bool rc_eval(string line, bool* isInFunction)
+bool rc_eval(string line, bool* isInFunction, bool* isInType)
 {
     //adding an extra character to line to avoid a memory leak
     line += "  ";
 
     bool fn_define = *isInFunction;
+    bool udt_define = *isInType;
 
     clearTokens();
     id_tokens.clear();
@@ -69,12 +73,15 @@ bool rc_eval(string line, bool* isInFunction)
 
     dim_id.name = "";
     dim_id.dimensions = 0;
+    dim_id.user_type = "";
 
     tmp_token.push_back("<:>");
 
     int expr_token_index = 0;
 
+    bool udt_expr = false;
     bool fn_expr = false;
+    bool const_expr = false;
 
     rcbasic_id_token fn_id;
 
@@ -95,6 +102,7 @@ bool rc_eval(string line, bool* isInFunction)
 
                     dim_id.name = "";
                     dim_id.dimensions = 0;
+                    dim_id.user_type = "";
                 }
                 else if(tmp_token[i].substr(0, 4).compare("<id>")==0 && tmp_token[i+1].compare("<equal>")==0)
                 {
@@ -105,6 +113,7 @@ bool rc_eval(string line, bool* isInFunction)
 
                     dim_id.name = "";
                     dim_id.dimensions = 0;
+                    dim_id.user_type = "";
                 }
                 else if( (tmp_token[i].compare("<function>")==0 || tmp_token[i].compare("<subp>")==0) && tmp_token[i+1].substr(0,4).compare("<id>")==0 )
                 {
@@ -120,6 +129,38 @@ bool rc_eval(string line, bool* isInFunction)
                     dim_id.name = tmp_token[i+1].substr(4);
                     //wxPuts(_("found function: ") + dim_id.name);
                 }
+                else if( tmp_token[i].compare("<type>")==0 && tmp_token[i+1].substr(0,4).compare("<id>")==0 )
+                {
+                    udt_define = true;
+                    udt_expr = true;
+
+                    dim_id.token_type = TOKEN_TYPE_UDT;
+                    dim_id.dimensions = 0;
+
+                    dim_define = false;
+                    is_dim_expr = false;
+                    dim_scope = 0;
+                    dim_id.name = tmp_token[i+1].substr(4);
+                    //wxPuts(_("found type: ") + dim_id.name);
+                }
+                else if( tmp_token[i].compare("<const>")==0 && tmp_token[i+1].substr(0,4).compare("<id>")==0 )
+                {
+                    const_expr = true;
+
+                    dim_id.token_type = TOKEN_TYPE_CONSTANT;
+                    dim_id.dimensions = 0;
+
+                    dim_define = false;
+                    is_dim_expr = false;
+                    dim_scope = 0;
+                    dim_id.name = tmp_token[i+1].substr(4);
+                    dim_id.user_type = "";
+
+                    for(int ci=i+2; ci < tmp_token.size(); ci++)
+                        tmp_token[ci] = "";
+                        tmp_token.push_back("<:>");
+                    //wxPuts(_("found const: ") + dim_id.name);
+                }
                 else if(tmp_token[i].compare("<end>")==0 && (tmp_token[i+1].compare("<function>")==0 || tmp_token[i+1].compare("<subp>")==0))
                 {
                     //wxPuts(_("END FUNC"));
@@ -127,11 +168,19 @@ bool rc_eval(string line, bool* isInFunction)
                     i++;
                     continue;
                 }
+                else if(tmp_token[i].compare("<end>")==0 && tmp_token[i+1].compare("<type>")==0)
+                {
+                    //wxPuts(_("END FUNC"));
+                    udt_define = false;
+                    i++;
+                    continue;
+                }
             }
         }
 
-        if(tmp_token[i].compare("<dim>")==0 && (!fn_define))
+        if(tmp_token[i].compare("<dim>")==0 && (!(fn_define || udt_define)))
         {
+            // TODO: Need to add support for AS <TYPE>
             dim_token = tmp_token[i];
             dim_scope = 0;
             is_dim_expr = true;
@@ -155,6 +204,16 @@ bool rc_eval(string line, bool* isInFunction)
             is_dim_expr = true;
             dim_define = false;
             continue;
+        }
+        else if(tmp_token[i].compare("<as>")==0)
+        {
+            if((i+1) < tmp_token.size())
+            {
+                if(tmp_token[i+1].substr(0,4).compare("<id>")==0)
+                    dim_id.user_type = tmp_token[i+1].substr(4);
+
+                tmp_token[i+1] = "";
+            }
         }
 
 
@@ -210,7 +269,7 @@ bool rc_eval(string line, bool* isInFunction)
                 dim_id.dimensions = 0;
 
                 tmp_token[i] = "<:>";
-                tmp_token.insert(tmp_token.begin()+ (i+1), dim_token);
+                tmp_token.insert(tmp_token.begin() + (i+1), dim_token);
             }
             else if(tmp_token[i].substr(0,4).compare("<id>")==0)
             {
@@ -222,9 +281,13 @@ bool rc_eval(string line, bool* isInFunction)
         {
             expr_token_index = 0;
 
-            if((!fn_define) && dim_define && dim_id.name.compare("")!=0)
+            if((!(fn_define||udt_define)) && dim_define && dim_id.name.compare("")!=0)
                 add_id_token(dim_id);
             else if(fn_expr && dim_id.name.compare("")!=0)
+                add_id_token(dim_id);
+            else if(udt_expr && dim_id.name.compare("")!=0)
+                add_id_token(dim_id);
+            else if(const_expr && dim_id.name.compare("")!=0)
                 add_id_token(dim_id);
 
             dim_id.name = "";
@@ -234,10 +297,13 @@ bool rc_eval(string line, bool* isInFunction)
             is_dim_expr = false;
             is_dim_expr_other = false;
             fn_expr = false;
+            udt_expr = false;
+            const_expr = false;
         }
     }
 
     isInFunction[0] = fn_define;
+    isInType[0] = udt_define;
 
     return true;
 }
