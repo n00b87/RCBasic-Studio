@@ -91,6 +91,7 @@ struct rcbasic_edit_scheme
     wxColour current_line_fg_color;
     wxColour line_number_fg_color;
     wxColour line_number_bkg_color;
+    wxFont t_font;
 
     bool style_bkg_color_set;
     bool keyword_fg_color_set;
@@ -108,6 +109,7 @@ struct rcbasic_edit_scheme
     bool current_line_fg_color_set;
     bool line_number_bkg_color_set;
     bool line_number_fg_color_set;
+    bool t_font_set;
 };
 
 /** Implementing rc_ideFrame */
@@ -379,6 +381,11 @@ class rcbasic_edit_frame : public rc_ideFrame
         bool getPresetFlag();
         wxString getRCBasicDocLink();
         wxString getStudioDocLink();
+
+        int getFontFamily(wxString family_name);
+        int getFontStyle(wxString style_name);
+        int getFontWeight(wxString weight_name);
+        int getFontEncoding(wxString encoding_name);
 
 		wxSemaphore* getSymSem() { return sym_sem; }
 

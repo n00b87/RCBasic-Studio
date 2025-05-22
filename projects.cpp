@@ -361,7 +361,7 @@ bool rcbasic_project::saveProject(wxFileName save_file)
     else
     {
         //wxPuts("Saving Project");
-        project_file.Write(_("RCBASIC_STUDIO:1.0\n"));
+        project_file.Write(_("RCBASIC_STUDIO:2.1\n"));
         project_file.Write(_("PROJECT_NAME:")+name+_("\n"));
         project_file.Write(_("PROJECT_MAIN:")+main_source.GetFullPath()+_("\n"));
         project_file.Write(_("AUTHOR:")+author+_("\n"));
