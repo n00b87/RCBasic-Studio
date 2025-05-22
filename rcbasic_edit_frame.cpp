@@ -26,7 +26,7 @@ void rcbasic_edit_frame::pfile_readContents(wxString file_path)
     pfile_contents.clear();
 
     //rcbasic_edit_frame* frame = (rcbasic_edit_frame*) parent_frame;
-
+    notebook_mutex.Lock();
 
     wxFile f(file_path, wxFile::read);
 
@@ -36,7 +36,7 @@ void rcbasic_edit_frame::pfile_readContents(wxString file_path)
 
     f.Close();
 
-
+    notebook_mutex.Unlock();
 
     wxString current_line = _("");
     wxString current_char;
@@ -109,9 +109,9 @@ bool rcbasic_edit_frame::pfile_runParser(rcbasic_project* p)
                 sym.in_list = id_tokens[t_count].is_in_list;
 
 
-
+                notebook_mutex.Lock();
                 pfile_addSymbol(p, sym);
-
+                notebook_mutex.Unlock();
             }
 
         }
@@ -218,6 +218,7 @@ void rcbasic_edit_frame::updateSymbolTree()
                 v_index++;
                 break;
             case TOKEN_TYPE_FUNCTION:
+                //wxPuts(_("FUNC"));
                 if(f_index < fn_nodes.size())
                 {
                     setSymbol(fn_nodes[f_index], symbols[i]);
@@ -228,6 +229,7 @@ void rcbasic_edit_frame::updateSymbolTree()
                 f_index++;
                 break;
             case TOKEN_TYPE_UDT:
+                //wxPuts(_("TYPE"));
                 if(u_index < udt_nodes.size())
                 {
                     setSymbol(udt_nodes[u_index], symbols[i]);
@@ -238,6 +240,7 @@ void rcbasic_edit_frame::updateSymbolTree()
                 u_index++;
                 break;
             case TOKEN_TYPE_CONSTANT:
+                //wxPuts(_("CONSTANT"));
                 if(c_index < const_nodes.size())
                 {
                     setSymbol(const_nodes[c_index], symbols[i]);
@@ -303,23 +306,34 @@ void rcbasic_edit_frame::updateSymbolTree()
 
 void rcbasic_edit_frame::OnParserThread(wxCommandEvent& event)
 {
-
+    notebook_mutex.Lock();
     thread_returned = true;
 
     std::vector<rcbasic_symbol>* sym_list = NULL;
 
-    if(event.GetInt() != 0)
-		sym_list = (std::vector<rcbasic_symbol>*) event.GetClientData();
-
+    if(!pre_parsed_page)
+    {
+        sym_list = NULL;
+    }
+    else
+    {
+        sym_list = (std::vector<rcbasic_symbol>*) event.GetClientData();
+    }
 
     if(sym_list)
     {
+        /*for(int i = 0; i < symbols.size(); i++)
+        {
+            if(symbols[i])
+            {
+                delete symbols[i];
+                symbols[i] = NULL;
+            }
+        }*/
         symbols.clear();
         user_id_list.Clear();
 
         user_id_list = id_list;
-
-        //wxPuts(_("D1\n"));
 
         if(active_project)
         {
@@ -327,18 +341,19 @@ void rcbasic_edit_frame::OnParserThread(wxCommandEvent& event)
                 user_id_list.Add(active_project->project_symbols[i].id);
         }
 
-        //wxPuts(_("D2\n"));
+        if(pre_parsed_page)
+        {
+            for(int i = 0; i < sym_list->size(); i++)
+            {
+                rcbasic_symbol s = sym_list[0][i];
+                if(s.in_list)
+                    symbols.push_back(s);
 
-        for(int i = 0; i < sym_list->size(); i++)
-		{
-			rcbasic_symbol s = sym_list[0][i];
-			if(s.in_list)
-				symbols.push_back(s);
+                user_id_list.Add(s.id);
 
-			user_id_list.Add(s.id);
-
-			//wxPuts(_("VAR --- ") + s.id);
-		}
+                //wxPuts(_("VAR --- ") + s->id);
+            }
+        }
 
         user_id_list.Sort();
 
@@ -350,13 +365,15 @@ void rcbasic_edit_frame::OnParserThread(wxCommandEvent& event)
 
     parsed_page = pre_parsed_page;
     symbolUpdateInProgress = false;
+
+    notebook_mutex.Unlock();
 }
 
 rcbasic_edit_frame::rcbasic_edit_frame( wxWindow* parent, int argc, wxArrayString argv )
 :
 rc_ideFrame( parent )
 {
-    RCBasic_Studio_Version = _("v2.0");
+    RCBasic_Studio_Version = _("v1.3");
 
     build_run_project = NULL;
     current_file_project = new rcbasic_project();
@@ -416,7 +433,7 @@ rc_ideFrame( parent )
 
     wxFileName rcbasic_dir(editor_path);
 #ifdef _WIN32
-    //rcbasic_dir.AppendDir(_("rcbasic"));
+    rcbasic_dir.AppendDir(_("rcbasic"));
 #endif
     rcbasic_dir.SetFullName(_(""));
     rcbasic_dir.MakeAbsolute();
@@ -640,7 +657,6 @@ rc_ideFrame( parent )
 
     if(enable_parser)
     {
-    	//wxPrintf(_("parser start"));
         token_parser = new parserThread(this, 0, this);
         token_parser->Run();
     }
@@ -653,8 +669,6 @@ rc_ideFrame( parent )
         else if(f.GetExt().compare(_("bas"))==0 || f.GetExt().compare(_("txt"))==0)
             openSourceFile(f);
     }
-
-    wxSizerFlags::DisableConsistencyChecks();
 }
 
 bool rcbasic_edit_frame::loadDefaultViewProperties(wxFileName fname)
@@ -1002,6 +1016,260 @@ bool rcbasic_edit_frame::saveEditorProperties(wxFileName fname)
     return true;
 }
 
+int rcbasic_edit_frame::getFontFamily(wxString family_name)
+{
+    if(family_name.Upper().Trim().compare(_("DEFAULT"))==0)
+        return (int)wxFONTFAMILY_DEFAULT;
+    else if(family_name.Upper().Trim().compare(_("DECORATIVE"))==0)
+        return (int)wxFONTFAMILY_DECORATIVE;
+    else if(family_name.Upper().Trim().compare(_("ROMAN"))==0)
+        return (int)wxFONTFAMILY_ROMAN;
+    else if(family_name.Upper().Trim().compare(_("SCRIPT"))==0)
+        return (int)wxFONTFAMILY_SCRIPT;
+    else if(family_name.Upper().Trim().compare(_("SWISS"))==0)
+        return (int)wxFONTFAMILY_SWISS;
+    else if(family_name.Upper().Trim().compare(_("MODERN"))==0)
+        return (int)wxFONTFAMILY_MODERN;
+
+    return (int)wxFONTFAMILY_DEFAULT;
+}
+
+int rcbasic_edit_frame::getFontStyle(wxString style_name)
+{
+    if(style_name.Upper().Trim().compare(_("NORMAL"))==0)
+        return (int)wxFONTSTYLE_NORMAL;
+    else if(style_name.Upper().Trim().compare(_("SLANT"))==0)
+        return (int)wxFONTSTYLE_SLANT;
+    else if(style_name.Upper().Trim().compare(_("ITALIC"))==0)
+        return (int)wxFONTSTYLE_ITALIC;
+
+    return wxFONTSTYLE_ITALIC;
+}
+
+int rcbasic_edit_frame::getFontWeight(wxString weight_name)
+{
+    if(weight_name.Upper().Trim().compare(_("NORMAL"))==0)
+        return (int)wxFONTWEIGHT_NORMAL;
+    else if(weight_name.Upper().Trim().compare(_("LIGHT"))==0)
+        return (int)wxFONTWEIGHT_LIGHT;
+    else if(weight_name.Upper().Trim().compare(_("BOLD"))==0)
+        return (int)wxFONTWEIGHT_BOLD;
+
+    return wxFONTWEIGHT_NORMAL;
+}
+
+int rcbasic_edit_frame::getFontEncoding(wxString encoding_name)
+{
+    if(encoding_name.Upper().Trim().compare(_("SYSTEM"))==0)
+        return (int)wxFONTENCODING_SYSTEM;
+    else if(encoding_name.Upper().Trim().compare(_("ALTERNATIVE"))==0)
+        return (int)wxFONTENCODING_ALTERNATIVE;
+    else if(encoding_name.Upper().Trim().compare(_("BIG5"))==0)
+        return (int)wxFONTENCODING_BIG5;
+    else if(encoding_name.Upper().Trim().compare(_("BULGARIAN"))==0)
+        return (int)wxFONTENCODING_BULGARIAN;
+    else if(encoding_name.Upper().Trim().compare(_("CP1250"))==0)
+        return (int)wxFONTENCODING_CP1250;
+    else if(encoding_name.Upper().Trim().compare(_("CP1251"))==0)
+        return (int)wxFONTENCODING_CP1251;
+    else if(encoding_name.Upper().Trim().compare(_("CP1252"))==0)
+        return (int)wxFONTENCODING_CP1252;
+    else if(encoding_name.Upper().Trim().compare(_("CP1253"))==0)
+        return (int)wxFONTENCODING_CP1253;
+    else if(encoding_name.Upper().Trim().compare(_("CP1254"))==0)
+        return (int)wxFONTENCODING_CP1254;
+    else if(encoding_name.Upper().Trim().compare(_("CP1255"))==0)
+        return (int)wxFONTENCODING_CP1255;
+    else if(encoding_name.Upper().Trim().compare(_("CP1256"))==0)
+        return (int)wxFONTENCODING_CP1256;
+    else if(encoding_name.Upper().Trim().compare(_("CP1257"))==0)
+        return (int)wxFONTENCODING_CP1257;
+    else if(encoding_name.Upper().Trim().compare(_("CP1258"))==0)
+        return (int)wxFONTENCODING_CP1258;
+    else if(encoding_name.Upper().Trim().compare(_("CP12_MAX"))==0)
+        return (int)wxFONTENCODING_CP12_MAX;
+    else if(encoding_name.Upper().Trim().compare(_("CP1361"))==0)
+        return (int)wxFONTENCODING_CP1361;
+    else if(encoding_name.Upper().Trim().compare(_("CP437"))==0)
+        return (int)wxFONTENCODING_CP437;
+    else if(encoding_name.Upper().Trim().compare(_("CP850"))==0)
+        return (int)wxFONTENCODING_CP850;
+    else if(encoding_name.Upper().Trim().compare(_("CP852"))==0)
+        return (int)wxFONTENCODING_CP852;
+    else if(encoding_name.Upper().Trim().compare(_("CP855"))==0)
+        return (int)wxFONTENCODING_CP855;
+    else if(encoding_name.Upper().Trim().compare(_("CP866"))==0)
+        return (int)wxFONTENCODING_CP866;
+    else if(encoding_name.Upper().Trim().compare(_("CP874"))==0)
+        return (int)wxFONTENCODING_CP874;
+    else if(encoding_name.Upper().Trim().compare(_("CP932"))==0)
+        return (int)wxFONTENCODING_CP932;
+    else if(encoding_name.Upper().Trim().compare(_("CP936"))==0)
+        return (int)wxFONTENCODING_CP936;
+    else if(encoding_name.Upper().Trim().compare(_("CP949"))==0)
+        return (int)wxFONTENCODING_CP949;
+    else if(encoding_name.Upper().Trim().compare(_("CP950"))==0)
+        return (int)wxFONTENCODING_CP950;
+    else if(encoding_name.Upper().Trim().compare(_("DEFAULT"))==0)
+        return (int)wxFONTENCODING_DEFAULT;
+    else if(encoding_name.Upper().Trim().compare(_("EUC_JP"))==0)
+        return (int)wxFONTENCODING_EUC_JP;
+    else if(encoding_name.Upper().Trim().compare(_("EUC_KR"))==0)
+        return (int)wxFONTENCODING_EUC_KR;
+    else if(encoding_name.Upper().Trim().compare(_("GB2312"))==0)
+        return (int)wxFONTENCODING_GB2312;
+    else if(encoding_name.Upper().Trim().compare(_("ISO2022_JP"))==0)
+        return (int)wxFONTENCODING_ISO2022_JP;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_1"))==0)
+        return (int)wxFONTENCODING_ISO8859_1;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_10"))==0)
+        return (int)wxFONTENCODING_ISO8859_10;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_11"))==0)
+        return (int)wxFONTENCODING_ISO8859_11;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_12"))==0)
+        return (int)wxFONTENCODING_ISO8859_12;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_13"))==0)
+        return (int)wxFONTENCODING_ISO8859_13;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_14"))==0)
+        return (int)wxFONTENCODING_ISO8859_14;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_15"))==0)
+        return (int)wxFONTENCODING_ISO8859_15;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_2"))==0)
+        return (int)wxFONTENCODING_ISO8859_2;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_3"))==0)
+        return (int)wxFONTENCODING_ISO8859_3;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_4"))==0)
+        return (int)wxFONTENCODING_ISO8859_4;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_5"))==0)
+        return (int)wxFONTENCODING_ISO8859_5;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_6"))==0)
+        return (int)wxFONTENCODING_ISO8859_6;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_7"))==0)
+        return (int)wxFONTENCODING_ISO8859_7;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_8"))==0)
+        return (int)wxFONTENCODING_ISO8859_8;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_9"))==0)
+        return (int)wxFONTENCODING_ISO8859_9;
+    else if(encoding_name.Upper().Trim().compare(_("ISO8859_MAX"))==0)
+        return (int)wxFONTENCODING_ISO8859_MAX;
+    else if(encoding_name.Upper().Trim().compare(_("JOHAB"))==0)
+        return (int)wxFONTENCODING_JOHAB;
+    else if(encoding_name.Upper().Trim().compare(_("KOI8"))==0)
+        return (int)wxFONTENCODING_KOI8;
+    else if(encoding_name.Upper().Trim().compare(_("KOI8_U"))==0)
+        return (int)wxFONTENCODING_KOI8_U;
+    else if(encoding_name.Upper().Trim().compare(_("MACARABIC"))==0)
+        return (int)wxFONTENCODING_MACARABIC;
+    else if(encoding_name.Upper().Trim().compare(_("MACARABICEXT"))==0)
+        return (int)wxFONTENCODING_MACARABICEXT;
+    else if(encoding_name.Upper().Trim().compare(_("MACARMENIAN"))==0)
+        return (int)wxFONTENCODING_MACARMENIAN;
+    else if(encoding_name.Upper().Trim().compare(_("MACBENGALI"))==0)
+        return (int)wxFONTENCODING_MACBENGALI;
+    else if(encoding_name.Upper().Trim().compare(_("MACBURMESE"))==0)
+        return (int)wxFONTENCODING_MACBURMESE;
+    else if(encoding_name.Upper().Trim().compare(_("MACCELTIC"))==0)
+        return (int)wxFONTENCODING_MACCELTIC;
+    else if(encoding_name.Upper().Trim().compare(_("MACCENTRALEUR"))==0)
+        return (int)wxFONTENCODING_MACCENTRALEUR;
+    else if(encoding_name.Upper().Trim().compare(_("MACCHINESESIMP"))==0)
+        return (int)wxFONTENCODING_MACCHINESESIMP;
+    else if(encoding_name.Upper().Trim().compare(_("MACCHINESETRAD"))==0)
+        return (int)wxFONTENCODING_MACCHINESETRAD;
+    else if(encoding_name.Upper().Trim().compare(_("MACCROATIAN"))==0)
+        return (int)wxFONTENCODING_MACCROATIAN;
+    else if(encoding_name.Upper().Trim().compare(_("MACCYRILLIC"))==0)
+        return (int)wxFONTENCODING_MACCYRILLIC;
+    else if(encoding_name.Upper().Trim().compare(_("MACDEVANAGARI"))==0)
+        return (int)wxFONTENCODING_MACDEVANAGARI;
+    else if(encoding_name.Upper().Trim().compare(_("MACDINGBATS"))==0)
+        return (int)wxFONTENCODING_MACDINGBATS;
+    else if(encoding_name.Upper().Trim().compare(_("MACETHIOPIC"))==0)
+        return (int)wxFONTENCODING_MACETHIOPIC;
+    else if(encoding_name.Upper().Trim().compare(_("MACGAELIC"))==0)
+        return (int)wxFONTENCODING_MACGAELIC;
+    else if(encoding_name.Upper().Trim().compare(_("MACGEORGIAN"))==0)
+        return (int)wxFONTENCODING_MACGEORGIAN;
+    else if(encoding_name.Upper().Trim().compare(_("MACGREEK"))==0)
+        return (int)wxFONTENCODING_MACGREEK;
+    else if(encoding_name.Upper().Trim().compare(_("MACGUJARATI"))==0)
+        return (int)wxFONTENCODING_MACGUJARATI;
+    else if(encoding_name.Upper().Trim().compare(_("MACGURMUKHI"))==0)
+        return (int)wxFONTENCODING_MACGURMUKHI;
+    else if(encoding_name.Upper().Trim().compare(_("MACHEBREW"))==0)
+        return (int)wxFONTENCODING_MACHEBREW;
+    else if(encoding_name.Upper().Trim().compare(_("MACICELANDIC"))==0)
+        return (int)wxFONTENCODING_MACICELANDIC;
+    else if(encoding_name.Upper().Trim().compare(_("MACJAPANESE"))==0)
+        return (int)wxFONTENCODING_MACJAPANESE;
+    else if(encoding_name.Upper().Trim().compare(_("MACKANNADA"))==0)
+        return (int)wxFONTENCODING_MACKANNADA;
+    else if(encoding_name.Upper().Trim().compare(_("MACKEYBOARD"))==0)
+        return (int)wxFONTENCODING_MACKEYBOARD;
+    else if(encoding_name.Upper().Trim().compare(_("MACKHMER"))==0)
+        return (int)wxFONTENCODING_MACKHMER;
+    else if(encoding_name.Upper().Trim().compare(_("MACKOREAN"))==0)
+        return (int)wxFONTENCODING_MACKOREAN;
+    else if(encoding_name.Upper().Trim().compare(_("MACLAOTIAN"))==0)
+        return (int)wxFONTENCODING_MACLAOTIAN;
+    else if(encoding_name.Upper().Trim().compare(_("MACMALAJALAM"))==0)
+        return (int)wxFONTENCODING_MACMALAJALAM;
+    else if(encoding_name.Upper().Trim().compare(_("MACMAX"))==0)
+        return (int)wxFONTENCODING_MACMAX;
+    else if(encoding_name.Upper().Trim().compare(_("MACMIN"))==0)
+        return (int)wxFONTENCODING_MACMIN;
+    else if(encoding_name.Upper().Trim().compare(_("MACMONGOLIAN"))==0)
+        return (int)wxFONTENCODING_MACMONGOLIAN;
+    else if(encoding_name.Upper().Trim().compare(_("MACORIYA"))==0)
+        return (int)wxFONTENCODING_MACORIYA;
+    else if(encoding_name.Upper().Trim().compare(_("MACROMAN"))==0)
+        return (int)wxFONTENCODING_MACROMAN;
+    else if(encoding_name.Upper().Trim().compare(_("MACROMANIAN"))==0)
+        return (int)wxFONTENCODING_MACROMANIAN;
+    else if(encoding_name.Upper().Trim().compare(_("MACSINHALESE"))==0)
+        return (int)wxFONTENCODING_MACSINHALESE;
+    else if(encoding_name.Upper().Trim().compare(_("MACSYMBOL"))==0)
+        return (int)wxFONTENCODING_MACSYMBOL;
+    else if(encoding_name.Upper().Trim().compare(_("MACTAMIL"))==0)
+        return (int)wxFONTENCODING_MACTAMIL;
+    else if(encoding_name.Upper().Trim().compare(_("MACTELUGU"))==0)
+        return (int)wxFONTENCODING_MACTELUGU;
+    else if(encoding_name.Upper().Trim().compare(_("MACTHAI"))==0)
+        return (int)wxFONTENCODING_MACTHAI;
+    else if(encoding_name.Upper().Trim().compare(_("MACTIBETAN"))==0)
+        return (int)wxFONTENCODING_MACTIBETAN;
+    else if(encoding_name.Upper().Trim().compare(_("MACTURKISH"))==0)
+        return (int)wxFONTENCODING_MACTURKISH;
+    else if(encoding_name.Upper().Trim().compare(_("MACVIATNAMESE"))==0)
+        return (int)wxFONTENCODING_MACVIATNAMESE;
+    else if(encoding_name.Upper().Trim().compare(_("MAX"))==0)
+        return (int)wxFONTENCODING_MAX;
+    else if(encoding_name.Upper().Trim().compare(_("SHIFT_JIS"))==0)
+        return (int)wxFONTENCODING_SHIFT_JIS;
+    else if(encoding_name.Upper().Trim().compare(_("UNICODE"))==0)
+        return (int)wxFONTENCODING_UNICODE;
+    else if(encoding_name.Upper().Trim().compare(_("UTF16"))==0)
+        return (int)wxFONTENCODING_UTF16;
+    else if(encoding_name.Upper().Trim().compare(_("UTF16BE"))==0)
+        return (int)wxFONTENCODING_UTF16BE;
+    else if(encoding_name.Upper().Trim().compare(_("UTF16LE"))==0)
+        return (int)wxFONTENCODING_UTF16LE;
+    else if(encoding_name.Upper().Trim().compare(_("UTF32"))==0)
+        return (int)wxFONTENCODING_UTF32;
+    else if(encoding_name.Upper().Trim().compare(_("UTF32BE"))==0)
+        return (int)wxFONTENCODING_UTF32BE;
+    else if(encoding_name.Upper().Trim().compare(_("UTF32LE"))==0)
+        return (int)wxFONTENCODING_UTF32LE;
+    else if(encoding_name.Upper().Trim().compare(_("UTF7"))==0)
+        return (int)wxFONTENCODING_UTF7;
+    else if(encoding_name.Upper().Trim().compare(_("UTF8"))==0)
+        return (int)wxFONTENCODING_UTF8;
+    else if(encoding_name.Upper().Trim().compare(_("VIETNAMESE"))==0)
+        return (int)wxFONTENCODING_VIETNAMESE;
+
+    return wxFONTENCODING_DEFAULT;
+}
+
 bool rcbasic_edit_frame::loadScheme(wxFileName fname)
 {
     wxFile scheme_file;
@@ -1030,6 +1298,14 @@ bool rcbasic_edit_frame::loadScheme(wxFileName fname)
         long g = 0;
         long b = 0;
 
+        wxString font_face = _("");
+        wxString font_family = _("");
+        wxString font_size = _("");
+        wxString font_style = _("");
+        wxString font_weight = _("");
+        wxString font_underline = _("");
+        wxString font_encode = _("");
+
         wxString n_value;
 
         editor_scheme.caret_bkg_color_set = false;
@@ -1048,6 +1324,7 @@ bool rcbasic_edit_frame::loadScheme(wxFileName fname)
         editor_scheme.style_bkg_color_set = false;
         editor_scheme.line_number_bkg_color_set = false;
         editor_scheme.line_number_fg_color_set = false;
+        editor_scheme.t_font_set = false;
 
         for(int i = 0; i < scheme_data.length(); i++)
         {
@@ -1060,16 +1337,73 @@ bool rcbasic_edit_frame::loadScheme(wxFileName fname)
             values = scheme_data.substr(vpos+1);
             values = values.substr(0, values.find_first_of(_("\n")));
 
-            n_value = values.substr(0, values.find_first_of(_(",")));
-            n_value.ToLong(&r);
-            values = values.substr(values.find_first_of(_(","))+1);
+            if(property.compare(_("font"))==0)
+            {
+                font_face = _("");
+                font_family = _("");
+                font_size = _("");
+                font_style = _("");
+                font_weight = _("");
+                font_underline = _("");
+                font_encode = _("");
 
-            n_value = values.substr(0, values.find_first_of(_(",")));
-            n_value.ToLong(&g);
-            values = values.substr(values.find_first_of(_(","))+1);
+                int n_index = -1;
 
-            n_value = values.substr(0, values.find_first_of(_("\n")));
-            n_value.ToLong(&b);
+                n_index = values.find_first_of(_(","));
+                if(n_index >= 0 && n_index < values.size())
+                {
+                    n_value = values.substr(0, n_index);
+                    font_face = n_value.Trim();
+                    font_face = font_face.substr(font_face.find_first_not_of(_(" ")));
+                    values = values.substr(n_index+1);
+                }
+
+                n_index = values.find_first_of(_(","));
+                if(n_index >= 0 && n_index < values.size())
+                {
+                    n_value = values.substr(0, n_index);
+                    font_size = n_value.Trim();
+                    font_size = font_size.substr(font_size.find_first_not_of(_(" ")));
+                    values = values.substr(n_index+1);
+                }
+
+                n_index = values.find_first_of(_(","));
+                if(n_index >= 0 && n_index < values.size())
+                {
+                    n_value = values.substr(0, n_index);
+                    font_style = n_value.Trim();
+                    font_style = font_style.substr(font_style.find_first_not_of(_(" ")));
+                    values = values.substr(n_index+1);
+                }
+
+                n_index = values.find_first_of(_(","));
+                if(n_index >= 0 && n_index < values.size())
+                {
+                    n_value = values.substr(0, n_index);
+                    font_weight = n_value.Trim();
+                    font_weight = font_weight.substr(font_weight.find_first_not_of(_(" ")));
+                    values = values.substr(n_index+1);
+                }
+
+                n_value = values.substr(0);
+                font_underline = n_value.Trim();
+                font_underline = font_underline.substr(font_underline.find_first_not_of(_(" ")));
+                font_underline.Replace(_("\n"), _(""));
+
+            }
+            else
+            {
+                n_value = values.substr(0, values.find_first_of(_(",")));
+                n_value.ToLong(&r);
+                values = values.substr(values.find_first_of(_(","))+1);
+
+                n_value = values.substr(0, values.find_first_of(_(",")));
+                n_value.ToLong(&g);
+                values = values.substr(values.find_first_of(_(","))+1);
+
+                n_value = values.substr(0, values.find_first_of(_("\n")));
+                n_value.ToLong(&b);
+            }
 
             if(property.compare(_("style_bkg_color"))==0)
             {
@@ -1150,6 +1484,32 @@ bool rcbasic_edit_frame::loadScheme(wxFileName fname)
             {
                 editor_scheme.line_number_bkg_color = wxColour(r, g, b);
                 editor_scheme.line_number_bkg_color_set = true;
+            }
+            else if(property.compare(_("font"))==0)
+            {
+
+                bool underline_flag = ( (font_underline.Upper().Trim().compare(_("TRUE"))==0 || font_underline.Upper().Trim().compare(_("1"))==0) ? true : false);
+
+                int point_size = 0;
+                font_size.ToInt(&point_size);
+
+                //wxMessageBox( _("Face: ") + font_face);
+                //wxMessageBox( _("Family: ") + font_family);
+                //wxMessageBox( _("point_size = ") + wxString::Format(_("%i"), point_size));
+                //wxMessageBox( _("style = ") + font_style);
+                //wxMessageBox( _("weight = ") + font_weight);
+                //wxMessageBox( _("underline = [") + font_underline.Upper().Trim() + _( "] ~ ") + (underline_flag ? _("TRUE") : _("FALSE")));
+                //wxMessageBox( _("encoding = ") + font_encode);
+
+                editor_scheme.t_font.SetFaceName(font_face);
+                //editor_scheme.t_font.SetFamily(getFontFamily(font_family));
+                editor_scheme.t_font.SetPointSize(point_size);
+                editor_scheme.t_font.SetStyle(getFontStyle(font_style));
+                editor_scheme.t_font.SetWeight(getFontWeight(font_weight));
+                editor_scheme.t_font.SetUnderlined(underline_flag);
+                //editor_scheme.t_font.SetEncoding((wxFontEncoding)getFontEncoding(font_encode));
+
+                editor_scheme.t_font_set = true;
             }
 
 
@@ -1291,6 +1651,20 @@ void rcbasic_edit_frame::applyScheme(wxStyledTextCtrl* rc_txtCtrl)
             rc_txtCtrl->StyleSetForeground(wxSTC_STYLE_LINENUMBER, editor_scheme.line_number_fg_color);
     }
 
+    if(editor_scheme.t_font_set)
+    {
+        if(rc_txtCtrl)
+        {
+            rc_txtCtrl->StyleSetFont(wxSTC_B_KEYWORD, editor_scheme.t_font);
+            rc_txtCtrl->StyleSetFont(wxSTC_B_KEYWORD2, editor_scheme.t_font);
+            rc_txtCtrl->StyleSetFont(wxSTC_B_NUMBER, editor_scheme.t_font);
+            rc_txtCtrl->StyleSetFont(wxSTC_B_STRING, editor_scheme.t_font);
+            rc_txtCtrl->StyleSetFont(wxSTC_B_COMMENT, editor_scheme.t_font);
+            rc_txtCtrl->StyleSetFont(wxSTC_B_IDENTIFIER, editor_scheme.t_font);
+            rc_txtCtrl->StyleSetFont(wxSTC_B_OPERATOR, editor_scheme.t_font);
+        }
+    }
+
     //updateFont(rc_txtCtrl);
 #ifdef _WIN32
 
@@ -1356,18 +1730,6 @@ void rcbasic_edit_frame::applyScheme(wxStyledTextCtrl* rc_txtCtrl)
         symbol_tree->SetItemTextColour(function_root_node, item_fg);
     }
 
-    if(udt_root_node.IsOk())
-    {
-        symbol_tree->SetItemBackgroundColour(udt_root_node, item_bkg);
-        symbol_tree->SetItemTextColour(udt_root_node, item_fg);
-    }
-
-    if(const_root_node.IsOk())
-    {
-        symbol_tree->SetItemBackgroundColour(const_root_node, item_bkg);
-        symbol_tree->SetItemTextColour(const_root_node, item_fg);
-    }
-
     for(int i = 0; i < var_nodes.size(); i++)
     {
         if(var_nodes[i].IsOk())
@@ -1383,24 +1745,6 @@ void rcbasic_edit_frame::applyScheme(wxStyledTextCtrl* rc_txtCtrl)
         {
             symbol_tree->SetItemBackgroundColour(fn_nodes[i], item_bkg);
             symbol_tree->SetItemTextColour(fn_nodes[i], item_fg);
-        }
-    }
-
-    for(int i = 0; i < udt_nodes.size(); i++)
-    {
-        if(udt_nodes[i].IsOk())
-        {
-            symbol_tree->SetItemBackgroundColour(udt_nodes[i], item_bkg);
-            symbol_tree->SetItemTextColour(udt_nodes[i], item_fg);
-        }
-    }
-
-    for(int i = 0; i < const_nodes.size(); i++)
-    {
-        if(const_nodes[i].IsOk())
-        {
-            symbol_tree->SetItemBackgroundColour(const_nodes[i], item_bkg);
-            symbol_tree->SetItemTextColour(const_nodes[i], item_fg);
         }
     }
 
@@ -1422,13 +1766,13 @@ void rcbasic_edit_frame::onRecentProjectSelect( wxCommandEvent& event )
 
     if(item >= 0 && item < 10)
     {
-
+        notebook_mutex.Lock();
         wxFileName project_fname(recent_projects_items[item]);
         if(project_fname.Exists())
             openProject(project_fname);
         else
             wxMessageBox(_("Could not locate project:\n") + project_fname.GetFullPath());
-
+        notebook_mutex.Unlock();
     }
 }
 
@@ -1440,19 +1784,19 @@ void rcbasic_edit_frame::onRecentFileSelect( wxCommandEvent& event )
 
     if(item >= 0 && item < 10)
     {
-
+        notebook_mutex.Lock();
         wxFileName fname(recent_files_items[item]);
         if(fname.Exists())
             openSourceFile(fname);
         else
             wxMessageBox(_("Could not locate file:\n") + fname.GetFullPath());
-
+        notebook_mutex.Unlock();
     }
 }
 
 void rcbasic_edit_frame::onEditorClose( wxCloseEvent& event )
 {
-
+    notebook_mutex.Unlock();
 
     for(int i = 0; i < open_files.size(); i++)
     {
@@ -1482,7 +1826,6 @@ void rcbasic_edit_frame::onEditorClose( wxCloseEvent& event )
             token_parser->Delete();
             sym_sem->Wait();
             delete sym_sem;
-            token_parser = NULL;
             //wxPuts(_("thread successfully ended"));
         }
     }
@@ -1547,7 +1890,6 @@ void rcbasic_edit_frame::onEditorClose( wxCloseEvent& event )
         //wxPuts(_("***end project write***"));
         f.Close();
     }
-
     this->Destroy();
 }
 
@@ -1566,19 +1908,12 @@ void rcbasic_edit_frame::newProjectMenuSelect( wxCommandEvent& event)
             return;
 
         wxString project_location = newProject_win->projectLocation_picker->GetPath();
-
-        if(!wxDirExists(project_location))
-            return;
-
         int main_source_flag = newProject_win->projectCreateMain_radio->GetValue() ? 0 : 1;
         #ifdef _WIN32
         wxString main_source_value = main_source_flag==0 ? newProject_win->projectNewMain_field->GetValue() : newProject_win->projectExistingFile_picker->GetTextCtrlValue();
         #else
         wxString main_source_value = main_source_flag==0 ? newProject_win->projectNewMain_field->GetValue() : newProject_win->projectExistingFile_picker->GetFileName().GetFullPath();
         #endif
-
-        main_source_value = main_source_value.compare(_(""))==0 ? _("main.bas") : main_source_value;
-
         wxString project_author = newProject_win->projectAuthor_field->GetValue();
         wxString project_website = newProject_win->projectWebsite_field->GetValue();
         wxString project_description = newProject_win->projectDescription_field->GetValue();
@@ -1629,7 +1964,7 @@ void rcbasic_edit_frame::newProjectMenuSelect( wxCommandEvent& event)
             updateProjectTree(new_project_index);
 
         //----
-
+        notebook_mutex.Lock();
         wxString cwd = wxGetCwd();
         wxSetWorkingDirectory(new_project->getLocation());
         wxFileName main_fname = new_project->getMainSource();
@@ -1637,7 +1972,7 @@ void rcbasic_edit_frame::newProjectMenuSelect( wxCommandEvent& event)
         rcbasic_edit_txtCtrl* txtCtrl_obj = openFileTab(new_project, new_project->getMainSource());
         wxSetWorkingDirectory(cwd);
         txtCtrl_obj->setTextChangedFlag(false);
-
+        notebook_mutex.Unlock();
 
         addRecentProject(new_project);
     }
@@ -1651,27 +1986,27 @@ void rcbasic_edit_frame::newProjectMenuSelect( wxCommandEvent& event)
 void rcbasic_edit_frame::newFileMenuSelect( wxCommandEvent& event)
 {
     //wxPuts(_("New file Dialog"));
-
+    notebook_mutex.Lock();
     createNewFile(active_project);
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::openProjectMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
     wxFileName project_fname = openFileDialog(_("Open Project"), _("RCBasic Project (*.rcprj)|*.rcprj"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     //wxPuts(_("project_fname: ") + project_fname.GetLongPath());
     if(project_fname.GetFullPath().compare(_(""))!=0)
         openProject(project_fname);
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::openFileMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
     wxFileName fname = openFileDialog( _("Open RCBasic Source file"), _("RCBasic Source files (*.bas)|*.bas"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     openSourceFile(fname);
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::openProject(wxFileName project_path)
@@ -1827,7 +2162,7 @@ void rcbasic_edit_frame::openProject(wxFileName project_path)
         }
 
         //add to project parser list
-        //pfile_runParser(project);
+        pfile_runParser(project);
 
         project->setVars(project_vars);
         project->setRootNode(project_tree->AppendItem(project_tree->GetRootItem(), project_name, project_tree_folderImage));
@@ -1960,16 +2295,7 @@ void rcbasic_edit_frame::saveFile(int openFile_index, int flag=0)
         }
     }
 
-    wxString file_text = open_files[openFile_index]->getTextCtrl()->GetText();
-    if(file_text.length() > 0)
-    {
-        if(file_text.substr(file_text.length()-1, 1).compare(_("\n"))!=0)
-            file_text.Append(_("\n"));
-    }
-    else
-        file_text.Append(_("\n"));
-
-    f.Write( file_text );
+    f.Write( open_files[openFile_index]->getTextCtrl()->GetText() );
     f.Close();
 
     if(flag==FILE_SAVEAS_FLAG)
@@ -2010,16 +2336,16 @@ void rcbasic_edit_frame::saveFile(int openFile_index, int flag=0)
 
 void rcbasic_edit_frame::onSaveFileMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
     saveFile(getOpenFileFromSelection());
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onSaveFileAsMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
     saveFile(getOpenFileFromSelection(), FILE_SAVEAS_FLAG);
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onSaveProjectMenuSelect( wxCommandEvent& event )
@@ -2039,7 +2365,7 @@ void rcbasic_edit_frame::onSaveProjectMenuSelect( wxCommandEvent& event )
             return;
     }
 
-
+    notebook_mutex.Lock();
     //SAVE FILES IN PROJECT
     std::vector<rcbasic_project_node*> pf_nodes = active_project->getSourceFiles();
     for(int i = 0; i < open_files.size(); i++)
@@ -2065,7 +2391,7 @@ void rcbasic_edit_frame::onSaveProjectMenuSelect( wxCommandEvent& event )
     active_project->saveProject(project_fname);
     pfile_runParser(active_project);
 
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onSaveProjectAsMenuSelect( wxCommandEvent& event )
@@ -2082,7 +2408,7 @@ void rcbasic_edit_frame::onSaveProjectAsMenuSelect( wxCommandEvent& event )
     if(project_fname.GetFullPath().compare(_(""))==0)
         return;
 
-
+    notebook_mutex.Lock();
     for(int i = 0; i < open_files.size(); i++)
     {
         if(!open_files[i])
@@ -2101,12 +2427,12 @@ void rcbasic_edit_frame::onSaveProjectAsMenuSelect( wxCommandEvent& event )
     }
 
     active_project->saveProject(project_fname);
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onSaveAllMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
     for(int i = 0; i < open_files.size(); i++)
     {
         if(!open_files[i])
@@ -2125,7 +2451,7 @@ void rcbasic_edit_frame::onSaveAllMenuSelect( wxCommandEvent& event )
 
         open_projects[i]->saveProject(wxFileName(open_projects[i]->getProjectFileLocation()));
     }
-
+    notebook_mutex.Unlock();
 }
 
 int rcbasic_edit_frame::closeFile(int notebook_page)
@@ -2172,17 +2498,17 @@ int rcbasic_edit_frame::closeFile(int notebook_page)
 
 void rcbasic_edit_frame::onCloseFileMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
     int current_file = sourceFile_auinotebook->GetSelection();
 
     if(current_file < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
     closeFile(current_file);
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onCloseProjectMenuSelect( wxCommandEvent& event )
@@ -2190,9 +2516,9 @@ void rcbasic_edit_frame::onCloseProjectMenuSelect( wxCommandEvent& event )
     if(!active_project)
         return;
 
-
+    notebook_mutex.Lock();
     closeProject(active_project);
-
+    notebook_mutex.Unlock();
 }
 
 int rcbasic_edit_frame::getProjectFromRoot(wxTreeItemId node)
@@ -2391,7 +2717,7 @@ int rcbasic_edit_frame::closeProject(rcbasic_project* project)
 void rcbasic_edit_frame::onCloseAllMenuSelect( wxCommandEvent& event )
 {
     int i = 0;
-
+    notebook_mutex.Lock();
     while(open_files.size() > i)
     {
         int close_val = closeFile(sourceFile_auinotebook->GetPageIndex(open_files[i]->getTextCtrl()));
@@ -2408,7 +2734,7 @@ void rcbasic_edit_frame::onCloseAllMenuSelect( wxCommandEvent& event )
         if(close_val==projectCloseFlag_CANCEL)
             i++;
     }
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onExitMenuSelect( wxCommandEvent& event )
@@ -2418,111 +2744,111 @@ void rcbasic_edit_frame::onExitMenuSelect( wxCommandEvent& event )
 
 void rcbasic_edit_frame::onSaveProject(wxCommandEvent& event)
 {
-
+    notebook_mutex.Lock();
     saveProject(active_project);
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onSaveProjectAs(wxCommandEvent& event)
 {
     if(active_project)
     {
-
+        notebook_mutex.Lock();
         active_project->saveProject(openFileDialog(_("Save Project As"), _("RCBasic Project (*.rcprj)|*.rcprj"),wxFD_SAVE));
-
+        notebook_mutex.Unlock();
     }
 }
 
 void rcbasic_edit_frame::onUndoMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
     wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     t->Undo();
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onRedoMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
     wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     t->Redo();
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onCutMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
     wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     t->Cut();
 
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onCopyMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
     wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     t->Copy();
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onPasteMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
 
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
     wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     t->Paste();
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onDeleteMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -2530,17 +2856,17 @@ void rcbasic_edit_frame::onDeleteMenuSelect( wxCommandEvent& event )
     //wxPrintf(_("Line: %d to %d"), t->LineFromPosition(t->GetSelectionStart()), t->LineFromPosition(t->GetSelectionEnd()));
     t->Clear();
 
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onSelectAllMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -2548,18 +2874,18 @@ void rcbasic_edit_frame::onSelectAllMenuSelect( wxCommandEvent& event )
     //wxPrintf(_("Line: %d to %d"), t->LineFromPosition(t->GetSelectionStart()), t->LineFromPosition(t->GetSelectionEnd()));
     t->SelectAll();
 
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onCommentMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
 
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -2567,7 +2893,7 @@ void rcbasic_edit_frame::onCommentMenuSelect( wxCommandEvent& event )
 
     if(!t)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -2588,18 +2914,18 @@ void rcbasic_edit_frame::onCommentMenuSelect( wxCommandEvent& event )
 
     t->EndUndoAction();
 
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onBlockCommentMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
 
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -2607,7 +2933,7 @@ void rcbasic_edit_frame::onBlockCommentMenuSelect( wxCommandEvent& event )
 
     if(!t)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -2628,18 +2954,18 @@ void rcbasic_edit_frame::onBlockCommentMenuSelect( wxCommandEvent& event )
 
     t->EndUndoAction();
 
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onUnCommentMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
 
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -2647,7 +2973,7 @@ void rcbasic_edit_frame::onUnCommentMenuSelect( wxCommandEvent& event )
 
     if(!t)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -2672,7 +2998,7 @@ void rcbasic_edit_frame::onUnCommentMenuSelect( wxCommandEvent& event )
 
     t->EndUndoAction();
 
-
+    notebook_mutex.Unlock();
 }
 
 wxString rcbasic_edit_frame::getRCBasicBasePath()
@@ -2717,7 +3043,7 @@ wxString rcbasic_edit_frame::getStudioDocLink()
 
 void rcbasic_edit_frame::onPreferenceMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
 
     rcbasic_edit_preference_dialog* pref_dialog = new rcbasic_edit_preference_dialog(this);
     pref_dialog->ShowModal();
@@ -2740,7 +3066,7 @@ void rcbasic_edit_frame::onPreferenceMenuSelect( wxCommandEvent& event )
         saveEditorProperties(edit_config);
     }
 
-
+    notebook_mutex.Unlock();
 }
 
 int rcbasic_edit_frame::getOpenFileFromPath(wxFileName f_path)
@@ -2769,7 +3095,7 @@ void rcbasic_edit_frame::onSearchResultSelection(wxCommandEvent& event)
     if(search_results.size() <= selection)
         return;
 
-
+    notebook_mutex.Lock();
     int open_files_index = getOpenFileFromPath(search_results[selection].result_file);
 
     if(open_files_index < 0)
@@ -2778,20 +3104,20 @@ void rcbasic_edit_frame::onSearchResultSelection(wxCommandEvent& event)
         open_files_index = getOpenFileFromPath(search_results[selection].result_file);
         if(open_files_index < 0)
         {
-
+            notebook_mutex.Unlock();
             return;
         }
     }
 
     if(open_files_index >= open_files.size())
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
     if(!open_files[open_files_index]->getTextCtrl())
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -2801,7 +3127,7 @@ void rcbasic_edit_frame::onSearchResultSelection(wxCommandEvent& event)
 
     if(page_index < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -2811,7 +3137,7 @@ void rcbasic_edit_frame::onSearchResultSelection(wxCommandEvent& event)
     t->GotoPos( search_results[selection].pos );
     t->SetSelection(t->GetCurrentPos(), t->GetCurrentPos() + search_term.length());
 
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::setSearchResultsInFile(int findDialog_flag, wxString txt)
@@ -2895,7 +3221,7 @@ void rcbasic_edit_frame::setSearchResultsInProject(int findDialog_flag, wxString
     wxString selText= txt;
     int selLen = selText.Len();
 
-
+    notebook_mutex.Lock();
     for(int p_file=0; p_file < active_project->getSourceFiles().size(); p_file++)
     {
         p_node = active_project->getSourceFiles()[p_file];
@@ -2993,14 +3319,14 @@ void rcbasic_edit_frame::onFindMenuSelect( wxCommandEvent& event )
     switch(find_dialog.getValue())
     {
         case find_dialog_value_INFILE:
-
+            notebook_mutex.Lock();
             setSearchResultsInFile(find_dialog.getFlags(), find_dialog.getSearchText());
-
+            notebook_mutex.Unlock();
             break;
         case find_dialog_value_INPROJECT:
-
+            notebook_mutex.Lock();
             setSearchResultsInProject(find_dialog.getFlags(), find_dialog.getSearchText());
-
+            notebook_mutex.Unlock();
             break;
     }
 
@@ -3035,10 +3361,10 @@ int rcbasic_edit_frame::searchNextPrev(wxStyledTextCtrl* t, int search_type)
 
 void rcbasic_edit_frame::onFindNextMenuSelect(wxCommandEvent& event)
 {
-
+    notebook_mutex.Lock();
     if(sourceFile_auinotebook->GetSelection() < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -3046,8 +3372,11 @@ void rcbasic_edit_frame::onFindNextMenuSelect(wxCommandEvent& event)
 
     if(!t)
     {
-    	return;
+        notebook_mutex.Unlock();
+        //wxPuts(_("No TXT_CTRL\n"));
+        return;
     }
+
 
     if(searchNextPrev(t, search_type_NEXT) < 0)
     {
@@ -3065,16 +3394,16 @@ void rcbasic_edit_frame::onFindNextMenuSelect(wxCommandEvent& event)
             }
         }
     }
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onFindPreviousMenuSelect(wxCommandEvent& event)
 {
-
+    notebook_mutex.Lock();
 
     if(sourceFile_auinotebook->GetSelection() < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -3082,7 +3411,7 @@ void rcbasic_edit_frame::onFindPreviousMenuSelect(wxCommandEvent& event)
 
     if(!t)
     {
-
+        notebook_mutex.Unlock();
         //wxPuts(_("No TXT_CTRL\n"));
         return;
     }
@@ -3103,7 +3432,7 @@ void rcbasic_edit_frame::onFindPreviousMenuSelect(wxCommandEvent& event)
             }
         }
     }
-
+    notebook_mutex.Unlock();
 }
 
 
@@ -3278,19 +3607,16 @@ void rcbasic_edit_frame::onReplaceMenuSelect(wxCommandEvent& event)
     rcbasic_edit_replace_dialog r_dialog(this);
     r_dialog.ShowModal();
 
-    return;
-}
-
-void rcbasic_edit_frame::onClearMarkerMenuSelect(wxCommandEvent& event)
-{
-	int selected_page = sourceFile_auinotebook->GetSelection();
-
-    if(selected_page >= 0)
+    switch(r_dialog.getValue())
     {
-        wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
-        t->IndicatorClearRange(0, t->GetTextLength());
+        case replace_dialog_INFILE:
+            notebook_mutex.Lock();
+            replaceInFile(r_dialog.getFlags(), r_dialog.getSearchText(), r_dialog.getReplaceText());
+            notebook_mutex.Unlock();
+            break;
     }
 }
+
 
 void rcbasic_edit_frame::onGotoMenuSelect( wxCommandEvent& event )
 {
@@ -3332,20 +3658,20 @@ void rcbasic_edit_frame::onChangeFontMenuSelect( wxCommandEvent& event )
 
     for(int i = 0; i < open_files.size(); i++)
     {
-
+        notebook_mutex.Lock();
         applyScheme(open_files[i]->getTextCtrl());
-
+        notebook_mutex.Unlock();
     }
 }
 
 void rcbasic_edit_frame::onChangeSchemeMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
 
     rcbasic_edit_setColorScheme_dialog scheme_dialog(this);
     scheme_dialog.ShowModal();
 
-
+    notebook_mutex.Unlock();
 }
 
 
@@ -3398,12 +3724,12 @@ void rcbasic_edit_frame::toggleSideBar( wxCommandEvent& event )
 
 void rcbasic_edit_frame::onZoomInMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -3411,23 +3737,23 @@ void rcbasic_edit_frame::onZoomInMenuSelect( wxCommandEvent& event )
 
     if(!t)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
     t->ZoomIn();
 
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onZoomOutMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -3435,23 +3761,23 @@ void rcbasic_edit_frame::onZoomOutMenuSelect( wxCommandEvent& event )
 
     if(!t)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
     t->ZoomOut();
 
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onNormalSizeMenuSelect( wxCommandEvent& event )
 {
-
+    notebook_mutex.Lock();
     int selected_page = sourceFile_auinotebook->GetSelection();
 
     if(selected_page < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -3459,13 +3785,13 @@ void rcbasic_edit_frame::onNormalSizeMenuSelect( wxCommandEvent& event )
 
     if(!t)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
     t->SetZoom(0);
 
-
+    notebook_mutex.Unlock();
 }
 
 
@@ -3480,12 +3806,12 @@ void rcbasic_edit_frame::onProjectSettingsMenuSelect( wxCommandEvent& event )
     if(ps_dialog.getFlag()==PROJECT_SETTINGS_CANCEL)
         return;
 
-
+    notebook_mutex.Lock();
     active_project = ps_dialog.getNewProject();
 
     int project_index = getProjectFromRoot(active_project->getRootNode());
     updateProjectTree(project_index);
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onProjectEnvironmentMenuSelect( wxCommandEvent& event )
@@ -3682,24 +4008,24 @@ void rcbasic_edit_frame::createNewFile(rcbasic_project* project)
         {
             wxMessageBox(_("There is no active project to add new file to."));
         }
-
+        notebook_mutex.Lock();
         txtCtrl_obj = openFileTab(project, newFile);
-
+        notebook_mutex.Unlock();
     }
     else
     {
-
+        notebook_mutex.Lock();
         txtCtrl_obj = openFileTab(NULL, newFile);
-
+        notebook_mutex.Unlock();
     }
 
-
+    notebook_mutex.Lock();
     if(txtCtrl_obj)
         txtCtrl_obj->setTextChangedFlag(false);
 
     if(project)
         updateProjectTree(getProjectFromRoot(project->getRootNode()));
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onTreeContextClick(wxCommandEvent &evt)
@@ -3708,7 +4034,7 @@ void rcbasic_edit_frame::onTreeContextClick(wxCommandEvent &evt)
     if((!context_project) || open_projects.size()<=0)
             return;
 
-
+    notebook_mutex.Lock();
 
     if(active_project != NULL)
     {
@@ -3759,7 +4085,7 @@ void rcbasic_edit_frame::onTreeContextClick(wxCommandEvent &evt)
 
             if(ps_dialog.getFlag()==PROJECT_SETTINGS_CANCEL)
             {
-
+                notebook_mutex.Unlock();
                 return;
             }
 
@@ -3772,7 +4098,7 @@ void rcbasic_edit_frame::onTreeContextClick(wxCommandEvent &evt)
             break;
     }
 
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::openFileProperties(rcbasic_project* f_project, rcbasic_project_node* f_node)
@@ -3815,7 +4141,7 @@ void rcbasic_edit_frame::onTreeFileContextClick(wxCommandEvent &evt)
     wxString cwd = wxGetCwd();
     wxSetWorkingDirectory(context_project->getLocation());
 
-
+    notebook_mutex.Lock();
 
     if(evt.GetId() == PT_OPEN_FILE)
     {
@@ -3838,7 +4164,7 @@ void rcbasic_edit_frame::onTreeFileContextClick(wxCommandEvent &evt)
         updateProjectTree(getProjectFromRoot(context_project->getRootNode()));
     }
 
-
+    notebook_mutex.Unlock();
 
     wxSetWorkingDirectory(cwd);
 }
@@ -3931,7 +4257,7 @@ void rcbasic_edit_frame::onProjectTreeNodeActivated( wxTreeEvent& event )
         wxPuts(_("Node Data: ")+data->node_file_path.GetFullPath()+_(", ")+data->parent_project->getName());
     }*/
 
-
+    notebook_mutex.Lock();
     for(int i = 0; i < open_projects.size(); i++)
     {
         if(open_projects[i]->getRootNode()==selected_node)
@@ -3949,7 +4275,7 @@ void rcbasic_edit_frame::onProjectTreeNodeActivated( wxTreeEvent& event )
 
             project_tree->SetItemBold(active_project->getRootNode(), true);
             //project_tree->SelectItem(active_project->getRootNode(), true);
-
+            notebook_mutex.Unlock();
             return;
         }
         else
@@ -3976,7 +4302,7 @@ void rcbasic_edit_frame::onProjectTreeNodeActivated( wxTreeEvent& event )
                         file_node->setTextCtrl(openFileTab(open_projects[i], file_node->getPath())->getTextCtrl());
                         //wxPuts(_("File Opened"));
                         //wxPrintf(_("file_node t_Ctrl = %p\n"), file_node->getTextCtrl());
-
+                        notebook_mutex.Unlock();
                         int new_page_index = sourceFile_auinotebook->GetPageCount()-1;
                         //wxPrintf(_("new_page_index=%d\n"), new_page_index);
                         sourceFile_auinotebook->SetSelection(new_page_index);
@@ -4002,7 +4328,7 @@ void rcbasic_edit_frame::onProjectTreeNodeActivated( wxTreeEvent& event )
             }
         }
     }
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onProjectTreeSelectionChanged( wxTreeEvent& event )
@@ -4070,7 +4396,7 @@ void rcbasic_edit_frame::onProjectTreeSelectionChanging( wxTreeEvent& event )
 
 void rcbasic_edit_frame::onSourceFileTabClose( wxAuiNotebookEvent& event )
 {
-
+    notebook_mutex.Lock();
 
     int selected_page = event.GetSelection();
 
@@ -4104,7 +4430,7 @@ void rcbasic_edit_frame::onSourceFileTabClose( wxAuiNotebookEvent& event )
                         break;
                     case fileCloseFlag_CANCEL:
                         event.Veto();
-
+                        notebook_mutex.Unlock();
                         return;
                 }
             }
@@ -4132,7 +4458,7 @@ void rcbasic_edit_frame::onSourceFileTabClose( wxAuiNotebookEvent& event )
 
     }
 
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::addRecentProject(rcbasic_project* project)
@@ -4180,7 +4506,7 @@ void rcbasic_edit_frame::addRecentFile(wxFileName file)
 void rcbasic_edit_frame::onTextCtrlUpdated( wxStyledTextEvent& event )
 {
     //event here
-
+    notebook_mutex.Lock();
     int selected_tab = sourceFile_auinotebook->GetSelection();
     wxString selection_string = sourceFile_auinotebook->GetPageText(selected_tab);
     wxStyledTextCtrl* rc_txtCtrl = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_tab);
@@ -4198,15 +4524,15 @@ void rcbasic_edit_frame::onTextCtrlUpdated( wxStyledTextEvent& event )
             sourceFile_auinotebook->SetPageText(selected_tab, _("[*]") + selection_string.substr(selection_string.find_first_not_of(_("[*]"))) );
         }
     }
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
 {
-
+    notebook_mutex.Lock();
     if(sourceFile_auinotebook->GetSelection() < 0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -4214,7 +4540,7 @@ void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
 
     if(!t)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -4237,7 +4563,7 @@ void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
         }
         if(indent == 0)
         {
-
+            notebook_mutex.Unlock();
             return;
         }
         //wxMessageBox(_("Position from line = ") + wxString::Format("%i",t->PositionFromLine(currentLine)));
@@ -4279,7 +4605,7 @@ void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
         }
     }
 
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::addSymbol(rcbasic_symbol sym)
@@ -4317,7 +4643,7 @@ void rcbasic_edit_frame::setSymbol(wxTreeItemId s_node, rcbasic_symbol sym)
 {
     wxString node_label = sym.id;
 
-    if(s_node == variable_root_node || s_node == function_root_node || s_node == udt_root_node)
+    if(s_node == variable_root_node || s_node == function_root_node)
         return;
 
     if(sym.dimensions > 0)
@@ -4332,7 +4658,6 @@ void rcbasic_edit_frame::setSymbol(wxTreeItemId s_node, rcbasic_symbol sym)
 
     symbol_tree->SetItemText(s_node, node_label);
     symbol_tree->SetItemData(s_node, new rc_symbol_treeItem_data(sym));
-
     switch(sym.token_type)
     {
         case TOKEN_TYPE_VARIABLE:
@@ -4362,16 +4687,16 @@ void rcbasic_edit_frame::onSymbolSelectionChanged( wxTreeEvent& event )
     wxTreeItemId selected_symbol = event.GetItem();
     #endif
 
-
+    notebook_mutex.Lock();
     if(sourceFile_auinotebook->GetSelection()<0)
     {
-
+        notebook_mutex.Unlock();
         return;
     }
 
     if(sourceFile_auinotebook->GetPage(sourceFile_auinotebook->GetSelection())!=parsed_page)
     {
-
+        notebook_mutex.Unlock();
         #ifdef _WIN32
         symbol_tree->UnselectAll();
         #endif
@@ -4391,14 +4716,14 @@ void rcbasic_edit_frame::onSymbolSelectionChanged( wxTreeEvent& event )
     rc_symbol_treeItem_data* sym_data = (rc_symbol_treeItem_data*)symbol_tree->GetItemData(selected_symbol);
     rcbasic_symbol sym = sym_data->symbol;
 
-    wxPrintf(_("Symbol: ") + sym.id + _(" -- line=%d"), sym.line );
+    //wxPrintf(_("Symbol: ") + sym.id + _(" -- line=%d"), sym.line );
 
 
     wxStyledTextCtrl* t = (wxStyledTextCtrl*) sourceFile_auinotebook->GetPage(sourceFile_auinotebook->GetSelection());
 
     if(!t)
     {
-
+        notebook_mutex.Unlock();
         #ifdef _WIN32
         symbol_tree->UnselectAll();
         #endif
@@ -4415,12 +4740,12 @@ void rcbasic_edit_frame::onSymbolSelectionChanged( wxTreeEvent& event )
     symbol_tree->UnselectAll();
     #endif
 
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onSymbolSelectionChanging( wxTreeEvent& event )
 {
-
+    notebook_mutex.Lock();
     #ifdef _WIN32
     symbol_tree->UnselectAll();
 
@@ -4440,12 +4765,12 @@ void rcbasic_edit_frame::onSymbolSelectionChanging( wxTreeEvent& event )
         symbol_tree->SetItemTextColour(selected_symbol_item, wxColour(240, 240, 240));
     }
     #endif
-
+    notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onNotebookPageChanged( wxAuiNotebookEvent& event )
 {
-
+    notebook_mutex.Lock();
     for(int i = 0; i < var_nodes.size(); i++)
     {
         rcbasic_treeItem_data * data = NULL;
@@ -4464,34 +4789,12 @@ void rcbasic_edit_frame::onNotebookPageChanged( wxAuiNotebookEvent& event )
             delete data;
     }
 
-    for(int i = 0; i < udt_nodes.size(); i++)
-    {
-        rcbasic_treeItem_data * data = NULL;
-        data = (rcbasic_treeItem_data*)symbol_tree->GetItemData(udt_nodes[i]);
-        symbol_tree->SetItemData(udt_nodes[i], NULL);
-        if(data)
-            delete data;
-    }
-
-    for(int i = 0; i < const_nodes.size(); i++)
-    {
-        rcbasic_treeItem_data * data = NULL;
-        data = (rcbasic_treeItem_data*)symbol_tree->GetItemData(const_nodes[i]);
-        symbol_tree->SetItemData(const_nodes[i], NULL);
-        if(data)
-            delete data;
-    }
-
     symbol_tree->DeleteChildren(variable_root_node);
     symbol_tree->DeleteChildren(function_root_node);
-    symbol_tree->DeleteChildren(udt_root_node);
-    symbol_tree->DeleteChildren(const_root_node);
     symbols.clear();
     var_nodes.clear();
     fn_nodes.clear();
-    udt_nodes.clear();
-    const_nodes.clear();
-
+    notebook_mutex.Unlock();
 }
 
 
@@ -4520,7 +4823,7 @@ void rcbasic_edit_frame::onDropFiles( wxDropFilesEvent& event )
         }
 
 
-
+        notebook_mutex.Lock();
         for (size_t i = 0; i < files.size(); i++)
         {
             //wxMessageBox( files[i] + _("\n"));
@@ -4531,36 +4834,25 @@ void rcbasic_edit_frame::onDropFiles( wxDropFilesEvent& event )
                 openProject(fname);
 
         }
-
+        notebook_mutex.Unlock();
     }
 }
 
 
 void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
 {
-
+    notebook_mutex.Lock();
     int selected_page = sourceFile_auinotebook->GetSelection();
     int selected_file_index = -1;
-
 
     int line_num = 0;
     int total_lines = 0;
     int col_num = 0;
     int total_col = 0;
 
-
     if(selected_page >= 0)
     {
         wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
-
-        notebook_mutex.Lock();
-        if(!parse_ready)
-		{
-			parsed_page = t;
-			current_parse_string = t->GetText();
-			parse_ready = true;
-		}
-		notebook_mutex.Unlock();
 
         if(t)
         {
@@ -4583,7 +4875,7 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
         }
     }
 
-
+    notebook_mutex.Unlock();
 
     wxString line_status;
     wxString column_status;
