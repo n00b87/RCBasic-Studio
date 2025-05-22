@@ -28,7 +28,7 @@ class rcbasic_editrc_distProcess_dialog : public rc_distProcess_dialog
 		void onCloseButtonClick( wxCommandEvent& event );
 	public:
 		/** Constructor */
-		rcbasic_editrc_distProcess_dialog( wxWindow* parent, wxString dist_cmd, wxString dist_script_path, int num_targets );
+		rcbasic_editrc_distProcess_dialog( wxWindow* parent, wxString dist_cmd, int num_targets );
 	//// end generated class members
 	void onDistProcessTerminate( wxProcessEvent& event );
 

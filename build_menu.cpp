@@ -154,7 +154,7 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
     m_results_notebook->SetSelection(RESULTS_LISTBOX_BUILDMSG);
 
 
-
+    notebook_mutex.Lock();
 
 
     //-----------
@@ -205,7 +205,7 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
     build_run_project->saveProject(project_fname);
     //------------------
 
-
+    notebook_mutex.Unlock();
 
 
     wxFile build_script;
@@ -490,7 +490,7 @@ void rcbasic_edit_frame::onStopExecuteMenuSelect( wxCommandEvent& event )
             wxRemove(pid_filename.GetFullPath());
         }
 
-        wxString term_cmd = _("cd [editor_path]/bin && ./stop_process");
+        wxString term_cmd = _("cd [editor_path] && echo $( ps ax | grep rcbasic_studio_run | grep [editor_path] ) > run_pid.txt");
         term_cmd.Replace(_("[editor_path]"), editor_path_dir.GetFullPath());
         //wxPuts(_("-------------DEBUG-----------------"));
         //wxPuts(_("get pid: ") + term_cmd);
@@ -498,7 +498,6 @@ void rcbasic_edit_frame::onStopExecuteMenuSelect( wxCommandEvent& event )
 
         wxFile pid_file;
 
-        /*
         if(pid_file.Open(pid_filename.GetFullPath()))
         {
             wxString rpid;
@@ -512,7 +511,6 @@ void rcbasic_edit_frame::onStopExecuteMenuSelect( wxCommandEvent& event )
                 wxSystem(_("kill ") + rpid);
             }
         }
-        */
 
         #else
         //wxPuts(_("STOPPING NOW: ") + _("taskkill /f /im ") + rcbasic_run_path.GetFullName());
@@ -564,7 +562,7 @@ void rcbasic_edit_frame::buildCurrentFile()
     m_results_notebook->SetSelection(RESULTS_LISTBOX_BUILDMSG);
 
 
-
+    notebook_mutex.Lock();
 
     //-----------
     wxFileName project_fname = getCurrentFile()->getSourcePath();
@@ -572,7 +570,7 @@ void rcbasic_edit_frame::buildCurrentFile()
 
     //------------------
 
-
+    notebook_mutex.Unlock();
 
     build_files.clear();
 

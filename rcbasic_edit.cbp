@@ -9,9 +9,8 @@
 			<Target title="Debug">
 				<Option output="bin/Debug/rcbasic_edit" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
-				<Option type="0" />
+				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -19,24 +18,37 @@
 			<Target title="Release">
 				<Option output="bin/Release/rcbasic_edit" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
-				<Option type="0" />
-				<Option compiler="gcc" />
-				<Option projectLinkerOptionsRelation="2" />
+				<Option type="1" />
+				<Option compiler="mingw64" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add directory="C:/dev/wxWidgets-3.2.6/include" />
+					<Add directory="C:/dev/wxWidgets-3.2.6/lib/gcc810_x64_dll/mswu" />
 				</Compiler>
+				<ResourceCompiler>
+					<Add directory="C:/dev/wxWidgets-3.2.6/include" />
+				</ResourceCompiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-Wl,--allow-multiple-definition -mwindows" />
+					<Add library="../wxWidgets-3.2.6/lib/gcc810_x64_dll/libwxbase32u.a" />
+					<Add library="../wxWidgets-3.2.6/lib/gcc810_x64_dll/libwxmsw32u_aui.a" />
+					<Add library="../wxWidgets-3.2.6/lib/gcc810_x64_dll/libwxmsw32u_core.a" />
+					<Add library="../wxWidgets-3.2.6/lib/gcc810_x64_dll/libwxmsw32u_richtext.a" />
+					<Add library="../wxWidgets-3.2.6/lib/gcc810_x64_dll/libwxmsw32u_stc.a" />
+					<Add library="../wxWidgets-3.2.6/lib/gcc810_x64_dll/libwxpng.a" />
+					<Add library="../wxWidgets-3.2.6/lib/gcc810_x64_dll/libwxzlib.a" />
+					<Add directory="C:/dev/wxWidgets-3.2.6/lib/gcc810_x64_dll" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="`wx-config --cflags`" />
+			<Add option="-fexceptions" />
+			<Add directory="C:/dev/wxWidgets-3.2.6/include" />
 		</Compiler>
-		<Linker>
-			<Add option="`wx-config --libs std,stc,aui,richtext` -Wl,--allow-multiple-definition" />
-		</Linker>
+		<Unit filename="GUIDialog.cpp" />
+		<Unit filename="GUIDialog.h" />
 		<Unit filename="build_menu.cpp" />
 		<Unit filename="constants.h" />
 		<Unit filename="drag_files.h" />
@@ -63,6 +75,10 @@
 		<Unit filename="rc_utility.h" />
 		<Unit filename="rcbasic_edit.cpp" />
 		<Unit filename="rcbasic_edit.h" />
+		<Unit filename="rcbasic_editApp.cpp" />
+		<Unit filename="rcbasic_editApp.h" />
+		<Unit filename="rcbasic_editMain.cpp" />
+		<Unit filename="rcbasic_editMain.h" />
 		<Unit filename="rcbasic_edit_fileProperties_dialog.cpp" />
 		<Unit filename="rcbasic_edit_fileProperties_dialog.h" />
 		<Unit filename="rcbasic_edit_frame.cpp" />
@@ -97,8 +113,13 @@
 		<Unit filename="rcbasic_editrc_genKey_dialog.h" />
 		<Unit filename="rcbasic_frame.h" />
 		<Unit filename="rcbasic_symbol.h" />
+		<Unit filename="resource.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
 		<Unit filename="tokenizer.h" />
 		<Unit filename="tools_menu.cpp" />
-		<Extensions />
+		<Extensions>
+			<lib_finder disable_auto="1" />
+		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

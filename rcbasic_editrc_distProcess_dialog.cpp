@@ -2,28 +2,13 @@
 #include <wx/txtstrm.h>
 #include <wx/msgdlg.h>
 
-rcbasic_editrc_distProcess_dialog::rcbasic_editrc_distProcess_dialog( wxWindow* parent, wxString dist_cmd, wxString dist_script_path, int num_targets )
+rcbasic_editrc_distProcess_dialog::rcbasic_editrc_distProcess_dialog( wxWindow* parent, wxString dist_cmd, int num_targets )
 :
 rc_distProcess_dialog( parent )
 {
     isRunning = false;
     dist_pid = -1;
     dist_process = NULL;
-
-    wxFileName dist_script_fname(dist_script_path);
-    #ifdef _WIN32
-    //dist_script_fname.AppendDir(_("tools"));
-    dist_script_fname.AppendDir(_("bin"));
-    dist_script_fname.SetFullName(_("dist.bat"));
-    #else
-    dist_script_fname.AppendDir(_("bin"));
-    dist_script_fname.SetFullName(_("dist.sh"));
-    #endif // _WIN32
-
-    wxString dist_exec_cmd = dist_script_fname.GetFullPath() +_(" ") + dist_cmd;
-
-    //wxMessageBox(_("ARG --> ") + dist_exec_cmd);
-    //return;
 
     dist_process = new wxProcess(this);
 	if(!dist_process)
@@ -35,14 +20,14 @@ rc_distProcess_dialog( parent )
 
 	wxString pkg_home;
 	wxGetEnv(_("RC_PKG_HOME"), &pkg_home);
-	//wxSetWorkingDirectory(pkg_home);
+	wxSetWorkingDirectory(pkg_home);
 
 	wxString p;
 	wxGetEnv(_("PATH"), &p);
 	//wxPuts(_("PATH: ") + p );
 	//wxPuts(_("\nCMD: ")+dist_cmd+_("\n\n"));
 
-	dist_pid = wxExecute(dist_exec_cmd, wxEXEC_ASYNC, dist_process, NULL);
+	dist_pid = wxExecute(dist_cmd, wxEXEC_ASYNC, dist_process, NULL);
 
 	if(dist_pid < 0)
     {
@@ -90,18 +75,12 @@ void rcbasic_editrc_distProcess_dialog::onCancelButtonClick( wxCommandEvent& eve
 {
 // TODO: Implement onCancelButtonClick
     if(!isRunning)
-    {
         Close();
-        return;
-    }
-
 
     isRunning = false;
     dist_process->CloseOutput();
 
-    #ifdef _WIN32
     wxExecute(_("taskkill /F /IM rcbasic_studio_run.exe"), wxEXEC_SYNC);
-    #endif // _WIN32
 
     wxKill(dist_pid);
     if(dist_process)
@@ -120,9 +99,6 @@ void rcbasic_editrc_distProcess_dialog::onCloseButtonClick( wxCommandEvent& even
 
 void rcbasic_editrc_distProcess_dialog::onDistProcessTerminate( wxProcessEvent& event )
 {
-    if(!isRunning)
-        return;
-
     isRunning = false;
     dist_process->CloseOutput();
 
@@ -131,15 +107,6 @@ void rcbasic_editrc_distProcess_dialog::onDistProcessTerminate( wxProcessEvent& 
     while(dist_process->IsInputAvailable())
     {
         wxString console_line = dist_stream.ReadLine();
-
-        if(console_line.find(_("RCBASIC PACKAGE SUCCESS:")) != wxString::npos)
-        {
-            //wxPuts(_("\n\n####FOUND IT#####\n\n"));
-            current_count++;
-            m_status_gauge->SetValue(current_count);
-            //wxPrintf(_("Current Value = %d out of %d\n"), m_status_gauge->GetValue(), m_status_gauge->GetRange());
-        }
-
         m_consoleLog_textCtrl->AppendText(console_line + _("\n"));
     }
 

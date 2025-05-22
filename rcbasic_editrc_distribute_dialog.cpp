@@ -432,6 +432,23 @@ void rcbasic_editrc_distribute_dialog::onMakeAppButtonClick( wxCommandEvent& eve
 
     wxDir out_dir(getPropertyValue(_("OUTPUT_DIR")));
 
+    if( (!out_dir.IsOpened()) || (!wxDirExists(getPropertyValue(_("OUTPUT_DIR")))) )
+    {
+        if(out_dir.IsOpened())
+            out_dir.Close();
+        wxMessageBox(_("Output Directory was not found or not accessible"));
+        return;
+    }
+
+    /*if(out_dir.HasFiles())
+    {
+        out_dir.Close();
+        wxMessageBox(_("You must select an empty directory for output"));
+        return;
+    }*/
+
+    out_dir.Close();
+
     //bool web_build_flag = getPropertyValue(_("TGT_PLATFORM")).Replace(_("WEB"), _("")).compare(getPropertyValue(_("TGT_PLATFORM")))==0 ? false : true;
 
     wxString app_pkg_args;
@@ -453,8 +470,7 @@ void rcbasic_editrc_distribute_dialog::onMakeAppButtonClick( wxCommandEvent& eve
 
         //MAIN APP SETTINGS
     app_pkg_args.Replace(_("[TGT_ARGS]"), getPropertyValue(_("TGT_PLATFORM")));
-    wxString p_name = getPropertyValue(_("PROJECT_NAME"));
-    app_pkg_args.Replace(_("[PRJ_NAME]"), p_name);
+	app_pkg_args.Replace(_("[PRJ_NAME]"), getPropertyValue(_("PROJECT_NAME")));
 	app_pkg_args.Replace(_("[PRJ_CAT]"), getPropertyValue(_("PROJECT_CATEGORY")));
 	app_pkg_args.Replace(_("[APT]"), getPropertyValue(_("APP_TYPE")));
 	app_pkg_args.Replace(_("[TRM_FLG]"), getPropertyValue(_("TERMINAL_FLAG")));
@@ -475,38 +491,78 @@ void rcbasic_editrc_distribute_dialog::onMakeAppButtonClick( wxCommandEvent& eve
 	app_pkg_args.Replace(_("[ANDROID_DEBUG]"), getPropertyValue(_("ANDROID_DEBUG")));
 	app_pkg_args.Replace(_("[JAVA_DIR]"), getPropertyValue(_("ANDROID_JAVA_DIR")));
 
+	//wxMessageBox(_("\n\nCMD: ") + app_pkg_args + _("\n\n"));
 
-    rcbasic_project* current_project = parent_frame->getActiveProject();
+	wxString pkg_home;
+	wxGetEnv(_("RC_PKG_HOME"), &pkg_home);
+	wxFileName pkg_path(pkg_home);
+	pkg_path.SetFullName(_("pkg.cbc"));
+	wxFileName rcbasic_run_fname = parent_frame->getRCRunnerPath();
+	rcbasic_run_fname.MakeAbsolute();
 
-    wxFile rc_distcmd_file;
-	wxFileName rc_distcmd_fname(current_project->getProjectFileLocation());
-	rc_distcmd_fname.SetFullName("rcbasic_studio_dist_cmd.txt");
+	wxFile pf_file;
+	wxFileName pf_file_fname = pkg_path;
+	pf_file_fname.SetFullName(_("current_build_pfiles.txt"));
 
-	//wxMessageBox(_("DistCMD: ") + rc_distcmd_fname.GetFullPath());
-
-	if(rc_distcmd_file.Create(rc_distcmd_fname.GetFullPath(), true))
+	if(pf_file.Create(pf_file_fname.GetFullPath(), true))
     {
+        rcbasic_project* current_project = parent_frame->getActiveProject();
         std::vector<rcbasic_project_node*> source_files = current_project->getSourceFiles();
 
-        rc_distcmd_file.Write(app_pkg_args + _("\n"));
 
-        rc_distcmd_file.Write(_("X:") + current_project->getProjectFileLocation() + _("\n"));
-        rc_distcmd_file.Write(_("X:app.properties\n"));
-        rc_distcmd_file.Write(_("X:rcbasic_studio_dist_cmd.txt\n"));
-        rc_distcmd_file.Write(_("X:rcbasic.dbgi\n"));
-        rc_distcmd_file.Write(_("X:rcbasic.dbgs\n"));
+        wxFileName dbg_fname(current_project->getLocation());
+        dbg_fname.MakeAbsolute();
+
+        dbg_fname.SetFullName(_("rcbasic.dbgm"));
+        pf_file.Write(dbg_fname.GetFullPath() + _("\n"));
+
+        dbg_fname.SetFullName(_("rcbasic.dbgi"));
+        pf_file.Write(dbg_fname.GetFullPath() + _("\n"));
+
+        dbg_fname.SetFullName(_("rcbasic.dbgs"));
+        pf_file.Write(dbg_fname.GetFullPath() + _("\n"));
+
+        dbg_fname.SetFullName(_("rcbasic_dbg.cl"));
+        pf_file.Write(dbg_fname.GetFullPath() + _("\n"));
+
+        dbg_fname.SetFullName(_("rcbasic_dbg.sp"));
+        pf_file.Write(dbg_fname.GetFullPath() + _("\n"));
+
+        dbg_fname.SetFullName(_("rcbasic_dbg.rt"));
+        pf_file.Write(dbg_fname.GetFullPath() + _("\n"));
+
 
         for(int i = 0; i < source_files.size(); i++)
         {
-            rc_distcmd_file.Write(_("X:") + source_files[i]->getPath().GetFullName() + _("\n"));
+            wxFileName fname = source_files[i]->getPath();
+            fname.MakeRelativeTo(current_project->getLocation());
+            pf_file.Write(fname.GetFullPath() + _("\n"));
         }
-
-        rc_distcmd_file.Close();
+        pf_file.Close();
     }
 
 
-	rcbasic_editrc_distProcess_dialog dp_dialog(this, rc_distcmd_fname.GetFullPath(), parent_frame->getRCBasicBasePath(), getTargetPlatformCount());
+	//wxString dist_cmd = _("\"") + rcbasic_run_fname.GetFullPath() + _("\" \"") + pkg_path.GetFullPath() + _("\" ") +app_pkg_args;
+	//wxString dist_cmd = _("rcbasic_studio_run  studio_app_build \"") + getPropertyValue(_("PROJECT_DIR")) + _("\" \"") + getPropertyValue(_("SOURCE")) + _("\" ") + m_password_textCtrl->GetValue();
+	wxString dist_cmd = _("rcbasic_studio_run  pkg ") + app_pkg_args;
+
+	wxFile cmd_log;
+	wxFileName cmd_log_path(pkg_home);
+	cmd_log_path.SetFullName(_("cmd_log.txt"));
+	if(cmd_log.Create(cmd_log_path.GetFullPath(), true))
+    {
+        cmd_log.Write(dist_cmd);
+        cmd_log.Close();
+    }
+	//wxPrintf(_("\nTGTS: %d\n"), getTargetPlatformCount());
+	//return;
+	//wxMessageBox(_("\n\nDIST-CMD: ") + dist_cmd + _("\n\n")); return;
+	rcbasic_editrc_distProcess_dialog dp_dialog(this, dist_cmd, getTargetPlatformCount());
 	dp_dialog.ShowModal();
+	//wxSystem(_("taskkill /F /IM rcbasic_studio_run.exe"));
+	//wxPuts(_("\n\n")+dist_cmd);
+	//dist_pid = wxExecute(dist_cmd, wxEXEC_SHOW_CONSOLE | wxEXEC_ASYNC, dist_process, NULL);
+	//isRunning = true;
 }
 
 void rcbasic_editrc_distribute_dialog::onCloseButtonClick( wxCommandEvent& event )
