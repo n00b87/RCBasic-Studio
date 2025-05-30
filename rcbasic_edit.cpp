@@ -148,7 +148,7 @@ rc_ideFrame::rc_ideFrame( wxWindow* parent, wxWindowID id, const wxString& title
 
 	m_search_menu->AppendSeparator();
 
-	m_goto_menuItem = new wxMenuItem( m_search_menu, wxID_ANY, wxString( wxT("Go To Line") ) + wxT('\t') + wxT("Ctrl+L"), wxEmptyString, wxITEM_NORMAL );
+	m_goto_menuItem = new wxMenuItem( m_search_menu, wxID_ANY, wxString( wxT("Go To Line") ) + wxT('\t') + wxT("Ctrl+1"), wxEmptyString, wxITEM_NORMAL );
 	m_search_menu->Append( m_goto_menuItem );
 
 	m_menubar1->Append( m_search_menu, wxT("Search") );
@@ -1237,7 +1237,7 @@ rc_gotoLine_dialog::rc_gotoLine_dialog( wxWindow* parent, wxWindowID id, const w
 	m_staticText17->Wrap( -1 );
 	bSizer48->Add( m_staticText17, 2, wxALL, 5 );
 
-	m_goto_textCtrl = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_goto_textCtrl = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER );
 	bSizer48->Add( m_goto_textCtrl, 8, wxALL, 5 );
 
 
