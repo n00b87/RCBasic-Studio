@@ -1,14 +1,30 @@
 #include "rcbasic_editrc_distProcess_dialog.h"
 #include <wx/txtstrm.h>
 #include <wx/msgdlg.h>
+#include <wx/stdpaths.h>
 
-rcbasic_editrc_distProcess_dialog::rcbasic_editrc_distProcess_dialog( wxWindow* parent, wxString dist_cmd, int num_targets )
+rcbasic_editrc_distProcess_dialog::rcbasic_editrc_distProcess_dialog( wxWindow* parent, wxString dist_cmd, wxString dist_script_path, int num_targets )
 :
 rc_distProcess_dialog( parent )
 {
     isRunning = false;
     dist_pid = -1;
     dist_process = NULL;
+
+    wxFileName dist_script_fname(dist_script_path);
+    #ifdef _WIN32
+    //dist_script_fname.AppendDir(_("tools"));
+    dist_script_fname.AppendDir(_("bin"));
+    dist_script_fname.SetFullName(_("dist.bat"));
+    #else
+    dist_script_fname.AppendDir(_("bin"));
+    dist_script_fname.SetFullName(_("rcbasic_dist.sh"));
+    #endif // _WIN32
+
+    wxString dist_exec_cmd = dist_script_fname.GetFullPath() +_(" ") + dist_cmd;
+
+    //wxMessageBox(_("ARG --> ") + dist_exec_cmd);
+    //return;
 
     dist_process = new wxProcess(this);
 	if(!dist_process)
@@ -19,15 +35,23 @@ rc_distProcess_dialog( parent )
 	dist_process->Connect( wxEVT_END_PROCESS, wxProcessEventHandler( rcbasic_editrc_distProcess_dialog::onDistProcessTerminate ), NULL, this );
 
 	wxString pkg_home;
-	wxGetEnv(_("RC_PKG_HOME"), &pkg_home);
-	wxSetWorkingDirectory(pkg_home);
+	wxGetEnv(_("RCBASIC_TOOLS"), &pkg_home);
+	//wxSetWorkingDirectory(pkg_home);
 
 	wxString p;
 	wxGetEnv(_("PATH"), &p);
 	//wxPuts(_("PATH: ") + p );
 	//wxPuts(_("\nCMD: ")+dist_cmd+_("\n\n"));
 
-	dist_pid = wxExecute(dist_cmd, wxEXEC_ASYNC, dist_process, NULL);
+
+	target_count = num_targets;
+
+	//wxMessageBox(_("Num Targets: ") + wxString::Format(_("%i"), target_count));
+
+	m_status_gauge->SetRange(target_count);
+	current_count = 0;
+
+	dist_pid = wxExecute(dist_exec_cmd, wxEXEC_ASYNC, dist_process, NULL);
 
 	if(dist_pid < 0)
     {
@@ -38,12 +62,6 @@ rc_distProcess_dialog( parent )
     }
 
 	isRunning = true;
-	target_count = num_targets;
-
-	//wxPrintf(_("Num Targets: %d\n"), target_count);
-
-	m_status_gauge->SetRange(target_count);
-	current_count = 0;
 }
 
 void rcbasic_editrc_distProcess_dialog::onDistProcessUpdateUI( wxUpdateUIEvent& event )
@@ -110,9 +128,13 @@ void rcbasic_editrc_distProcess_dialog::onDistProcessTerminate( wxProcessEvent& 
         m_consoleLog_textCtrl->AppendText(console_line + _("\n"));
     }
 
-    if(m_status_gauge->GetValue() < m_status_gauge->GetRange())
+    if(m_status_gauge->GetValue() < (m_status_gauge->GetRange()-1)) //Value starts at 0 so it should be range - 1 if successful
     {
         wxMessageBox(_("ERROR: Did not successfully build app for all selected platforms."));
+    }
+    else
+    {
+        m_status_gauge->SetValue(m_status_gauge->GetRange());
     }
 
     wxKill(dist_pid);

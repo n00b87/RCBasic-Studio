@@ -624,14 +624,21 @@ bool dist_web()
     //-----COPY PROJECT FILES TO OUTPUT DIRECTORY-----
     string out_file = appendFileToPath(DIST_OUTPUT_DIR, PROJECT_OUTDIR_NAME + ".html");
 
-    string em_cmd = DIST_PKG_PATH;
+    string em_cmd = "cd " + DIST_PKG_PATH;
     em_cmd = appendFileToPath(em_cmd, "EM");
     #if defined(WIN32) || defined(WIN64)
     em_cmd = appendFileToPath(em_cmd, "em_build.bat");
     #else
-    em_cmd = appendFileToPath(em_cmd, "em_build.sh");
+    em_cmd = appendFileToPath(em_cmd, " && chmod +x em_build.sh && ./em_build.sh");
     #endif // defined
     em_cmd += " \"" + PROJECT_DIR + "\" " + out_file;
+
+    std::cout << "Web Build CMD: " << em_cmd << std::endl;
+    std::cout << ".." << std::endl;
+
+    fstream build_file("build_web.sh", fstream::out);
+    build_file << em_cmd << std::endl;
+    build_file.close();
 
     system(em_cmd.c_str());
 
@@ -725,7 +732,7 @@ int main(int argc, char * argv[])
     if(!parse(args))
         return 1;
 
-    string build_cmd = "pushd \"" + PROJECT_DIR + "\" && " "rcbasic_build4 \"" + appendFileToPath(PROJECT_DIR, SOURCE) + "\" && popd ";
+    string build_cmd = "cd \"" + PROJECT_DIR + "\" &&  " + "rcbasic_build4 \"" + appendFileToPath(PROJECT_DIR, SOURCE) + "\" ";
 
     if(SOURCE.length() < 5)
     {
@@ -741,6 +748,10 @@ int main(int argc, char * argv[])
 
     string PROJECT_CBC = SOURCE.substr(0, SOURCE.length()-4) + ".cbc";
     //cout << "cbc = " << PROJECT_CBC << endl;
+
+    std::cout << std::endl << "dist_build_cmd: " << build_cmd << std::endl << std::endl;
+    std::cout << ".." << std::endl;
+    std::cout << ".." << std::endl;
 
     system(build_cmd.c_str());
 
