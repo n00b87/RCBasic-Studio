@@ -1,5 +1,6 @@
 #include "rcbasic_editrc_genKey_dialog.h"
 #include <wx/msgdlg.h>
+#include <wx/filedlg.h>
 
 rcbasic_editrc_genKey_dialog::rcbasic_editrc_genKey_dialog( wxWindow* parent )
 :
