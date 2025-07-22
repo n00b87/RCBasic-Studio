@@ -453,14 +453,16 @@ rc_ideFrame( parent )
     wxFileName rc64_dir = rcbasic_dir;
     rc64_dir.AppendDir(_("rcbasic_64"));
 
-    wxFileName pkg_home_dir = tools_dir;
+    wxFileName pkg_home_dir(editor_path);
     pkg_home_dir.AppendDir(_("dist"));
 
     wxFileName keystore_dir(editor_path);
     keystore_dir.AppendDir(_("keystore"));
 
-    wxFileName android_dir = pkg_home_dir;
+    wxFileName android_dir(editor_path);
+    android_dir.SetFullName(_(""));
 
+    android_dir.AppendDir(_("dist"));
     android_dir.AppendDir(_("rcbasic_android"));
 
     wxSetEnv(_("RCBASIC_HOME"), rcbasic_dir.GetFullPath());

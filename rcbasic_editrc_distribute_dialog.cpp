@@ -40,12 +40,14 @@ rc_distribute_dialog( parent )
 
 
     //wxCheckListBox m_targetPlatforms_checkList;
-    wxString pkg_home;
-    wxGetEnv(_("RC_PKG_HOME"), &pkg_home);
-	wxFileName android_project_path(pkg_home);
-	android_project_path.AppendDir(_("rcbasic_android"));
+    wxString android_home;
+    wxGetEnv(_("RCBASIC_ANDROID_DIR"), &android_home);
+
+	wxFileName android_project_path(android_home);
 	android_project_path.AppendDir(_("android-project"));
 	android_project_path.MakeAbsolute();
+
+	//wxMessageBox(_("DBG AND_HOME: ") + android_project_path.GetAbsolutePath());
 
     m_targetPlatforms_checkList->AppendAndEnsureVisible(_("Windows 32-Bit"));
     m_targetPlatforms_checkList->AppendAndEnsureVisible(_("Windows 64-Bit"));
@@ -71,10 +73,9 @@ bool rcbasic_editrc_distribute_dialog::java_init_dir(wxFileName java_dir, wxStri
     project_name.Replace(_(" "), _("_"));
     wxString activity_name = _("rcbasic_") + project_name;
 
-    wxString pkg_home;
-    wxGetEnv(_("RC_PKG_HOME"), &pkg_home);
-	wxFileName rc_java_file_path(pkg_home);
-    rc_java_file_path.AppendDir(_("rcbasic_android"));
+    wxString android_home;
+    wxGetEnv(_("RCBASIC_ANDROID_DIR"), &android_home);
+	wxFileName rc_java_file_path(android_home);
     rc_java_file_path.AppendDir(_("scripts"));
     rc_java_file_path.SetFullName(_("rcbasic.java"));
     rc_java_file_path.MakeAbsolute();
@@ -118,11 +119,10 @@ void rcbasic_editrc_distribute_dialog::onInitJavaPathButtonClick( wxCommandEvent
 // TODO: Implement onInitJavaPathButtonClick
     wxFileName java_dir_fname = m_javaPath_dirPicker->GetDirName();
 
-    wxString pkg_home;
-    wxGetEnv(_("RC_PKG_HOME"), &pkg_home);
-    wxFileName script_java_fname(pkg_home);
+    wxString android_home;
+    wxGetEnv(_("RCBASIC_ANDROID_DIR"), &android_home);
+    wxFileName script_java_fname(android_home);
     //wxPuts(_("PKG = ") + pkg_home);
-    script_java_fname.AppendDir(_("rcbasic_android"));
     script_java_fname.AppendDir(_("scripts"));
     script_java_fname.SetFullName(_("rcbasic.java"));
 
