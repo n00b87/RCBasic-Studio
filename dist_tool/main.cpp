@@ -649,6 +649,75 @@ bool dist_web()
 	return true;
 }
 
+bool dist_android()
+{
+    //cout << "PLATFORM_WEB: " << (int)PLATFORM_WEB << endl;
+    if(!PLATFORM_ANDROID)
+        return true;
+
+    string arch_label = "";
+    string OS_DIST_DIR = DIST_PKG_PATH;
+
+    arch_label = "_ANDROID";
+    OS_DIST_DIR = appendFileToPath(OS_DIST_DIR, "rcbasic_android");
+
+    string DIST_OUTPUT_DIR = OUTPUT_DIR;
+
+    string end_char = DIST_OUTPUT_DIR.substr(DIST_OUTPUT_DIR.length()-1, 1);
+
+    #if defined(WIN32) || defined(WIN64)
+    if(end_char.compare("\\")!=0)
+    {
+        DIST_OUTPUT_DIR += "\\";
+    }
+    #else
+    if(end_char.compare("/")!=0)
+    {
+        DIST_OUTPUT_DIR += "/";
+    }
+    #endif // defined
+
+    DIST_OUTPUT_DIR += PROJECT_OUTDIR_NAME + arch_label;
+
+    if(dirExist(DIST_OUTPUT_DIR))
+        dirDelete(DIST_OUTPUT_DIR);
+
+    dirCreate(DIST_OUTPUT_DIR);
+
+    if(!dirExist(DIST_OUTPUT_DIR))
+        return false;
+
+    //-----COPY PROJECT FILES TO OUTPUT DIRECTORY-----
+    string out_file = appendFileToPath(DIST_OUTPUT_DIR, PROJECT_OUTDIR_NAME + ".apk");
+
+
+
+    string droid_cmd = "cd " + OS_DIST_DIR + " && ";
+
+    #if defined(WIN32) || defined(WIN64)
+    droid_cmd += "rcbasic_android_build.bat";
+    #else
+    droid_cmd += "chmod +x rcbasic_android_build.sh && ./rcbasic_android_build.sh";
+    #endif // defined
+
+    droid_cmd += " \"" + PROJECT_DIR + "\" " + out_file;
+
+    std::cout << "Android Build CMD: " << droid_cmd << std::endl;
+    std::cout << ".." << std::endl;
+
+    fstream build_file("build_droid.sh", fstream::out);
+    build_file << droid_cmd << std::endl;
+    build_file.close();
+
+    system(droid_cmd.c_str());
+
+
+    if(!fileExist(out_file))
+        return false;
+
+	return true;
+}
+
 string strip_path(string full_path)
 {
     string d_sep = "";
