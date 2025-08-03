@@ -119,6 +119,8 @@ void rcbasic_editrc_distribute_dialog::onInitJavaPathButtonClick( wxCommandEvent
 // TODO: Implement onInitJavaPathButtonClick
     wxFileName java_dir_fname = m_javaPath_dirPicker->GetDirName();
 
+    //wxMessageBox(_("D_TEST: ") + m_javaPath_dirPicker->GetDirName().GetAbsolutePath());
+
     wxString android_home;
     wxGetEnv(_("RCBASIC_ANDROID_DIR"), &android_home);
     wxFileName script_java_fname(android_home);
@@ -126,7 +128,9 @@ void rcbasic_editrc_distribute_dialog::onInitJavaPathButtonClick( wxCommandEvent
     script_java_fname.AppendDir(_("scripts"));
     script_java_fname.SetFullName(_("rcbasic.java"));
 
-    if( script_java_fname.Exists() && java_dir_fname.Exists() )
+    //wxMessageBox(_("Dir Name: ") + (wxDirExists(java_dir_fname.GetAbsolutePath()) ? _("true") : _("false")));
+
+    if( script_java_fname.Exists() && wxDirExists(java_dir_fname.GetAbsolutePath()) )
     {
         wxString project_name = m_projectName_textCtrl->GetValue();
         project_name = project_name.substr(project_name.find_first_not_of(_(" ")));
@@ -337,6 +341,8 @@ void rcbasic_editrc_distribute_dialog::loadAppProperties()
     wxString property;
     wxString value;
 
+    bool jv_init_set = false;
+
     for(int i = 0; i < app_file_data.length(); i++)
     {
         int vpos = app_file_data.find_first_of(_("="));
@@ -403,7 +409,11 @@ void rcbasic_editrc_distribute_dialog::loadAppProperties()
         {
             wxFileName dname;
             dname.SetPath(value);
-            m_javaPath_dirPicker->SetDirName( wxFileName(dname) );
+            m_javaPath_dirPicker->SetDirName( dname );
+
+            //wxMessageBox(_("SET JAVA_PATH PICKER_OP: ") + m_javaPath_dirPicker->GetDirName().GetAbsolutePath());
+
+            jv_init_set = true;
         }
         else
         {
