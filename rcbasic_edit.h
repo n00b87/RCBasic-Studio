@@ -39,6 +39,7 @@
 #include <wx/collpane.h>
 #include <wx/listctrl.h>
 #include <wx/combobox.h>
+#include <wx/bmpbuttn.h>
 #include <wx/checklst.h>
 #include <wx/gauge.h>
 
@@ -702,7 +703,8 @@ class rc_distribute_dialog : public wxDialog
 		wxStaticText* m_staticText38;
 		wxComboBox* m_category_comboBox;
 		wxStaticText* m_staticText39;
-		wxFilePickerCtrl* m_icon_filePicker;
+		wxTextCtrl* m_iconPicker_textCtrl;
+		wxBitmapButton* m_bpButton1;
 		wxStaticText* m_staticText41;
 		wxCheckBox* m_enableTerminal_checkBox;
 		wxCheckBox* m_enableWebThreads_checkBox;
@@ -733,6 +735,7 @@ class rc_distribute_dialog : public wxDialog
 
 		// Virtual event handlers, override them in your derived class
 		virtual void onCloseButtonClick( wxCloseEvent& event ) { event.Skip(); }
+		virtual void OnIconPickerSelect( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onInitJavaPathButtonClick( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onSaveSettingsButtonClick( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onMakeAppButtonClick( wxCommandEvent& event ) { event.Skip(); }

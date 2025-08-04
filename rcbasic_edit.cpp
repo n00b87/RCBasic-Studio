@@ -2234,8 +2234,13 @@ rc_distribute_dialog::rc_distribute_dialog( wxWindow* parent, wxWindowID id, con
 	m_staticText39->Wrap( -1 );
 	bSizer99->Add( m_staticText39, 1, wxALL, 5 );
 
-	m_icon_filePicker = new wxFilePickerCtrl( m_panel12, wxID_ANY, wxEmptyString, wxT("Select a file"), wxT("*.*"), wxDefaultPosition, wxDefaultSize, wxFLP_DEFAULT_STYLE );
-	bSizer99->Add( m_icon_filePicker, 6, wxALL, 5 );
+	m_iconPicker_textCtrl = new wxTextCtrl( m_panel12, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer99->Add( m_iconPicker_textCtrl, 5, wxALL, 1 );
+
+	m_bpButton1 = new wxBitmapButton( m_panel12, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|0 );
+
+	m_bpButton1->SetBitmap( wxArtProvider::GetBitmap( wxASCII_STR(wxART_FILE_OPEN), wxASCII_STR(wxART_TOOLBAR) ) );
+	bSizer99->Add( m_bpButton1, 1, wxALL, 1 );
 
 
 	bSizer99->Add( 0, 0, 1, wxEXPAND, 5 );
@@ -2491,6 +2496,7 @@ rc_distribute_dialog::rc_distribute_dialog( wxWindow* parent, wxWindowID id, con
 
 	// Connect Events
 	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( rc_distribute_dialog::onCloseButtonClick ) );
+	m_bpButton1->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( rc_distribute_dialog::OnIconPickerSelect ), NULL, this );
 	m_initJavaPath_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( rc_distribute_dialog::onInitJavaPathButtonClick ), NULL, this );
 	m_saveSettings_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( rc_distribute_dialog::onSaveSettingsButtonClick ), NULL, this );
 	m_makeApp_button->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( rc_distribute_dialog::onMakeAppButtonClick ), NULL, this );
@@ -2501,6 +2507,7 @@ rc_distribute_dialog::~rc_distribute_dialog()
 {
 	// Disconnect Events
 	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( rc_distribute_dialog::onCloseButtonClick ) );
+	m_bpButton1->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( rc_distribute_dialog::OnIconPickerSelect ), NULL, this );
 	m_initJavaPath_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( rc_distribute_dialog::onInitJavaPathButtonClick ), NULL, this );
 	m_saveSettings_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( rc_distribute_dialog::onSaveSettingsButtonClick ), NULL, this );
 	m_makeApp_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( rc_distribute_dialog::onMakeAppButtonClick ), NULL, this );

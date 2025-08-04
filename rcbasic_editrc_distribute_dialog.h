@@ -33,10 +33,14 @@ class rcbasic_editrc_distribute_dialog : public rc_distribute_dialog
 		void onSaveSettingsButtonClick( wxCommandEvent& event );
 		void onMakeAppButtonClick( wxCommandEvent& event );
 		void onCloseButtonClick( wxCommandEvent& event );
+
+		void OnIconPickerSelect( wxCommandEvent& event );
 	public:
 		/** Constructor */
 		rcbasic_editrc_distribute_dialog( wxWindow* parent );
 	//// end generated class members
+
+        wxFileName openFileDialog(wxString title, wxString default_wildcard, int flag);
 
         bool java_init_dir(wxFileName java_dir, wxString project_name);
 

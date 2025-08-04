@@ -36,7 +36,10 @@ rc_distribute_dialog( parent )
     default_icon.SetFullName(_("rcbasic.png"));
 
     if(default_icon.Exists())
-        m_icon_filePicker->SetFileName(default_icon);
+    {
+        //m_icon_filePicker->SetFileName(default_icon);
+        m_iconPicker_textCtrl->SetValue(default_icon.GetAbsolutePath());
+    }
 
 
     //wxCheckListBox m_targetPlatforms_checkList;
@@ -65,6 +68,23 @@ rc_distribute_dialog( parent )
     m_orientation_comboBox->SetSelection(0);
 
     loadAppProperties();
+}
+
+wxFileName rcbasic_editrc_distribute_dialog::openFileDialog(wxString title, wxString default_wildcard, int flag)
+{
+    wxFileDialog openFileDialog(this, title, "", "", default_wildcard, flag);
+    if (openFileDialog.ShowModal() == wxID_CANCEL)
+        return wxFileName();     // the user changed idea...
+
+    wxFileName fname(openFileDialog.GetPath());
+    return fname;
+
+    //openFileDialog(_("Save Project As"), _("RCBasic Project (*.rcprj)|*.rcprj"),wxFD_SAVE)
+}
+
+void rcbasic_editrc_distribute_dialog::OnIconPickerSelect( wxCommandEvent& event )
+{
+    m_iconPicker_textCtrl->SetValue(openFileDialog(_("Select Icon"), _("Icon (*.*)|*.*"), wxFD_OPEN).GetAbsolutePath());
 }
 
 bool rcbasic_editrc_distribute_dialog::java_init_dir(wxFileName java_dir, wxString project_name)
@@ -280,7 +300,9 @@ void rcbasic_editrc_distribute_dialog::saveAppProperties()
     setProperty(_("OUTPUT_DIR"), out_dir);
 
 	setProperty(_("ENABLE_WEB_THREADS"), m_enableWebThreads_checkBox->GetValue() ? _("true") : _("false"));
-    setProperty(_("ICON"), m_icon_filePicker->GetFileName().GetFullPath());
+    setProperty(_("ICON"), m_iconPicker_textCtrl->GetValue());
+
+    //wxMessageBox(_("ICON: ") + m_iconPicker_textCtrl->GetValue());
 
     setProperty(_("ANDROID_APP_ID"), m_appID_textCtrl->GetValue());
     setProperty(_("ANDROID_ORIENTATION"), m_orientation_comboBox->GetValue().Lower());
@@ -378,7 +400,8 @@ void rcbasic_editrc_distribute_dialog::loadAppProperties()
         }
         else if(property.compare(_("ICON"))==0)
         {
-            m_icon_filePicker->SetFileName( wxFileName(value) );
+            //m_icon_filePicker->SetFileName( wxFileName(value) );
+            m_iconPicker_textCtrl->SetValue(value);
         }
         else if(property.compare(_("ANDROID_APP_ID"))==0)
         {
