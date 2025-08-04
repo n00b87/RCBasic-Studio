@@ -652,6 +652,7 @@ bool dist_web()
 bool dist_android()
 {
     //cout << "PLATFORM_WEB: " << (int)PLATFORM_WEB << endl;
+    std::cout << "START DIST ANDROID" << std::endl;
     if(!PLATFORM_ANDROID)
         return true;
 
@@ -706,14 +707,45 @@ bool dist_android()
     std::cout << ".." << std::endl;
 
     fstream build_file("build_droid.sh", fstream::out);
+
+    build_file << "export PLATFORM_WIN_32=" << (PLATFORM_WIN_32 == true ? "true" : "false") << endl;
+    build_file << "export PLATFORM_WIN_64=" << (PLATFORM_WIN_64 == true ? "true" : "false") << endl;
+    build_file << "export PLATFORM_LINUX_32=" << (PLATFORM_LINUX_32 == true ? "true" : "false") << endl;
+    build_file << "export PLATFORM_LINUX_64=" << (PLATFORM_LINUX_64 == true ? "true" : "false") << endl;
+    build_file << "export PLATFORM_WEB=" << (PLATFORM_WEB == true ? "true" : "false") << endl;
+    build_file << "export PLATFORM_ANDROID=" << (PLATFORM_ANDROID == true ? "true" : "false") << endl;
+    build_file << "export PROJECT_NAME=" << PROJECT_NAME << endl;
+    build_file << "export PROJECT_CATEGORY=" << PROJECT_CATEGORY << endl;
+    build_file << "export APP_TYPE=" << APP_TYPE << endl;
+    build_file << "export TERMINAL_FLAG=" << (TERMINAL_FLAG == true ? "true" : "false") << endl;
+    build_file << "export PROJECT_DIR=" << PROJECT_DIR << endl;
+    build_file << "export OUTPUT_DIR=" << OUTPUT_DIR << endl;
+    build_file << "export ENABLE_WEB_THREADS=" << (ENABLE_WEB_THREADS == true ? "true" : "false") << endl;
+    build_file << "export ICON=" << ICON << endl;
+    build_file << "export SOURCE=" << SOURCE << endl;
+    build_file << "export ANDROID_APP_ID=" << ANDROID_APP_ID << endl;
+    build_file << "export ANDROID_ORIENTATION=" << ANDROID_ORIENTATION << endl;
+    build_file << "export ANDROID_KEYSTORE=" << ANDROID_KEYSTORE << endl;
+    build_file << "export ANDROID_KEYSTORE_PASS=" << ANDROID_KEYSTORE_PASS << endl;
+    build_file << "export ANDROID_ALIAS=" << ANDROID_ALIAS << endl;
+    build_file << "export ANDROID_ALIAS_PASS=" << ANDROID_ALIAS_PASS << endl;
+    build_file << "export ANDROID_RELEASE=" << (ANDROID_RELEASE ? "true" : "false") << endl;
+    build_file << "export ANDROID_DEBUG=" << (ANDROID_DEBUG ? "true" : "false") << endl;
+    build_file << "export ANDROID_JAVA_DIR=" << ANDROID_JAVA_DIR << endl;
+
+    build_file << std::endl;
+
     build_file << droid_cmd << std::endl;
     build_file.close();
 
-    system(droid_cmd.c_str());
+    system("./build_droid.sh");
 
 
     if(!fileExist(out_file))
+    {
+        std::cout << "DBG[NO OUTFILE]:" << out_file << std::endl;
         return false;
+    }
 
 	return true;
 }
@@ -745,7 +777,7 @@ int main(int argc, char * argv[])
     DIST_PKG_PATH = appendFileToPath(DIST_PKG_PATH, "..");
     DIST_PKG_PATH = appendFileToPath(DIST_PKG_PATH, "dist");
 
-    //cout << "dist path = " << DIST_PKG_PATH << endl;
+    cout << "dist path = " << DIST_PKG_PATH << endl;
 
     fstream dist_file;
     string ex_list = "";
@@ -799,7 +831,10 @@ int main(int argc, char * argv[])
     //std::cout << "test" << endl;
 
     if(!parse(args))
+    {
+        std::cout << "ERROR: dist_tool failed to parse args" << std::endl;
         return 1;
+    }
 
     string build_cmd = "cd \"" + PROJECT_DIR + "\" &&  " + "rcbasic_build4 \"" + appendFileToPath(PROJECT_DIR, SOURCE) + "\" ";
 
@@ -887,6 +922,15 @@ int main(int argc, char * argv[])
             cout << "RCBASIC PACKAGE ERROR: Failed to package Web distributable" << endl;
     }
 
+    bool droid_status = dist_android();
+    if(PLATFORM_ANDROID)
+    {
+        if(droid_status)
+            cout << "RCBASIC PACKAGE SUCCESS: Android distributable created" << endl;
+        else
+            cout << "RCBASIC PACKAGE ERROR: Failed to package Android distributable" << endl;
+    }
+
     debug_output();
 
     cout << endl << endl << endl;
@@ -929,6 +973,14 @@ int main(int argc, char * argv[])
             cout << "PACKAGE SUCCESS: Web distributable created" << endl;
         else
             cout << "PACKAGE ERROR: Failed to package Web distributable" << endl;
+    }
+
+    if(PLATFORM_ANDROID)
+    {
+        if(droid_status)
+            cout << "PACKAGE SUCCESS: Android distributable created" << endl;
+        else
+            cout << "PACKAGE ERROR: Failed to package Android distributable" << endl;
     }
 
     return 0;
