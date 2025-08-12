@@ -56,7 +56,10 @@ rc_distribute_dialog( parent )
     m_targetPlatforms_checkList->AppendAndEnsureVisible(_("Windows 64-Bit"));
     m_targetPlatforms_checkList->AppendAndEnsureVisible(_("Linux 32-Bit"));
     m_targetPlatforms_checkList->AppendAndEnsureVisible(_("Linux 64-Bit"));
+
+    #ifndef COS_BASIC
     m_targetPlatforms_checkList->AppendAndEnsureVisible(_("Web App (web assembly)"));
+    #endif // COS_BASIC
 
     if(wxDirExists(android_project_path.GetFullPath()))
         m_targetPlatforms_checkList->AppendAndEnsureVisible(_("Android"));
