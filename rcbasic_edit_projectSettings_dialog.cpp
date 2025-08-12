@@ -156,7 +156,11 @@ void rcbasic_edit_projectSettings_dialog::onAddFilesButtonClick( wxCommandEvent&
     if(!new_project)
         return;
 
+    #ifdef COS_BASIC
+    wxArrayString sourceFiles = parent_frame->openMultiFileDialog( _("Open BASIC Source file"), _("BASIC Source files (*.bas)|*.bas"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE);
+    #else
     wxArrayString sourceFiles = parent_frame->openMultiFileDialog( _("Open RCBasic Source file"), _("RCBasic Source files (*.bas)|*.bas"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE);
+    #endif
 
     for(int i = 0; i < sourceFiles.size(); i++)
     {

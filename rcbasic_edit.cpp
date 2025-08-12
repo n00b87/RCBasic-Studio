@@ -236,7 +236,7 @@ rc_ideFrame::rc_ideFrame( wxWindow* parent, wxWindowID id, const wxString& title
 	m_menubar1->Append( m_tools_menu, wxT("Tools") );
 
 	m_help_menu = new wxMenu();
-	m_doc_menuItem = new wxMenuItem( m_help_menu, wxID_ANY, wxString( wxT("RCBasic Documentation") ) , wxEmptyString, wxITEM_NORMAL );
+	m_doc_menuItem = new wxMenuItem( m_help_menu, wxID_ANY, wxString( wxT("Documentation") ) , wxEmptyString, wxITEM_NORMAL );
 	m_help_menu->Append( m_doc_menuItem );
 
 	m_about_menuItem = new wxMenuItem( m_help_menu, wxID_ANY, wxString( wxT("About") ) + wxT('\t') + wxT("F1"), wxEmptyString, wxITEM_NORMAL );
@@ -2690,9 +2690,9 @@ rc_preference_dialog::rc_preference_dialog( wxWindow* parent, wxWindowID id, con
 
 	bSizer119->Add( 0, 0, 1, wxEXPAND, 5 );
 
-	m_staticText51 = new wxStaticText( m_panel15, wxID_ANY, wxT("RCBASIC_PATH"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText51->Wrap( -1 );
-	bSizer119->Add( m_staticText51, 3, wxALL, 5 );
+	m_rcbasicPathLabel_staticText = new wxStaticText( m_panel15, wxID_ANY, wxT("RCBASIC_PATH"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_rcbasicPathLabel_staticText->Wrap( -1 );
+	bSizer119->Add( m_rcbasicPathLabel_staticText, 3, wxALL, 5 );
 
 	m_pref_rcPath_dirPicker = new wxDirPickerCtrl( m_panel15, wxID_ANY, wxEmptyString, wxT("Select a folder"), wxDefaultPosition, wxDefaultSize, wxDIRP_DEFAULT_STYLE );
 	bSizer119->Add( m_pref_rcPath_dirPicker, 15, wxALL, 5 );
@@ -2747,9 +2747,9 @@ rc_preference_dialog::rc_preference_dialog( wxWindow* parent, wxWindowID id, con
 
 	bSizer122->Add( 0, 0, 1, wxEXPAND, 5 );
 
-	m_staticText54 = new wxStaticText( m_panel15, wxID_ANY, wxT("RCBASIC MANUAL"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText54->Wrap( -1 );
-	bSizer122->Add( m_staticText54, 3, wxALL, 5 );
+	m_rcbasicManualLabel_staticText = new wxStaticText( m_panel15, wxID_ANY, wxT("RCBASIC MANUAL"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_rcbasicManualLabel_staticText->Wrap( -1 );
+	bSizer122->Add( m_rcbasicManualLabel_staticText, 3, wxALL, 5 );
 
 	m_rcbasicManual_textCtrl = new wxTextCtrl( m_panel15, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer122->Add( m_rcbasicManual_textCtrl, 15, wxALL, 5 );

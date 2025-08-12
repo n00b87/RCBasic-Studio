@@ -155,11 +155,19 @@ rcbasic_project::rcbasic_project(wxString project_name, wxString project_locatio
     wxFileName fname, dest_name, project_file_name;
 
     project_file_name.SetPath(location);
+
+    #ifdef COS_BASIC
+    project_file_name.SetName(name + _(".cbprj"));
+    #else
     project_file_name.SetName(name + _(".rcprj"));
+    #endif
 
     //wxFileName x = fname;
     //x.MakeRelativeTo(location);
     //wxPuts(_("Fname: ")+x.GetFullPath());
+
+    wxString studio_version_info = _("RCBASIC_STUDIO:[version]\n");
+    studio_version_info.Replace(_("[version]"), wxString::FromDouble(RCBASIC_STUDIO_VERSION,1));
 
     switch(main_source_flag)
     {
@@ -207,7 +215,7 @@ rcbasic_project::rcbasic_project(wxString project_name, wxString project_locatio
                 project_file_location = project_file_name.GetFullPath();
                 project_valid = true;
                 //main_source.MakeRelativeTo(location);
-                project_file.Write(_("RCBASIC_STUDIO:1.0\n"));
+                project_file.Write(studio_version_info);
                 project_file.Write(_("PROJECT_NAME:")+name+_("\n"));
                 project_file.Write(_("PROJECT_MAIN:")+main_source.GetFullPath()+_("\n"));
                 project_file.Write(_("AUTHOR:")+author+_("\n"));
@@ -249,7 +257,7 @@ rcbasic_project::rcbasic_project(wxString project_name, wxString project_locatio
                 project_file_location = project_file_name.GetFullPath();
                 project_valid = true;
                 //main_source.MakeRelativeTo(location);
-                project_file.Write(_("RCBASIC_STUDIO:1.0\n"));
+                project_file.Write(studio_version_info);
                 project_file.Write(_("PROJECT_NAME:")+name+_("\n"));
                 project_file.Write(_("PROJECT_MAIN:")+main_source.GetFullPath()+_("\n"));
                 project_file.Write(_("AUTHOR:")+author+_("\n"));
@@ -361,7 +369,10 @@ bool rcbasic_project::saveProject(wxFileName save_file)
     else
     {
         //wxPuts("Saving Project");
-        project_file.Write(_("RCBASIC_STUDIO:2.1\n"));
+        wxString studio_version_info = _("RCBASIC_STUDIO:[version]\n");
+        studio_version_info.Replace(_("[version]"), wxString::FromDouble(RCBASIC_STUDIO_VERSION,1));
+
+        project_file.Write(studio_version_info);
         project_file.Write(_("PROJECT_NAME:")+name+_("\n"));
         project_file.Write(_("PROJECT_MAIN:")+main_source.GetFullPath()+_("\n"));
         project_file.Write(_("AUTHOR:")+author+_("\n"));

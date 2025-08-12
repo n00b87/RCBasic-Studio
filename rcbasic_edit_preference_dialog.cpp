@@ -7,6 +7,11 @@ rc_preference_dialog( parent )
 {
     parent_frame = parent;
 
+    #ifdef COS_BASIC
+    m_rcbasicPathLabel_staticText->SetLabel(_("BASIC PATH"));
+    m_rcbasicManualLabel_staticText->SetLabel(_("BASIC MANUAL"));
+    #endif // COS_BASIC
+
     rcbasic_edit_frame* pframe = (rcbasic_edit_frame*) parent_frame;
 
     m_pref_rcPath_dirPicker->SetPath(pframe->getRCBasicBasePath());

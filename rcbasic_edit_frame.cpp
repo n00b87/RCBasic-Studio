@@ -373,7 +373,7 @@ rcbasic_edit_frame::rcbasic_edit_frame( wxWindow* parent, int argc, wxArrayStrin
 :
 rc_ideFrame( parent )
 {
-    RCBasic_Studio_Version = _("v1.3");
+    RCBasic_Studio_Version = wxString::FromDouble(RCBASIC_STUDIO_VERSION, 1);
 
     build_run_project = NULL;
     current_file_project = new rcbasic_project();
@@ -666,7 +666,7 @@ rc_ideFrame( parent )
     for(int i = 1; i < argc; i++)
     {
         wxFileName f(argv[i]);
-        if(f.GetExt().compare(_("rcprj"))==0)
+        if(f.GetExt().compare(_("rcprj"))==0 || f.GetExt().compare(_("cbprj"))==0)
             openProject(f);
         else if(f.GetExt().compare(_("bas"))==0 || f.GetExt().compare(_("txt"))==0)
             openSourceFile(f);
@@ -2006,7 +2006,12 @@ void rcbasic_edit_frame::openProjectMenuSelect( wxCommandEvent& event )
 void rcbasic_edit_frame::openFileMenuSelect( wxCommandEvent& event )
 {
     notebook_mutex.Lock();
+    #ifdef COS_BASIC
+    wxFileName fname = openFileDialog( _("Open BASIC Source file"), _("BASIC Source files (*.bas)|*.bas"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    #else
     wxFileName fname = openFileDialog( _("Open RCBasic Source file"), _("RCBasic Source files (*.bas)|*.bas"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    #endif
+
     openSourceFile(fname);
     notebook_mutex.Unlock();
 }
@@ -2281,7 +2286,12 @@ void rcbasic_edit_frame::saveFile(int openFile_index, int flag=0)
 
     if(flag==FILE_SAVEAS_FLAG)
     {
+        #ifdef COS_BASIC
+        fname = openFileDialog(_("Save BASIC Source File As"), _("BASIC Source files (*.bas)|*.bas"),wxFD_SAVE);
+        #else
         fname = openFileDialog(_("Save RCBasic Source File As"), _("RCBasic Source files (*.bas)|*.bas"),wxFD_SAVE);
+        #endif
+
         if(fname.GetFullPath().compare(_(""))==0)
             return;
     }
@@ -2362,7 +2372,12 @@ void rcbasic_edit_frame::onSaveProjectMenuSelect( wxCommandEvent& event )
 
     if(!wxDirExists(active_project->getLocation()))
     {
+        #ifdef COS_BASIC
+        project_fname = openFileDialog(_("Save Project As"), _("BASIC Project (*.cbprj)|*.cbprj"), wxFD_SAVE);
+        #else
         project_fname = openFileDialog(_("Save Project As"), _("RCBasic Project (*.rcprj)|*.rcprj"), wxFD_SAVE);
+        #endif
+
         if(project_fname.GetFullPath().compare(_(""))==0)
             return;
     }
@@ -2406,7 +2421,12 @@ void rcbasic_edit_frame::onSaveProjectAsMenuSelect( wxCommandEvent& event )
 
     wxFileName project_fname = wxFileName(active_project->getProjectFileLocation());
 
+    #ifdef COS_BASIC
+    project_fname = openFileDialog(_("Save Project As"), _("BASIC Project (*.cbprj)|*.cbprj"), wxFD_SAVE);
+    #else
     project_fname = openFileDialog(_("Save Project As"), _("RCBasic Project (*.rcprj)|*.rcprj"), wxFD_SAVE);
+    #endif
+
     if(project_fname.GetFullPath().compare(_(""))==0)
         return;
 
@@ -2627,7 +2647,12 @@ void rcbasic_edit_frame::saveProject(rcbasic_project* project)
 
     project_file.SetPath(project->getLocation());
     project_file.SetName(project->getName());
+
+    #ifdef COS_BASIC
+    project_file.SetExt(_("cbprj"));
+    #else
     project_file.SetExt(_("rcprj"));
+    #endif
 
     project->saveProject(project_file);
 }
@@ -2697,7 +2722,12 @@ int rcbasic_edit_frame::closeProject(rcbasic_project* project)
 
     project_file.SetPath(project->getLocation());
     project_file.SetName(project->getName());
+
+    #ifdef COS_BASIC
+    project_file.SetExt(_("cbprj"));
+    #else
     project_file.SetExt(_("rcprj"));
+    #endif
 
     if(rtn_val == projectCloseFlag_SAVE)
     {
@@ -2756,7 +2786,11 @@ void rcbasic_edit_frame::onSaveProjectAs(wxCommandEvent& event)
     if(active_project)
     {
         notebook_mutex.Lock();
+        #ifdef COS_BASIC
+        active_project->saveProject(openFileDialog(_("Save Project As"), _("BASIC Project (*.cbprj)|*.cbprj"),wxFD_SAVE));
+        #else
         active_project->saveProject(openFileDialog(_("Save Project As"), _("RCBasic Project (*.rcprj)|*.rcprj"),wxFD_SAVE));
+        #endif // COS_BASIC
         notebook_mutex.Unlock();
     }
 }
@@ -3850,7 +3884,11 @@ void rcbasic_edit_frame::addMultipleFilesToProject()
     if(context_project==NULL)
         return;
 
+    #ifdef COS_BASIC
+    wxArrayString sourceFiles = openMultiFileDialog( _("Open BASIC Source file"), _("BASIC Source files (*.bas)|*.bas"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE);
+    #else
     wxArrayString sourceFiles = openMultiFileDialog( _("Open RCBasic Source file"), _("RCBasic Source files (*.bas)|*.bas"), wxFD_OPEN|wxFD_FILE_MUST_EXIST|wxFD_MULTIPLE);
+    #endif
 
     for(int i = 0; i < sourceFiles.size(); i++)
     {
@@ -4832,7 +4870,7 @@ void rcbasic_edit_frame::onDropFiles( wxDropFilesEvent& event )
             wxFileName fname(files[i]);
             if(fname.GetExt().MakeLower().compare(_("bas"))==0 || fname.GetExt().MakeLower().compare(_("txt"))==0)
                 openSourceFile(wxFileName(files[i]));
-            else if(fname.GetExt().MakeLower().compare(_("rcprj"))==0)
+            else if(fname.GetExt().MakeLower().compare(_("rcprj"))==0 || fname.GetExt().MakeLower().compare(_("cbprj"))==0)
                 openProject(fname);
 
         }

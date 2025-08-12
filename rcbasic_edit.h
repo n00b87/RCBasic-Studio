@@ -813,13 +813,13 @@ class rc_preference_dialog : public wxDialog
 	protected:
 		wxPanel* m_panel15;
 		wxStaticText* m_prefPaths_staticText;
-		wxStaticText* m_staticText51;
+		wxStaticText* m_rcbasicPathLabel_staticText;
 		wxDirPickerCtrl* m_pref_rcPath_dirPicker;
 		wxStaticText* m_staticText52;
 		wxFilePickerCtrl* m_pref_compilerPath_filePicker;
 		wxStaticText* m_staticText53;
 		wxFilePickerCtrl* m_pref_runtimePath_filePicker;
-		wxStaticText* m_staticText54;
+		wxStaticText* m_rcbasicManualLabel_staticText;
 		wxTextCtrl* m_rcbasicManual_textCtrl;
 		wxStaticText* m_staticText55;
 		wxTextCtrl* m_editorManual_textCtrl;
