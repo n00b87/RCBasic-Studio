@@ -228,6 +228,8 @@ void rcbasic_edit_frame::updateSymbolTree()
                     addSymbol(symbols[i]);
                 f_index++;
                 break;
+
+            #ifndef COS_BASIC
             case TOKEN_TYPE_UDT:
                 //wxPuts(_("TYPE"));
                 if(u_index < udt_nodes.size())
@@ -250,6 +252,7 @@ void rcbasic_edit_frame::updateSymbolTree()
                     addSymbol(symbols[i]);
                 c_index++;
                 break;
+            #endif // COS_BASIC
         }
     }
 
@@ -278,6 +281,7 @@ void rcbasic_edit_frame::updateSymbolTree()
         //f_child = symbol_tree->GetNextChild(function_root_node, f_cookie);
     }
 
+    #ifndef COS_BASIC
     while(u_index < udt_nodes.size())
     {
         rcbasic_treeItem_data* data = (rcbasic_treeItem_data*)symbol_tree->GetItemData(udt_nodes[u_index]);
@@ -299,6 +303,7 @@ void rcbasic_edit_frame::updateSymbolTree()
         const_nodes.erase(const_nodes.begin()+c_index);
         //f_child = symbol_tree->GetNextChild(function_root_node, f_cookie);
     }
+    #endif // COS_BASIC
 
 
     //wxPrintf(_("NODE SIZES: %d  %d\n"), var_nodes.size(), fn_nodes.size());
@@ -523,8 +528,10 @@ rc_ideFrame( parent )
     symbol_tree->AssignImageList(symbol_tree_imageList);
 
     symbol_tree->AddRoot(_("Symbols"), symbol_tree_rootImage);
+    #ifndef COS_BASIC
     const_root_node = symbol_tree->AppendItem(symbol_tree->GetRootItem(), _("Constants"), symbol_tree_constImage, -1, NULL);
     udt_root_node = symbol_tree->AppendItem(symbol_tree->GetRootItem(), _("Types"), symbol_tree_udtImage, -1, NULL);
+    #endif // COS_BASIC
     function_root_node = symbol_tree->AppendItem(symbol_tree->GetRootItem(), _("Function"), symbol_tree_fnImage, -1, NULL);
     variable_root_node = symbol_tree->AppendItem(symbol_tree->GetRootItem(), _("Variables"), symbol_tree_varImage, -1, NULL);
 
