@@ -1996,7 +1996,12 @@ void rcbasic_edit_frame::newFileMenuSelect( wxCommandEvent& event)
 void rcbasic_edit_frame::openProjectMenuSelect( wxCommandEvent& event )
 {
     notebook_mutex.Lock();
+    #ifdef COS_BASIC
+    wxFileName project_fname = openFileDialog(_("Open Project"), _("BASIC Project (*.cbprj)|*.cbprj"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    #else
     wxFileName project_fname = openFileDialog(_("Open Project"), _("RCBasic Project (*.rcprj)|*.rcprj"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    #endif
+
     //wxPuts(_("project_fname: ") + project_fname.GetLongPath());
     if(project_fname.GetFullPath().compare(_(""))!=0)
         openProject(project_fname);
