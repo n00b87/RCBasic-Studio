@@ -555,9 +555,15 @@ bool dist_desktop(int dist_os, int arch)
     while(dfile.compare("") != 0)
     {
         if( (dfile.compare("rcbasic4_win.exe")==0 || dfile.compare("rcbasic_win.exe")==0) && TERMINAL_FLAG)
+        {
+            dfile = dirNext();
             continue;
+        }
         else if( (dfile.compare("rcbasic4.exe")==0 || dfile.compare("rcbasic.exe")==0) && (!TERMINAL_FLAG) )
+        {
+            dfile = dirNext();
             continue;
+        }
 
         string dfile_src = appendFileToPath(OS_DIST_DIR, dfile);
         string dfile_dst = appendFileToPath(DIST_OUTPUT_DIR, dfile);
