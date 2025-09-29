@@ -9,11 +9,13 @@
 			<Target title="Debug">
 				<Option output="bin/Debug/RCBasic-Studio" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
-				<Option type="0" />
+				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-DRCBASIC_STUDIO_VERSION=1.0" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
@@ -24,6 +26,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-DRCBASIC_STUDIO_VERSION=1.0" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />

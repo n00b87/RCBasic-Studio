@@ -16,6 +16,40 @@ void rcbasic_edit_newProject_dialog::cancelNewProject( wxCommandEvent& event )
 
 void rcbasic_edit_newProject_dialog::createNewProject( wxCommandEvent& event )
 {
+    int main_source_flag = projectCreateMain_radio->GetValue() ? 0 : 1;
+
+    switch(main_source_flag)
+    {
+        case 0:
+        {
+            if(projectNewMain_field->GetValue().length() < 5)
+            {
+                wxMessageBox(_("Invalid name for main source file"));
+                return;
+            }
+
+            if(projectNewMain_field->GetValue().substr(projectNewMain_field->GetValue().length()-4).compare(_(".bas"))!=0)
+            {
+                wxMessageBox(_("Main source file must have *.bas extension"));
+                return;
+            }
+        }
+        break;
+
+        case 1:
+        {
+            bool invalid = false;
+            if(projectExistingFile_picker->GetFileName().GetExt().compare(_("bas"))!=0)
+                invalid = true;
+
+            if(invalid)
+            {
+                wxMessageBox(_("Must select a valid *.bas file to copy"));
+                return;
+            }
+        }
+    }
+
     newProjectValue = true;
     Close();
 // TODO: Implement createNewProject
