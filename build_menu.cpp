@@ -228,6 +228,15 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
     if(!build_script.Create(build_script_fname.GetFullPath(), true))
         return;
 
+    std::vector<rcbasic_edit_env_var> vars = build_run_project->getVars();
+
+    for(int i = 0; i < vars.size(); i++)
+    {
+        run_file.Write(_("set ") + vars[i].var_name + _("=") + vars[i].var_value + _("\r\n"));
+    }
+
+    run_file.Write(_("\r\n"));
+
     build_script.Write(_("\"") + rcbasic_build_path.GetFullPath() + _("\" ") + build_flags + additional_flags + (" \"") + build_run_project->getMainSource().GetFullPath() + _("\" \r\n"));
 
     for(int i = 0; i < build_files.size(); i ++)
@@ -241,6 +250,15 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
     build_script_fname.SetFullName(_("build_project.sh"));
     if(!build_script.Create(build_script_fname.GetFullPath(), true))
         return;
+
+    std::vector<rcbasic_edit_env_var> vars = build_run_project->getVars();
+
+    for(int i = 0; i < vars.size(); i++)
+    {
+        build_script.Write(_("export ") + vars[i].var_name + _("=") + vars[i].var_value + _("\n"));
+    }
+
+    build_script.Write(_("\n\n"));
 
     build_script.Write(_("\"") + rcbasic_build_path.GetFullPath() + _("\" ") + build_flags + (" \"") + build_run_project->getMainSource().GetFullPath() + _("\" \n"));
 
@@ -425,7 +443,7 @@ void rcbasic_edit_frame::runProject()
 
     wxExecuteEnv env;
     env.cwd = build_run_project->getLocation();
-    env.env = run_env_vars;
+    //env.env = run_env_vars;
 
     wxFileName main_source = build_run_project->getMainSource();
     main_source.SetExt(_("cbc"));
@@ -438,10 +456,27 @@ void rcbasic_edit_frame::runProject()
     run_pid = wxExecute(_("\"") + run_file_fname.GetFullPath() + _("\"") , wxEXEC_SHOW_CONSOLE | wxEXEC_ASYNC, run_process, NULL);
     #else
 
+    std::vector<rcbasic_edit_env_var> vars = build_run_project->getVars();
+    std::vector<rcbasic_edit_env_var> tmp_vars = build_run_project->getVars();
+
+    for(int i = 0; i < vars.size(); i++)
+    {
+        wxGetEnv(tmp_vars[i].var_name, &tmp_vars[i].var_value);
+        wxSetEnv(vars[i].var_name, vars[i].var_value);
+    }
+
+    run_file.Write(_("\n\n"));
+
     wxString run_cmd = _("\"") + rcbasic_run_path.GetFullPath() + _("\" \"") + main_source.GetFullPath() + _("\"");
 
     //run_pid = wxExecute(_("\"") + run_file_fname.GetFullPath() + _("\"") , wxEXEC_SHOW_CONSOLE | wxEXEC_ASYNC, run_process, NULL);
-    run_pid = wxExecute( run_cmd , wxEXEC_SHOW_CONSOLE | wxEXEC_ASYNC, run_process, &env);
+    run_pid = wxExecute( run_cmd , wxEXEC_SHOW_CONSOLE | wxEXEC_ASYNC, run_process, NULL);
+
+
+    for(int i = 0; i < vars.size(); i++)
+    {
+        wxSetEnv(tmp_vars[i].var_name, tmp_vars[i].var_value);
+    }
     #endif
 
     if(run_pid >= 0)
