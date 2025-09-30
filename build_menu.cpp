@@ -465,8 +465,6 @@ void rcbasic_edit_frame::runProject()
         wxSetEnv(vars[i].var_name, vars[i].var_value);
     }
 
-    run_file.Write(_("\n\n"));
-
     wxString run_cmd = _("\"") + rcbasic_run_path.GetFullPath() + _("\" \"") + main_source.GetFullPath() + _("\"");
 
     //run_pid = wxExecute(_("\"") + run_file_fname.GetFullPath() + _("\"") , wxEXEC_SHOW_CONSOLE | wxEXEC_ASYNC, run_process, NULL);
