@@ -272,14 +272,15 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
 
     wxEnvVariableHashMap build_env_vars;
 
-    std::vector<rcbasic_edit_env_var> vars = build_run_project->getVars();
-
-    for(int i = 0; i < vars.size(); i++)
+    /*if(build_run_project)
     {
-        //build_env_vars[vars[i].var_name] = vars[i].var_value;
+        std::vector<rcbasic_edit_env_var> vars = build_run_project->getVars();
 
-        wxSetEnv(vars[i].var_name, vars[i].var_value);
-    }
+        for(int i = 0; i < vars.size(); i++)
+        {
+            build_env_vars[vars[i].var_name] = vars[i].var_value;
+        }
+    }*/
 
     wxExecuteEnv env;
     env.cwd = build_run_project->getLocation();
