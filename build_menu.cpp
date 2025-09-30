@@ -232,10 +232,10 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
 
     for(int i = 0; i < vars.size(); i++)
     {
-        run_file.Write(_("set ") + vars[i].var_name + _("=") + vars[i].var_value + _("\r\n"));
+        build_script.Write(_("set ") + vars[i].var_name + _("=") + vars[i].var_value + _("\r\n"));
     }
 
-    run_file.Write(_("\r\n"));
+    build_script.Write(_("\r\n"));
 
     build_script.Write(_("\"") + rcbasic_build_path.GetFullPath() + _("\" ") + build_flags + additional_flags + (" \"") + build_run_project->getMainSource().GetFullPath() + _("\" \r\n"));
 
