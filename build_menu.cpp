@@ -228,6 +228,11 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
     if(!build_script.Create(build_script_fname.GetFullPath(), true))
         return;
 
+    for(int i = 0; i < vars.size(); i++)
+    {
+        build_script.Write(_("set ") + vars[i].var_name + _("=") + vars[i].var_value + _("\r\n"));
+    }
+
     build_script.Write(_("\"") + rcbasic_build_path.GetFullPath() + _("\" ") + build_flags + additional_flags + (" \"") + build_run_project->getMainSource().GetFullPath() + _("\" \r\n"));
 
     for(int i = 0; i < build_files.size(); i ++)
@@ -271,8 +276,9 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
     build_process->Redirect();
 
     wxEnvVariableHashMap build_env_vars;
+    wxString win_env_string = _("");
 
-    /*if(build_run_project)
+    if(build_run_project)
     {
         std::vector<rcbasic_edit_env_var> vars = build_run_project->getVars();
 
@@ -280,7 +286,7 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
         {
             build_env_vars[vars[i].var_name] = vars[i].var_value;
         }
-    }*/
+    }
 
     wxExecuteEnv env;
     env.cwd = build_run_project->getLocation();
@@ -294,7 +300,11 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
 
     //build_pid = wxExecute(_("\"") + rcbasic_build_path.GetFullPath() + _("\" \"") + build_run_project->getMainSource().GetFullPath() + _("\""), wxEXEC_ASYNC, build_process, &env);
 
-    build_pid = wxExecute(_("\"") + build_script_fname.GetFullPath() + _("\""), wxEXEC_ASYNC, build_process, NULL);
+    #ifdef _WIN32
+    build_pid = wxExecute(_("\"") + build_script_fname.GetFullPath() + _("\""), wxEXEC_ASYNC, build_process, &NULL);
+    #else
+    build_pid = wxExecute(_("\"") + build_script_fname.GetFullPath() + _("\""), wxEXEC_ASYNC, build_process, &env);
+    #endif // _WIN32
 
     if(build_pid >= 0)
     {
