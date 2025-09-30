@@ -247,6 +247,13 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
     if(!build_script.Create(build_script_fname.GetFullPath(), true))
         return;
 
+    std::vector<rcbasic_edit_env_var> vars = build_run_project->getVars();
+
+    for(int i = 0; i < vars.size(); i++)
+    {
+        build_script.Write(_("export ") + vars[i].var_name + _("=") + vars[i].var_value + _("\n"));
+    }
+
     build_script.Write(_("\"") + rcbasic_build_path.GetFullPath() + _("\" ") + build_flags + (" \"") + build_run_project->getMainSource().GetFullPath() + _("\" \n"));
 
     for(int i = 0; i < build_files.size(); i ++)
@@ -278,7 +285,7 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
     wxEnvVariableHashMap build_env_vars;
     wxString win_env_string = _("");
 
-    if(build_run_project)
+    /*if(build_run_project)
     {
         std::vector<rcbasic_edit_env_var> vars = build_run_project->getVars();
 
@@ -286,11 +293,11 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
         {
             build_env_vars[vars[i].var_name] = vars[i].var_value;
         }
-    }
+    }*/
 
-    wxExecuteEnv env;
-    env.cwd = build_run_project->getLocation();
-    env.env = build_env_vars;
+    //wxExecuteEnv env;
+    //env.cwd = build_run_project->getLocation();
+    //env.env = build_env_vars;
 
     //NEED TO SAVE FILES IN PROJECT
     //ALSO NEED TO SWITCH TO BUILD TAB
@@ -300,11 +307,7 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
 
     //build_pid = wxExecute(_("\"") + rcbasic_build_path.GetFullPath() + _("\" \"") + build_run_project->getMainSource().GetFullPath() + _("\""), wxEXEC_ASYNC, build_process, &env);
 
-    #ifdef _WIN32
-    build_pid = wxExecute(_("\"") + build_script_fname.GetFullPath() + _("\""), wxEXEC_ASYNC, build_process, &NULL);
-    #else
-    build_pid = wxExecute(_("\"") + build_script_fname.GetFullPath() + _("\""), wxEXEC_ASYNC, build_process, &env);
-    #endif // _WIN32
+    build_pid = wxExecute(_("\"") + build_script_fname.GetFullPath() + _("\""), wxEXEC_ASYNC, build_process, NULL);
 
     if(build_pid >= 0)
     {
