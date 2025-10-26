@@ -362,6 +362,14 @@ void rcbasic_edit_frame::OnParserThread(wxCommandEvent& event)
 
         user_id_list.Sort();
 
+        for(int i = 0; i < user_id_list.size()-1; i++)
+        {
+            if(user_id_list[i].compare(user_id_list[i+1])==0)
+            {
+                user_id_list[i] = _("");
+            }
+        }
+
         //if(sym_list)
           //  delete sym_list;
 
