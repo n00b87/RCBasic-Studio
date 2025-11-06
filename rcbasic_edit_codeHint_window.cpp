@@ -82,7 +82,7 @@ void rcbasic_edit_codeHint_window::updateDoc()
     src.Replace(_("(_ARGS_)"), replace_args);
 
     m_doc_htmlWin->SetPage(src);
-    m_doc_htmlWin->SetHTMLBackgroundColour(wxColour(210, 210, 210));
+    m_doc_htmlWin->SetHTMLBackgroundColour(wxColour(200, 200, 200));
 
     wxString full_str = s_prefix + _(" ") + s_name + _(" ") + replace_args;
 

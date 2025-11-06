@@ -256,7 +256,7 @@ void rcbasic_edit_codeCompletion_window::updateDoc(bool is_udt, int udt_index)
     src.Replace(_("<style></style>"), ds_open + doc_style + ds_close);
 
     m_doc_htmlWin->SetPage(src);
-    m_doc_htmlWin->SetHTMLBackgroundColour(wxColour(210, 210, 210));
+    m_doc_htmlWin->SetHTMLBackgroundColour(wxColour(200, 200, 200));
 
     //m_symbol_listBox->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_GRAYTEXT ) );
 	//m_symbol_listBox->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHT ) );
