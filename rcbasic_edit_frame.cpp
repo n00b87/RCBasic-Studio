@@ -1969,6 +1969,11 @@ bool rcbasic_edit_frame::loadScheme(wxFileName fname)
                 editor_scheme.line_number_bkg_color = wxColour(r, g, b);
                 editor_scheme.line_number_bkg_color_set = true;
             }
+            else if(property.compare(_("code_complete_bkg_color"))==0)
+            {
+                editor_scheme.line_number_bkg_color = wxColour(r, g, b);
+                editor_scheme.line_number_bkg_color_set = true;
+            }
             else if(property.compare(_("font"))==0)
             {
 
@@ -5184,7 +5189,7 @@ void rcbasic_edit_frame::showCodeComp(wxArrayString cc_list)
 
         codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
         codeComp->Show();
-        codeComp->forceResize();
+        //codeComp->forceResize();
 
         tf_size = m_textCtrl->TextHeight(0);
 
@@ -5197,6 +5202,9 @@ void rcbasic_edit_frame::showCodeComp(wxArrayString cc_list)
         {
             x = m_textCtrl->GetClientSize().GetWidth() - codeComp->GetClientSize().GetWidth();
         }
+
+        if(x < 0)
+            x = 0;
 
         codeComp->Move(x, y);
 

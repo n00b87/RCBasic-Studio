@@ -62,7 +62,8 @@ void rcbasic_edit_codeHint_window::updateDoc()
             if(i == s_arg_num)
             {
                 arg_num_highlighted = true;
-                replace_args += _("<font color=\"blue\">") + s_args[i] + _("</font>");
+                //std::cout << "wxColor: " << wxColour(190, 190, 190).GetAsString(wxC2S_HTML_SYNTAX).ToStdString() << std::endl;
+                replace_args += _("<font color=\"blue\"><b>") + s_args[i] + _("</b></font>");
             }
             else
             {
@@ -81,7 +82,7 @@ void rcbasic_edit_codeHint_window::updateDoc()
     src.Replace(_("(_ARGS_)"), replace_args);
 
     m_doc_htmlWin->SetPage(src);
-    m_doc_htmlWin->SetHTMLBackgroundColour(wxColour(170, 170, 170));
+    m_doc_htmlWin->SetHTMLBackgroundColour(wxColour(210, 210, 210));
 
     wxString full_str = s_prefix + _(" ") + s_name + _(" ") + replace_args;
 

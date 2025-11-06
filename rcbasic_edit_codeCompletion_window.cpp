@@ -256,9 +256,20 @@ void rcbasic_edit_codeCompletion_window::updateDoc(bool is_udt, int udt_index)
     src.Replace(_("<style></style>"), ds_open + doc_style + ds_close);
 
     m_doc_htmlWin->SetPage(src);
-    m_doc_htmlWin->SetHTMLBackgroundColour(wxColour(170, 170, 170));
+    m_doc_htmlWin->SetHTMLBackgroundColour(wxColour(210, 210, 210));
+
+    //m_symbol_listBox->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_GRAYTEXT ) );
+	//m_symbol_listBox->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHT ) );
 
     bSizer135->Layout();
+
+    //2, 5
+    int list_width = m_symbol_listBox->GetClientSize().GetWidth();
+    int doc_width = m_doc_htmlWin->GetClientSize().GetWidth();
+
+    this->SetClientSize(wxSize(list_width*3, this->GetClientSize().GetHeight()));
+    m_doc_htmlWin->SetClientSize(wxSize(list_width*2, m_doc_htmlWin->GetClientSize().GetHeight()));
+    m_doc_htmlWin->Layout();
 
 }
 

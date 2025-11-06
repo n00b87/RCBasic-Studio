@@ -19588,7 +19588,7 @@
       <property name="minimum_size"></property>
       <property name="name">rc_codeCompletion_window</property>
       <property name="pos"></property>
-      <property name="size">778,221</property>
+      <property name="size">857,212</property>
       <property name="subclass">; ; forward_declare</property>
       <property name="tooltip"></property>
       <property name="two_step_creation">0</property>

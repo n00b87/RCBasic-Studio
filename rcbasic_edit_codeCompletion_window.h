@@ -28,6 +28,13 @@ class rcbasic_edit_codeCompletion_window : public rc_codeCompletion_window
         bool use_udt_db;
         int utype_index;
 
+        // wxColour list_bkg_color;
+        // wxColour list_font_color;
+
+        // wxColour doc_bkg_color;
+        // wxColour doc_font_color;
+        // wxColour doc_highlight_color;
+
 	protected:
 		// Handlers for rc_codeCompletion_window events.
 		void OnSetFocus( wxFocusEvent& event );
