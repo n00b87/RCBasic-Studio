@@ -318,7 +318,7 @@ bool tokens(const std::string &data, std::string* doc_comment = NULL)
                     if(comment_str.compare("'''")==0)
                     {
                         if(doc_comment)
-                            *doc_comment = data.substr(x+2);
+                            *doc_comment = data.substr(x+3);
                     }
                     return true;
                 }

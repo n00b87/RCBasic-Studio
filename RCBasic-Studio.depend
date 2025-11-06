@@ -1,16 +1,18 @@
 # depslib dependency file v1.0
-1759205719 source:/home/n00b/Projects/RCBasic-Studio/build_menu.cpp
+1761639657 source:/home/n00b/Projects/RCBasic-Studio/build_menu.cpp
 	"rcbasic_edit_frame.h"
 	<wx/process.h>
 	<wx/txtstrm.h>
 	<wx/utils.h>
 	"rc_debugger_dialog.h"
 
-1752117866 /home/n00b/Projects/RCBasic-Studio/rcbasic_edit_frame.h
+1762420742 /home/n00b/Projects/RCBasic-Studio/rcbasic_edit_frame.h
 	"rcbasic_edit.h"
 	"rc_closeProjectSavePrompt_dialog.h"
 	"rc_newFile_dialog.h"
 	"rc_closeFileSavePrompt_dialog.h"
+	"rcbasic_edit_codeCompletion_window.h"
+	"rcbasic_edit_codeHint_window.h"
 	"projects.h"
 	"eval.h"
 	"rcbasic_symbol.h"
@@ -24,7 +26,7 @@
 	<wx/txtstrm.h>
 	<vector>
 
-1754967182 /home/n00b/Projects/RCBasic-Studio/rcbasic_edit.h
+1762422067 /home/n00b/Projects/RCBasic-Studio/rcbasic_edit.h
 	<wx/artprov.h>
 	<wx/xrc/xmlres.h>
 	<wx/string.h>
@@ -60,6 +62,7 @@
 	<wx/bmpbuttn.h>
 	<wx/checklst.h>
 	<wx/gauge.h>
+	<wx/html/htmlwin.h>
 
 1731957962 /usr/include/wx-3.2/wx/artprov.h
 	"wx/string.h"
@@ -1940,15 +1943,17 @@
 	"wx/textentry.h"
 	"wx/textctrl.h"
 
-1752117866 /home/n00b/Projects/RCBasic-Studio/rcbasic_symbol.h
+1762420742 /home/n00b/Projects/RCBasic-Studio/rcbasic_symbol.h
 	<wx/wx.h>
 	<wx/treectrl.h>
+	<vector>
+	"rcbasic_symbol.h"
 
-1752117866 /home/n00b/Projects/RCBasic-Studio/eval.h
+1762420742 /home/n00b/Projects/RCBasic-Studio/eval.h
 	<iostream>
 	"tokenizer.h"
 
-1694061647 /home/n00b/Projects/RCBasic-Studio/tokenizer.h
+1762422405 /home/n00b/Projects/RCBasic-Studio/tokenizer.h
 	<iostream>
 	<string>
 	<cctype>
@@ -1967,7 +1972,7 @@
 1694061647 /home/n00b/Projects/RCBasic-Studio/constants.h
 	<vector>
 
-1694061647 /home/n00b/Projects/RCBasic-Studio/parserThread.h
+1762420742 /home/n00b/Projects/RCBasic-Studio/parserThread.h
 	<vector>
 	<wx/wx.h>
 	<wx/thread.h>
@@ -2019,7 +2024,7 @@
 1754968596 source:/home/n00b/Projects/RCBasic-Studio/help_menu.cpp
 	"rcbasic_edit_frame.h"
 
-1752117866 source:/home/n00b/Projects/RCBasic-Studio/parserThread.cpp
+1762420742 source:/home/n00b/Projects/RCBasic-Studio/parserThread.cpp
 	"parserThread.h"
 	"rcbasic_symbol.h"
 	"eval.h"
@@ -2063,7 +2068,7 @@
 1694061647 source:/home/n00b/Projects/RCBasic-Studio/rc_newFile_dialog.cpp
 	"rc_newFile_dialog.h"
 
-1754968420 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit.cpp
+1762420742 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit.cpp
 	"rcbasic_edit.h"
 
 1694061647 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit_fileProperties_dialog.cpp
@@ -2074,7 +2079,7 @@
 	"rcbasic_edit.h"
 	"projects.h"
 
-1758940756 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit_frame.cpp
+1762420742 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit_frame.cpp
 	<wx/string.h>
 	<wx/arrstr.h>
 	<wx/dir.h>
@@ -2091,6 +2096,8 @@
 	"rcbasic_edit_projectEnvironment_dialog.h"
 	"rcbasic_edit_fileProperties_dialog.h"
 	"rcbasic_edit_preference_dialog.h"
+	"rcbasic_edit_codeCompletion_window.h"
+	"rcbasic_edit_codeHint_window.h"
 	"drag_files.h"
 	"eval.h"
 	"rcbasic_symbol.h"
@@ -2283,4 +2290,151 @@
 	"wx/wx.h"
 
 1731957962 /usr/lib/x86_64-linux-gnu/wx/include/gtk3-unicode-3.2/wx/setup.h
+
+1731957962 /usr/include/wx-3.2/wx/html/htmlwin.h
+	"wx/defs.h"
+	"wx/window.h"
+	"wx/scrolwin.h"
+	"wx/config.h"
+	"wx/stopwatch.h"
+	"wx/html/winpars.h"
+	"wx/html/htmlcell.h"
+	"wx/filesys.h"
+	"wx/html/htmlfilt.h"
+	"wx/filename.h"
+	"wx/bmpbndl.h"
+
+1731957962 /usr/include/wx-3.2/wx/config.h
+	"wx/confbase.h"
+	"wx/msw/regconf.h"
+	"wx/fileconf.h"
+
+1731957962 /usr/include/wx-3.2/wx/confbase.h
+	"wx/defs.h"
+	"wx/string.h"
+	"wx/object.h"
+	"wx/base64.h"
+
+1731957962 /usr/include/wx-3.2/wx/base64.h
+	"wx/defs.h"
+	"wx/string.h"
+	"wx/buffer.h"
+
+1731957962 /usr/include/wx-3.2/wx/fileconf.h
+	"wx/defs.h"
+	"wx/textfile.h"
+	"wx/string.h"
+	"wx/confbase.h"
+	"wx/filename.h"
+
+1731957962 /usr/include/wx-3.2/wx/textfile.h
+	"wx/defs.h"
+	"wx/textbuf.h"
+	"wx/file.h"
+
+1731957962 /usr/include/wx-3.2/wx/textbuf.h
+	"wx/defs.h"
+	"wx/arrstr.h"
+	"wx/convauto.h"
+	"wx/string.h"
+	"wx/dynarray.h"
+
+1731957962 /usr/include/wx-3.2/wx/html/winpars.h
+	"wx/defs.h"
+	"wx/module.h"
+	"wx/font.h"
+	"wx/html/htmlpars.h"
+	"wx/html/htmlcell.h"
+	"wx/encconv.h"
+
+1731957962 /usr/include/wx-3.2/wx/html/htmlpars.h
+	"wx/defs.h"
+	"wx/html/htmltag.h"
+	"wx/filesys.h"
+	"wx/hashmap.h"
+	"wx/hashset.h"
+	"wx/vector.h"
+	"wx/fontenc.h"
+
+1731957962 /usr/include/wx-3.2/wx/html/htmltag.h
+	"wx/defs.h"
+	"wx/object.h"
+	"wx/arrstr.h"
+
+1731957962 /usr/include/wx-3.2/wx/hashset.h
+	"wx/hashmap.h"
+	<unordered_set>
+	<tr1/unordered_set>
+	<ext/hash_set>
+	<hash_set>
+
+1731957962 /usr/include/wx-3.2/wx/html/htmlcell.h
+	"wx/defs.h"
+	"wx/html/htmltag.h"
+	"wx/html/htmldefs.h"
+	"wx/window.h"
+	"wx/brush.h"
+
+1731957962 /usr/include/wx-3.2/wx/html/htmldefs.h
+	"wx/defs.h"
+
+1731957962 /usr/include/wx-3.2/wx/encconv.h
+	"wx/defs.h"
+	"wx/object.h"
+	"wx/fontenc.h"
+	"wx/dynarray.h"
+
+1731957962 /usr/include/wx-3.2/wx/html/htmlfilt.h
+	"wx/defs.h"
+	"wx/filesys.h"
+
+1762420742 /home/n00b/Projects/RCBasic-Studio/rcbasic_edit_codeCompletion_window.h
+	<wx/wx.h>
+	"rcbasic_edit.h"
+	"rcbasic_symbol.h"
+
+1762422023 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit_codeCompletion_window.cpp
+	<wx/wx.h>
+	<wx/simplebook.h>
+	"rcbasic_edit_codeCompletion_window.h"
+
+1761628608 /home/n00b/Projects/RCBasic-Studio/rcbasic_edit_codeCompletion_frame.h
+	"rcbasic_edit.h"
+
+1761628608 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit_codeCompletion_frame.cpp
+	"rcbasic_edit_codeCompletion_frame.h"
+
+1731957962 /usr/include/wx-3.2/wx/simplebook.h
+	"wx/bookctrl.h"
+	"wx/containr.h"
+	"wx/vector.h"
+	"wx/choicebk.h"
+	"wx/listbook.h"
+	"wx/toolbook.h"
+	"wx/treebook.h"
+
+1731957962 /usr/include/wx-3.2/wx/listbook.h
+	"wx/defs.h"
+	"wx/bookctrl.h"
+	"wx/containr.h"
+
+1731957962 /usr/include/wx-3.2/wx/toolbook.h
+	"wx/defs.h"
+	"wx/bookctrl.h"
+	"wx/containr.h"
+
+1731957962 /usr/include/wx-3.2/wx/treebook.h
+	"wx/defs.h"
+	"wx/bookctrl.h"
+	"wx/containr.h"
+	"wx/treebase.h"
+	"wx/vector.h"
+
+1762420742 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit_codeHint_window.cpp
+	"rcbasic_edit_codeHint_window.h"
+	"rcbasic_symbol.h"
+
+1762420742 /home/n00b/Projects/RCBasic-Studio/rcbasic_edit_codeHint_window.h
+	"rcbasic_edit.h"
+	"rcbasic_symbol.h"
 

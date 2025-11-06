@@ -258,6 +258,8 @@ void rcbasic_edit_codeCompletion_window::updateDoc(bool is_udt, int udt_index)
     m_doc_htmlWin->SetPage(src);
     m_doc_htmlWin->SetHTMLBackgroundColour(wxColour(170, 170, 170));
 
+    bSizer135->Layout();
+
 }
 
 void rcbasic_edit_codeCompletion_window::OnListBoxSelection( wxCommandEvent& event )

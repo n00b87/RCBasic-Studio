@@ -40,8 +40,6 @@
 		<Linker>
 			<Add option="`wx-config --libs std,stc,aui,richtext` -Wl,--allow-multiple-definition" />
 		</Linker>
-		<Unit filename="GUIDialog.cpp" />
-		<Unit filename="GUIDialog.h" />
 		<Unit filename="build_menu.cpp" />
 		<Unit filename="constants.h" />
 		<Unit filename="drag_files.h" />
@@ -68,10 +66,10 @@
 		<Unit filename="rc_utility.h" />
 		<Unit filename="rcbasic_edit.cpp" />
 		<Unit filename="rcbasic_edit.h" />
-		<Unit filename="rcbasic_editApp.cpp" />
-		<Unit filename="rcbasic_editApp.h" />
-		<Unit filename="rcbasic_editMain.cpp" />
-		<Unit filename="rcbasic_editMain.h" />
+		<Unit filename="rcbasic_edit_codeCompletion_window.cpp" />
+		<Unit filename="rcbasic_edit_codeCompletion_window.h" />
+		<Unit filename="rcbasic_edit_codeHint_window.cpp" />
+		<Unit filename="rcbasic_edit_codeHint_window.h" />
 		<Unit filename="rcbasic_edit_fileProperties_dialog.cpp" />
 		<Unit filename="rcbasic_edit_fileProperties_dialog.h" />
 		<Unit filename="rcbasic_edit_frame.cpp" />
