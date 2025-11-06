@@ -1971,8 +1971,9 @@ bool rcbasic_edit_frame::loadScheme(wxFileName fname)
             }
             else if(property.compare(_("code_complete_bkg_color"))==0)
             {
-                editor_scheme.line_number_bkg_color = wxColour(r, g, b);
-                editor_scheme.line_number_bkg_color_set = true;
+                // NOT CURRENTLY USED
+                //editor_scheme.line_number_bkg_color = wxColour(r, g, b);
+                //editor_scheme.line_number_bkg_color_set = true;
             }
             else if(property.compare(_("font"))==0)
             {
