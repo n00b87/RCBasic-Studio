@@ -1,0 +1,4 @@
+#title TileMapExists [RCBasic Doc]
+#header Function TileMapExists(tilemap)
+
+Returns true if the given id represents and existing tilemap

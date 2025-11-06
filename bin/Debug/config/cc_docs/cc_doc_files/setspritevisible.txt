@@ -1,0 +1,7 @@
+#title SetSpriteVisible [RCBasic Doc]
+#header Function SetSpriteVisible(sprite, flag)
+
+Set the sprite visible with the flAG
+
+
+#ref SpriteIsVisible

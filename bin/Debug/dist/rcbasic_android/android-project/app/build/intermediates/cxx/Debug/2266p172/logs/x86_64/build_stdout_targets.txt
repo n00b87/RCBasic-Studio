@@ -1,0 +1,11 @@
+Android NDK: android-19 is unsupported. Using minimum supported version android-21.    
+make: Nothing to be done for 'SDL2'.
+make: Nothing to be done for 'SDL2_image'.
+make: Nothing to be done for 'SDL2_mixer'.
+make: Nothing to be done for 'SDL2_net'.
+make: Nothing to be done for 'gme'.
+[x86_64] Compile++      : main <= main.cpp
+[x86_64] SharedLibrary  : libmain.so
+make: Nothing to be done for 'ogg_shared'.
+make: Nothing to be done for 'theora'.
+make: Nothing to be done for 'vorbis64'.

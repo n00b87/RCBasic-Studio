@@ -1,0 +1,1 @@
+/home/n00b/Experimental/android-project/app/build/intermediates/cxx/Debug/2266p172/obj/local/x86_64

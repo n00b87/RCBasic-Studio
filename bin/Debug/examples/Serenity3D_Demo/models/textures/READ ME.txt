@@ -1,0 +1,59 @@
+all used textures are CC0, some normalmaps are from the submitterers, the rest is self-made out of the textures
+
+brick_grey.png
+brick_red.png
+made out of http://opengameart.org/content/seamless-brick-textures, by athile
+
+
+earth-to-x.png
+based on image from http://www.burningwell.org
+
+earth.jpg
+earth_2.jpg
+earth_down.png
+earth_top.png
+based on images from http://opengameart.org/content/seamless-2, by arikel
+
+glass.png
+#selfmade
+
+grass.jpg
+grass_2.jpg
+grass_end.png
+based on http://opengameart.org/content/synthetic-grass-texture-pack, by para
+
+metal_02.png
+metal_03.png
+based on http://opengameart.org/content/free-tilling-texture-pack-28
+and http://opengameart.org/content/free-tiling-textures-42, both by yughues
+
+metal_box.png
+from http://opengameart.org/content/tilling-textures-pack-04, by yughues
+
+metal_cross_dots.png
+metal_dot_small.png
+metal_dots.png
+selfmade out of stuff from yughues
+
+q-block.png
+#selfmade
+
+stone1.png
+stone2.png
+http://opengameart.org/content/free-tilling-textures-41,  by yughues
+
+stone_greenish.png
+http://opengameart.org/content/tilling-texture-pack-13,  by yughues
+
+stonetiles_00*
+http://opengameart.org/content/pietextureset, by Spiney
+
+wood2.png
+wood3.png
+based on images from http://www.burningwell.org
+
+wood4.jpg
+wood5.jpg
+http://opengameart.org/content/5-wood-textures, by Luke.RUSTLTD
+wood_boxes.png
+http://opengameart.org/content/3-crate-textures-w-bump-normal,  by Luke.RUSTLTD

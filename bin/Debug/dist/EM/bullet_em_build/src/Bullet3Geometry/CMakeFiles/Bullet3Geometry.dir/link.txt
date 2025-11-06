@@ -1,0 +1,2 @@
+/home/n00b/Programs/emsdk/upstream/emscripten/emar qc libBullet3Geometry.a CMakeFiles/Bullet3Geometry.dir/b3ConvexHullComputer.o CMakeFiles/Bullet3Geometry.dir/b3GeometryUtil.o
+/home/n00b/Programs/emsdk/upstream/emscripten/emranlib libBullet3Geometry.a

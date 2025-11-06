@@ -1,0 +1,2 @@
+/home/n00b/Experimental/android-project/app/jni/Android.mk
+/home/n00b/Experimental/android-project/app/jni/Application.mk

@@ -23,6 +23,7 @@ class parserThread : public wxThread
         wxString file_text;
         std::vector<wxString> contents;
         wxStopWatch sw_timer;
+        bool dbg_init;
 
         bool runParser(wxCommandEvent evt);
 
@@ -34,7 +35,7 @@ class parserThread : public wxThread
 
         bool inSymbolList(rcbasic_symbol sym);
 
-        void addSymbol(rcbasic_symbol sym);
+        int addSymbol(rcbasic_symbol sym);
     protected:
         wxEvtHandler* m_pParent;
 

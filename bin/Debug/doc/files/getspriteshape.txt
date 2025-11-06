@@ -1,0 +1,15 @@
+#title GetSpriteShape [RCBasic Doc]
+#header Function GetSpriteShape(spr_id)
+
+Returns the collision shape of a sprite
+
+Shape Types:
+#list ul
+#li SPRITE_SHAPE_NONE
+#li SPRITE_SHAPE_BOX
+#li SPRITE_SHAPE_POLYGON
+#li SPRITE_SHAPE_CIRCLE
+#li SPRITE_SHAPE_CHAIN
+#/list
+
+#ref SetSpriteShape

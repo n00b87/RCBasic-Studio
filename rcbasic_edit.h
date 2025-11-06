@@ -42,6 +42,7 @@
 #include <wx/bmpbuttn.h>
 #include <wx/checklst.h>
 #include <wx/gauge.h>
+#include <wx/html/htmlwin.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -195,6 +196,7 @@ class rc_ideFrame : public wxFrame
 		virtual void onSymbolSelectionChanged( wxTreeEvent& event ) { event.Skip(); }
 		virtual void onSymbolSelectionChanging( wxTreeEvent& event ) { event.Skip(); }
 		virtual void onNotebookPageChanged( wxAuiNotebookEvent& event ) { event.Skip(); }
+		virtual void onNotebookPageIsChanging( wxAuiNotebookEvent& event ) { event.Skip(); }
 		virtual void onSourceFileTabClose( wxAuiNotebookEvent& event ) { event.Skip(); }
 		virtual void onSearchResultSelection( wxCommandEvent& event ) { event.Skip(); }
 
@@ -881,6 +883,60 @@ class rc_debugger : public wxDialog
 		rc_debugger( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Debug"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 547,512 ), long style = wxDEFAULT_DIALOG_STYLE );
 
 		~rc_debugger();
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class rc_codeCompletion_window
+///////////////////////////////////////////////////////////////////////////////
+class rc_codeCompletion_window : public wxPanel
+{
+	private:
+
+	protected:
+		wxBoxSizer* bSizer135;
+		wxListBox* m_symbol_listBox;
+		wxHtmlWindow* m_doc_htmlWin;
+
+		// Virtual event handlers, override them in your derived class
+		virtual void OnSetFocus( wxFocusEvent& event ) { event.Skip(); }
+		virtual void OnWindowResize( wxSizeEvent& event ) { event.Skip(); }
+		virtual void OnLeftDClick_ListBox( wxMouseEvent& event ) { event.Skip(); }
+		virtual void OnListBoxSelection( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnSetFocus_ListBox( wxFocusEvent& event ) { event.Skip(); }
+		virtual void OnSetFocus_Doc( wxFocusEvent& event ) { event.Skip(); }
+
+
+	public:
+
+		rc_codeCompletion_window( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 778,221 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+
+		~rc_codeCompletion_window();
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class rc_codeHint_window
+///////////////////////////////////////////////////////////////////////////////
+class rc_codeHint_window : public wxPanel
+{
+	private:
+
+	protected:
+		wxBoxSizer* bSizer135;
+		wxHtmlWindow* m_doc_htmlWin;
+
+		// Virtual event handlers, override them in your derived class
+		virtual void OnSetFocus( wxFocusEvent& event ) { event.Skip(); }
+		virtual void OnWindowResize( wxSizeEvent& event ) { event.Skip(); }
+		virtual void OnSetFocus_Doc( wxFocusEvent& event ) { event.Skip(); }
+
+
+	public:
+
+		rc_codeHint_window( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 233,40 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+
+		~rc_codeHint_window();
 
 };
 
