@@ -1,0 +1,2 @@
+/home/n00b/Programs/emsdk/upstream/emscripten/emar qc libBulletInverseDynamics.a CMakeFiles/BulletInverseDynamics.dir/IDMath.o CMakeFiles/BulletInverseDynamics.dir/MultiBodyTree.o CMakeFiles/BulletInverseDynamics.dir/details/MultiBodyTreeInitCache.o CMakeFiles/BulletInverseDynamics.dir/details/MultiBodyTreeImpl.o
+/home/n00b/Programs/emsdk/upstream/emscripten/emranlib libBulletInverseDynamics.a

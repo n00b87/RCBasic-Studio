@@ -1,0 +1,7 @@
+#title SpriteIsVisible [RCBasic Doc]
+#header Function SpriteIsVisible(sprite)
+
+Returns whether the sprite is visible
+
+
+#ref SetSpriteVisible

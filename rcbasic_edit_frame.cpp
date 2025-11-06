@@ -16,6 +16,8 @@
 #include "rcbasic_edit_projectEnvironment_dialog.h"
 #include "rcbasic_edit_fileProperties_dialog.h"
 #include "rcbasic_edit_preference_dialog.h"
+#include "rcbasic_edit_codeCompletion_window.h"
+#include "rcbasic_edit_codeHint_window.h"
 #include "drag_files.h"
 #include "eval.h"
 #include "rcbasic_symbol.h"
@@ -56,7 +58,7 @@ void rcbasic_edit_frame::pfile_readContents(wxString file_path)
     }
 }
 
-void rcbasic_edit_frame::pfile_addSymbol(rcbasic_project* p, rcbasic_symbol sym)
+int rcbasic_edit_frame::pfile_addSymbol(rcbasic_project* p, rcbasic_symbol sym)
 {
     int insert_pos = 0;
     wxString sym_id = sym.id.Upper();
@@ -66,10 +68,12 @@ void rcbasic_edit_frame::pfile_addSymbol(rcbasic_project* p, rcbasic_symbol sym)
         if(id_sym_cmp==0 && p->project_symbols[i].token_type == sym.token_type)
         {
             //delete sym;
-            return;
+            return i;
         }
     }
+    int p_index = p->project_symbols.size();
     p->project_symbols.push_back(sym);
+    return p_index;
     //sym_list->insert(sym_list->begin()+insert_pos, sym);
 }
 
@@ -91,30 +95,106 @@ bool rcbasic_edit_frame::pfile_runParser(rcbasic_project* p)
         bool fn_define = false;
         bool udt_define = false;
 
+        int parent_token_index = -1;
+
+        std::string doc_string = "";
+
 
         for(int i = 0; i < pfile_contents.size(); i++)
         {
 
-            rc_eval(std::string(pfile_contents[i].mb_str()), &fn_define, &udt_define);
+            rc_eval(std::string(pfile_contents[i].mb_str()), &fn_define, &udt_define, &doc_string);
+
+            if(parent_token_index >= 0 && parent_token_index < p->project_symbols.size())
+            {
+                if(p->project_symbols[parent_token_index].symbol_type == CC_SYMBOL_TYPE_FN || p->project_symbols[parent_token_index].symbol_type == CC_SYMBOL_TYPE_SUB)
+                {
+                    if(!fn_define)
+                    {
+                        p->project_symbols[parent_token_index].end_line = i+1;
+                    }
+                    else if(doc_string.length() > 0)
+                    {
+                        p->project_symbols[parent_token_index].comments += wxString(doc_string) + _("\n");
+                    }
+                }
+            }
+
             //wxPuts(_("EVAL RAN"));
             for(int t_count = 0; t_count < id_tokens.size(); t_count++)
             {
                 //wxPrintf( wxString(id_tokens[t_count].name.c_str(), wxConvUTF8) + _("[%d]:%d\n"), id_tokens[t_count].dimensions, i+1 );
                 rcbasic_symbol sym;// = new rcbasic_symbol();
                 sym.id = id_tokens[t_count].name;
+                sym.display_name = id_tokens[t_count].name;
                 sym.upper_id = sym.id.Upper();
                 sym.line = i;
+                sym.user_type = id_tokens[t_count].user_type;
                 sym.dimensions = id_tokens[t_count].dimensions;
                 sym.token_type = id_tokens[t_count].token_type;
                 sym.in_list = id_tokens[t_count].is_in_list;
 
+                sym.symbol_type = id_tokens[t_count].symbol_type;
+
+                sym.args.Clear();
+
+                //std::cout << "INIT: " << sym.id.ToStdString() << ", " << sym.symbol_type << ", " << id_tokens[t_count].args.size() << std::endl;
+
+                for(int arg_num = 0; arg_num < id_tokens[t_count].args.size(); arg_num++)
+                    sym.args.push_back(wxString(id_tokens[t_count].args[arg_num]));
+
+                sym.sub_sym.clear();
 
                 notebook_mutex.Lock();
-                pfile_addSymbol(p, sym);
+
+                if(id_tokens[t_count].is_sub_token)
+                {
+                    if(parent_token_index >= 0 && parent_token_index < p->project_symbols.size())
+                    {
+                        if(p->project_symbols[parent_token_index].symbol_type == CC_SYMBOL_TYPE_UDT)
+                            sym.comments = wxString(doc_string);
+
+                        p->project_symbols[parent_token_index].sub_sym.push_back(sym);
+                    }
+                }
+                else
+                    parent_token_index = pfile_addSymbol(p, sym);;
+
                 notebook_mutex.Unlock();
             }
 
         }
+    }
+
+
+
+    for(int i = 0; i < p->project_symbols.size(); i++)
+    {
+        notebook_mutex.Lock();
+        rcbasic_symbol sym = p->project_symbols[i];
+
+        if(sym.symbol_type == CC_SYMBOL_TYPE_UDT)
+        {
+            rc_udt n_type;
+            n_type.type_name = sym.id.Lower().Trim();
+
+            //std::cout << "ADD TYPE: " << n_type.type_name.ToStdString() << std::endl;
+
+            for(int f_num = 0; f_num < sym.sub_sym.size(); f_num++)
+            {
+                rc_udt_field field;
+                field.name = sym.sub_sym[f_num].id.Lower().Trim();
+                field.display_name = sym.sub_sym[f_num].id;
+                field.type_name = sym.sub_sym[f_num].user_type.Lower().Trim();
+                field.comment = sym.sub_sym[f_num].comments;
+                field.num_dimensions = sym.sub_sym[f_num].dimensions;
+
+                //std::cout << "FIELD: " << field.name.ToStdString() << ", " << field.type_name.ToStdString() << std::endl;
+                n_type.field.push_back(field);
+            }
+            codeComp_udt_db.udt.push_back(n_type);
+        }
+        notebook_mutex.Unlock();
     }
 
     return true;
@@ -123,11 +203,154 @@ bool rcbasic_edit_frame::pfile_runParser(rcbasic_project* p)
 
 
 
-rcbasic_edit_txtCtrl::rcbasic_edit_txtCtrl(wxFileName src_path, wxAuiNotebook* parent_nb)
+rc_styledTextCtrl::rc_styledTextCtrl(wxWindow* parent_nb, wxString src_name) : wxStyledTextCtrl(parent_nb, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, src_name)
+{
+    //this->Connect( wxEVT_SIZE, wxSizeEventHandler( rc_codeCompletion::OnWindowResize ) );
+	this->Connect( wxEVT_KEY_DOWN, wxKeyEventHandler( rc_styledTextCtrl::OnKeyDown ), NULL, this );
+	this->Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( rc_styledTextCtrl::OnLeftClick ), NULL, this );
+	this->Connect( wxEVT_MIDDLE_DOWN, wxMouseEventHandler( rc_styledTextCtrl::OnMiddleClick ), NULL, this );
+	this->Connect( wxEVT_RIGHT_DOWN, wxMouseEventHandler( rc_styledTextCtrl::OnRightClick ), NULL, this );
+	this->Connect( wxEVT_KILL_FOCUS, wxFocusEventHandler( rc_styledTextCtrl::OnKillFocus ) );
+
+	show_codeComp = false;
+	debug = false;
+	codeComp_mouseClick = false;
+	codeComp_lockIn = false;
+	codeComp_comma = false;
+
+	show_codeHint = false;
+}
+
+rc_styledTextCtrl::~rc_styledTextCtrl()
+{
+    this->Disconnect( wxEVT_KEY_DOWN, wxKeyEventHandler( rc_styledTextCtrl::OnKeyDown ), NULL, this );
+	this->Disconnect( wxEVT_LEFT_DOWN, wxMouseEventHandler( rc_styledTextCtrl::OnLeftClick ), NULL, this );
+	this->Disconnect( wxEVT_MIDDLE_DOWN, wxMouseEventHandler( rc_styledTextCtrl::OnMiddleClick ), NULL, this );
+	this->Disconnect( wxEVT_RIGHT_DOWN, wxMouseEventHandler( rc_styledTextCtrl::OnRightClick ), NULL, this );
+	this->Disconnect( wxEVT_KILL_FOCUS, wxFocusEventHandler( rc_styledTextCtrl::OnKillFocus ) );
+}
+
+void rc_styledTextCtrl::OnKillFocus( wxFocusEvent& event )
+{
+    if(show_codeComp)
+    {
+        this->SetFocus();
+        event.StopPropagation();
+        event.Skip(false);
+    }
+    else
+    {
+        event.Skip();
+    }
+}
+
+void rc_styledTextCtrl::setShowComp(bool flag)
+{
+    if(flag)
+        debug = true;
+
+    show_codeComp = flag;
+}
+
+bool rc_styledTextCtrl::codeCompIsShown()
+{
+    return show_codeComp;
+}
+
+void rc_styledTextCtrl::OnWindowResize( wxSizeEvent& event )
+{
+    event.Skip();
+}
+
+void rc_styledTextCtrl::OnKeyDown( wxKeyEvent& event )
+{
+    bool skip_flag = true;
+
+    switch(event.GetKeyCode())
+    {
+        case 46:  //period
+        case 40:  //open parentheses
+        case 44:  //comma
+            codeComp_comma = true;
+            break;
+        case WXK_RETURN:
+        case WXK_TAB:
+            if(show_codeComp)
+            {
+                codeComp_tabComplete = true;
+                skip_flag = false;
+            }
+            break;
+
+        case WXK_ESCAPE:
+            codeComp_comma = false;
+            show_codeHint = false;
+        case WXK_BACK:
+        case WXK_LEFT:
+        case WXK_RIGHT:
+        case WXK_SPACE:
+        case WXK_DELETE:
+            show_codeComp = false;
+            //std::cout << "---------------TESTING--------------------" << std::endl;
+            break;
+        case WXK_UP:
+        case WXK_DOWN:
+            if(show_codeComp)
+            {
+                codeComp_scroll = event.GetKeyCode();
+                skip_flag = false;
+            }
+            break;
+
+        default:
+            if(codeComp_lockIn)
+            {
+                codeComp_comma = true;
+            }
+
+            codeComp_lockIn = false;
+            break;
+    }
+
+    if(skip_flag)
+        event.Skip();
+}
+
+void rc_styledTextCtrl::OnLeftClick( wxMouseEvent& event )
+{
+    if(show_codeComp)
+    {
+        codeComp_mouseClick = true;
+    }
+
+    show_codeHint = false;
+    codeComp_comma = false;
+
+    event.Skip();
+}
+
+void rc_styledTextCtrl::OnMiddleClick( wxMouseEvent& event )
+{
+    event.Skip();
+}
+
+void rc_styledTextCtrl::OnRightClick( wxMouseEvent& event )
+{
+    if(show_codeComp)
+    {
+        codeComp_mouseClick = true;
+    }
+    event.Skip();
+}
+
+
+rcbasic_edit_txtCtrl::rcbasic_edit_txtCtrl(wxFileName src_path, wxAuiNotebook* parent_nb, rcbasic_edit_codeCompletion_window* cc)
 {
     sourcePath = src_path;
-    txtCtrl = new wxStyledTextCtrl(parent_nb, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, src_path.GetFullName());
+
+    txtCtrl = new rc_styledTextCtrl(parent_nb, src_path.GetFullName());
     text_changed = false;
+    codeComp = cc;
 }
 
 rcbasic_edit_txtCtrl::~rcbasic_edit_txtCtrl()
@@ -136,7 +359,7 @@ rcbasic_edit_txtCtrl::~rcbasic_edit_txtCtrl()
         delete txtCtrl;
 }
 
-wxStyledTextCtrl* rcbasic_edit_txtCtrl::getTextCtrl()
+rc_styledTextCtrl* rcbasic_edit_txtCtrl::getTextCtrl()
 {
     return txtCtrl;
 }
@@ -151,7 +374,7 @@ void rcbasic_edit_txtCtrl::setFileName(wxFileName fname)
     sourcePath = fname;
 }
 
-void rcbasic_edit_txtCtrl::setTextCtrl(wxStyledTextCtrl* t_ctrl)
+void rcbasic_edit_txtCtrl::setTextCtrl(rc_styledTextCtrl* t_ctrl)
 {
     txtCtrl = t_ctrl;
 }
@@ -337,14 +560,26 @@ void rcbasic_edit_frame::OnParserThread(wxCommandEvent& event)
         }*/
         symbols.clear();
         user_id_list.Clear();
+        codeComp_user_db.symbol.clear();
+        rc_codeComp_symbolDoc n_sym;
+        rcbasic_parse_symbol_search p_item;
 
         user_id_list = id_list;
 
-        if(active_project)
+        int selected_page = sourceFile_auinotebook->GetSelection();
+        rc_styledTextCtrl* m_txtctrl = NULL;
+
+        if(selected_page >= 0)
         {
-            for(int i = 0; i < active_project->project_symbols.size(); i++)
-                user_id_list.Add(active_project->project_symbols[i].id);
+            m_txtctrl = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
         }
+
+        int current_line = -1;
+        if(m_txtctrl)
+        {
+            current_line = m_txtctrl->GetCurrentLine();
+        }
+
 
         if(pre_parsed_page)
         {
@@ -356,7 +591,113 @@ void rcbasic_edit_frame::OnParserThread(wxCommandEvent& event)
 
                 user_id_list.Add(s.id);
 
-                //wxPuts(_("VAR --- ") + s->id);
+                n_sym.symbol_name = s.id;
+                n_sym.display_name = s.display_name;
+                n_sym.user_type = s.user_type;
+                n_sym.symbol_type = s.symbol_type;
+                n_sym.args.Clear();
+                n_sym.args = s.args;
+                n_sym.doc_html = _("");
+                n_sym.comments = s.comments;
+                n_sym.dimensions = s.dimensions;
+                n_sym.start_line = s.start_line;
+                n_sym.end_line = s.end_line;
+                codeComp_user_db.symbol.push_back(n_sym);
+
+                //if(n_sym.symbol_type == CC_SYMBOL_TYPE_FN)
+                //{
+                //    std::cout << "FN " << n_sym.display_name.ToStdString() << " ->  " << n_sym.start_line << " TO " << n_sym.end_line << std::endl;
+                //}
+
+                if(n_sym.symbol_type == CC_SYMBOL_TYPE_UDT)
+                {
+                    rc_udt n_type;
+                    n_type.type_name = s.id.Lower().Trim();
+
+                    for(int f_num = 0; f_num < s.sub_sym.size(); f_num++)
+                    {
+                        rc_udt_field field;
+                        field.name = s.sub_sym[f_num].id.Lower().Trim();
+                        field.display_name = s.sub_sym[f_num].id;
+                        field.type_name = s.sub_sym[f_num].user_type.Lower().Trim();
+                        field.comment = s.sub_sym[f_num].comments;
+                        field.num_dimensions = s.sub_sym[f_num].dimensions;
+                        n_type.field.push_back(field);
+                    }
+
+                    int db_index = -1;
+
+                    for(int dbi = 0; dbi < codeComp_udt_db.udt.size(); dbi++)
+                    {
+                        if(codeComp_udt_db.udt[dbi].type_name.compare(n_type.type_name)==0)
+                        {
+                            db_index = dbi;
+                            break;
+                        }
+                    }
+
+                    if(db_index >= 0)
+                    {
+                        codeComp_udt_db.udt[db_index] = n_type;
+                    }
+                    else
+                    {
+                        codeComp_udt_db.udt.push_back(n_type);
+                    }
+                }
+                else if(n_sym.symbol_type == CC_SYMBOL_TYPE_FN || n_sym.symbol_type == CC_SYMBOL_TYPE_SUB)
+                {
+                    if(current_line >= 0)
+                    {
+                        if(current_line > n_sym.start_line && current_line < n_sym.end_line)
+                        {
+                            for(int f_num = 0; f_num < s.sub_sym.size(); f_num++)
+                            {
+                                rc_codeComp_symbolDoc fn_sym;
+                                fn_sym.symbol_name = s.sub_sym[f_num].id.Lower().Trim();
+                                fn_sym.display_name = s.sub_sym[f_num].id;
+                                fn_sym.symbol_type = s.sub_sym[f_num].symbol_type;
+                                fn_sym.user_type = s.sub_sym[f_num].user_type;
+                                fn_sym.args = s.sub_sym[f_num].args;
+                                fn_sym.comments = s.sub_sym[f_num].comments;
+                                fn_sym.doc_html = _("");
+                                codeComp_user_db.symbol.push_back(fn_sym);
+                                symbols.push_back(s.sub_sym[f_num]);
+                                user_id_list.Add(s.sub_sym[f_num].id);
+                            }
+                        }
+                    }
+                }
+
+                /*if(n_sym.symbol_name.compare(_("test"))==0)
+                {
+                    wxPuts(_("VAR --- ") + n_sym.symbol_name + _(", ") + wxString::Format(_("%i"), n_sym.symbol_type) + _("\n"));
+                    for(int n = 0; n < n_sym.args.size(); n++)
+                        wxPuts(_("ARG: ") + n_sym.args[n] + _("\n"));
+                }*/
+            }
+        }
+
+        if(active_project)
+        {
+            for(int i = 0; i < active_project->project_symbols.size(); i++)
+            {
+                user_id_list.Add(active_project->project_symbols[i].id);
+
+                n_sym.symbol_name = active_project->project_symbols[i].id;
+                n_sym.display_name = active_project->project_symbols[i].display_name;
+                n_sym.user_type = active_project->project_symbols[i].user_type;
+                n_sym.symbol_type = active_project->project_symbols[i].symbol_type;
+                n_sym.args.Clear();
+                n_sym.args = active_project->project_symbols[i].args;
+                n_sym.doc_html = _("");
+                n_sym.comments = active_project->project_symbols[i].comments;
+                n_sym.dimensions = active_project->project_symbols[i].dimensions;
+
+                //if(n_sym.symbol_name.Lower().Trim().compare(_("camera_control"))==0)
+                //    std::cout << "symbol tst: " << n_sym.symbol_name.ToStdString() << ", type=" << n_sym.symbol_type << ", args=" << (int)n_sym.args.size() << std::endl;
+
+                codeComp_user_db.symbol.push_back(n_sym);
             }
         }
 
@@ -392,6 +733,13 @@ rc_ideFrame( parent )
     current_file_project = new rcbasic_project();
 
     lenCompletionCheck = 3;
+
+    codeComp = NULL;
+    codeHint = NULL;
+
+    // Load html for each symbol
+    loadCodeCompDocs();
+
 
     //#ifdef _WIN32
     sourceFile_auinotebook->Connect( wxEVT_DROP_FILES, wxDropFilesEventHandler( rcbasic_edit_frame::onDropFiles ), NULL, this );
@@ -686,6 +1034,125 @@ rc_ideFrame( parent )
         else if(f.GetExt().compare(_("bas"))==0 || f.GetExt().compare(_("txt"))==0)
             openSourceFile(f);
     }
+}
+
+void rcbasic_edit_frame::loadCodeCompDocs()
+{
+    wxString editor_path = wxStandardPaths::Get().GetExecutablePath();
+
+    wxFileName cc_doc_path(editor_path);
+    cc_doc_path.AppendDir(_("config"));
+    cc_doc_path.AppendDir(_("cc_docs"));
+    cc_doc_path.AppendDir(_("cc_doc_out"));
+
+    wxDir dir(cc_doc_path.GetPath());
+
+    wxString f_path;
+
+    bool hasFiles = dir.GetFirst(&f_path);
+
+
+    while(hasFiles)
+    {
+        wxFileName fname = cc_doc_path;
+        fname.SetFullName(f_path);
+
+        rc_codeComp_symbolDoc s_doc;
+
+        wxFile s_file;
+        if(s_file.Open(fname.GetAbsolutePath()))
+        {
+            s_doc.symbol_name = fname.GetName().Lower().Trim();
+            s_doc.symbol_name.Replace(_(".html"), _(""));
+            s_file.ReadAll(&s_doc.doc_html);
+
+            s_file.Close();
+
+            size_t sb_index = wxString::npos;
+            size_t fn_index = wxString::npos;
+            size_t body_index = wxString::npos;
+
+            wxString tmp_str = s_doc.doc_html.Lower();
+            body_index = tmp_str.Find(_("<body>"));
+
+            s_doc.symbol_type = -1;
+
+            if(body_index != wxNOT_FOUND)
+            {
+                tmp_str = tmp_str.substr(body_index);
+                sb_index = tmp_str.Find(_("sub"));
+                fn_index = tmp_str.Find(_("function"));
+
+                if(sb_index >= 0 && sb_index < tmp_str.length())
+                {
+                    if(fn_index >= 0 && fn_index < tmp_str.length())
+                    {
+                        if(sb_index < fn_index)
+                        {
+                            s_doc.symbol_type = CC_SYMBOL_TYPE_SUB;
+                        }
+                        else
+                        {
+                            s_doc.symbol_type = CC_SYMBOL_TYPE_FN;
+                        }
+                    }
+                    else
+                    {
+                        s_doc.symbol_type = CC_SYMBOL_TYPE_SUB;
+                    }
+                }
+                else if(fn_index >= 0 && fn_index < tmp_str.length())
+                {
+                    s_doc.symbol_type = CC_SYMBOL_TYPE_FN;
+                }
+
+                if(s_doc.symbol_type >= 0)
+                {
+                    size_t open_par_index = tmp_str.find_first_of(_("(")) + 1;
+
+                    if(open_par_index != wxString::npos)
+                    {
+                        tmp_str = tmp_str.substr(open_par_index);
+                        size_t close_par_index = tmp_str.find_first_of(_(")")) + 1;
+
+                        if(close_par_index != wxString::npos)
+                        {
+                            wxString current_token = _("");
+                            for(int i = 0; i < close_par_index; i++)
+                            {
+                                wxString current_char = tmp_str.substr(i, 1);
+                                if(current_char.compare(_(","))==0)
+                                {
+                                    s_doc.args.push_back(current_token.Trim());
+                                    current_token = _("");
+                                }
+                                else if(current_char.compare(_(")"))==0)
+                                {
+                                    s_doc.args.push_back(current_token.Trim());
+                                    break;
+                                }
+                                else
+                                {
+                                    current_token += current_char;
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(s_doc.symbol_type >= 0)
+                codeComp_symbol_db.symbol.push_back(s_doc);
+        }
+
+        hasFiles = dir.GetNext(&f_path);
+    }
+
+    //if(codeComp_symbol_db.symbol.size() > 0)
+    //{
+    //    std::cout << "SYM TEST: " << codeComp_symbol_db.symbol[0].symbol_name << std::endl << std::endl << codeComp_symbol_db.symbol[0].doc_html << std::endl;
+    //}
 }
 
 bool rcbasic_edit_frame::loadDefaultViewProperties(wxFileName fname)
@@ -1543,7 +2010,7 @@ bool rcbasic_edit_frame::loadScheme(wxFileName fname)
     return false;
 }
 
-void rcbasic_edit_frame::applyScheme(wxStyledTextCtrl* rc_txtCtrl)
+void rcbasic_edit_frame::applyScheme(rc_styledTextCtrl* rc_txtCtrl)
 {
     //wxPuts(_("Debug 1"));
     project_tree->SetBackgroundColour(editor_scheme.style_bkg_color);
@@ -2826,7 +3293,7 @@ void rcbasic_edit_frame::onUndoMenuSelect( wxCommandEvent& event )
         return;
     }
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     t->Undo();
     notebook_mutex.Unlock();
 }
@@ -2842,7 +3309,7 @@ void rcbasic_edit_frame::onRedoMenuSelect( wxCommandEvent& event )
         return;
     }
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     t->Redo();
     notebook_mutex.Unlock();
 }
@@ -2858,7 +3325,7 @@ void rcbasic_edit_frame::onCutMenuSelect( wxCommandEvent& event )
         return;
     }
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     t->Cut();
 
     notebook_mutex.Unlock();
@@ -2875,7 +3342,7 @@ void rcbasic_edit_frame::onCopyMenuSelect( wxCommandEvent& event )
         return;
     }
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     t->Copy();
     notebook_mutex.Unlock();
 }
@@ -2892,7 +3359,7 @@ void rcbasic_edit_frame::onPasteMenuSelect( wxCommandEvent& event )
         return;
     }
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     t->Paste();
     notebook_mutex.Unlock();
 }
@@ -2908,7 +3375,7 @@ void rcbasic_edit_frame::onDeleteMenuSelect( wxCommandEvent& event )
         return;
     }
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     //wxPrintf(_("Line: %d to %d"), t->LineFromPosition(t->GetSelectionStart()), t->LineFromPosition(t->GetSelectionEnd()));
     t->Clear();
 
@@ -2926,7 +3393,7 @@ void rcbasic_edit_frame::onSelectAllMenuSelect( wxCommandEvent& event )
         return;
     }
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
     //wxPrintf(_("Line: %d to %d"), t->LineFromPosition(t->GetSelectionStart()), t->LineFromPosition(t->GetSelectionEnd()));
     t->SelectAll();
 
@@ -2945,7 +3412,7 @@ void rcbasic_edit_frame::onCommentMenuSelect( wxCommandEvent& event )
         return;
     }
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
 
     if(!t)
     {
@@ -2985,7 +3452,7 @@ void rcbasic_edit_frame::onBlockCommentMenuSelect( wxCommandEvent& event )
         return;
     }
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
 
     if(!t)
     {
@@ -3025,7 +3492,7 @@ void rcbasic_edit_frame::onUnCommentMenuSelect( wxCommandEvent& event )
         return;
     }
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
 
     if(!t)
     {
@@ -3177,7 +3644,7 @@ void rcbasic_edit_frame::onSearchResultSelection(wxCommandEvent& event)
         return;
     }
 
-    wxStyledTextCtrl* t = open_files[open_files_index]->getTextCtrl();
+    rc_styledTextCtrl* t = open_files[open_files_index]->getTextCtrl();
 
     int page_index = sourceFile_auinotebook->GetPageIndex(t);
 
@@ -3206,7 +3673,7 @@ void rcbasic_edit_frame::setSearchResultsInFile(int findDialog_flag, wxString tx
     search_term = txt;
 
     int current_page_index = sourceFile_auinotebook->GetSelection();
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(current_page_index);
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(current_page_index);
 
     int flag = findDialog_flag;
 
@@ -3389,7 +3856,7 @@ void rcbasic_edit_frame::onFindMenuSelect( wxCommandEvent& event )
     search_term = find_dialog.getSearchText();
 }
 
-int rcbasic_edit_frame::searchNextPrev(wxStyledTextCtrl* t, int search_type)
+int rcbasic_edit_frame::searchNextPrev(rc_styledTextCtrl* t, int search_type)
 {
     if(!t)
         return -1;
@@ -3424,7 +3891,7 @@ void rcbasic_edit_frame::onFindNextMenuSelect(wxCommandEvent& event)
         return;
     }
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(sourceFile_auinotebook->GetSelection());
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(sourceFile_auinotebook->GetSelection());
 
     if(!t)
     {
@@ -3463,7 +3930,7 @@ void rcbasic_edit_frame::onFindPreviousMenuSelect(wxCommandEvent& event)
         return;
     }
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(sourceFile_auinotebook->GetSelection());
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(sourceFile_auinotebook->GetSelection());
 
     if(!t)
     {
@@ -3503,7 +3970,7 @@ void rcbasic_edit_frame::replaceInFile(int findDialog_flag, wxString txt, wxStri
     search_term = txt;
 
     int current_page_index = sourceFile_auinotebook->GetSelection();
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(current_page_index);
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(current_page_index);
 
     if(!t)
         return;
@@ -3680,7 +4147,7 @@ void rcbasic_edit_frame::onGotoMenuSelect( wxCommandEvent& event )
     goto_dialog.ShowModal();
 }
 
-void rcbasic_edit_frame::updateFont(wxStyledTextCtrl* t)
+void rcbasic_edit_frame::updateFont(rc_styledTextCtrl* t)
 {
     t->StyleSetFont(wxSTC_B_COMMENT, editor_font);
     t->StyleSetFont(wxSTC_B_CONSTANT, editor_font);
@@ -3789,7 +4256,7 @@ void rcbasic_edit_frame::onZoomInMenuSelect( wxCommandEvent& event )
         return;
     }
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
 
     if(!t)
     {
@@ -3813,7 +4280,7 @@ void rcbasic_edit_frame::onZoomOutMenuSelect( wxCommandEvent& event )
         return;
     }
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
 
     if(!t)
     {
@@ -3837,7 +4304,7 @@ void rcbasic_edit_frame::onNormalSizeMenuSelect( wxCommandEvent& event )
         return;
     }
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
 
     if(!t)
     {
@@ -3924,7 +4391,7 @@ void rcbasic_edit_frame::addMultipleFilesToProject()
 
 rcbasic_edit_txtCtrl* rcbasic_edit_frame::openFileTab(rcbasic_project* project, wxFileName newFile)
 {
-    wxStyledTextCtrl* txtCtrl = NULL;
+    rc_styledTextCtrl* txtCtrl = NULL;
     rcbasic_edit_txtCtrl* txtCtrl_obj;
 
     for(int i = 0; i < open_files.size(); i++)
@@ -3970,7 +4437,7 @@ rcbasic_edit_txtCtrl* rcbasic_edit_frame::openFileTab(rcbasic_project* project, 
         if(project && index < 0)
             return NULL;
 
-        txtCtrl_obj = new rcbasic_edit_txtCtrl(newFile, sourceFile_auinotebook);
+        txtCtrl_obj = new rcbasic_edit_txtCtrl(newFile, sourceFile_auinotebook, codeComp);
 
         //wxPuts(_("OT DEBUG 2"));
 
@@ -3991,7 +4458,7 @@ rcbasic_edit_txtCtrl* rcbasic_edit_frame::openFileTab(rcbasic_project* project, 
 
     if(txtCtrl_obj->getTextCtrl())
     {
-        wxStyledTextCtrl* rc_txtCtrl = txtCtrl_obj->getTextCtrl();
+        rc_styledTextCtrl* rc_txtCtrl = txtCtrl_obj->getTextCtrl();
         //wxPuts(_("Set event"));
         rc_txtCtrl->SetDropTarget(new rc_dragFileTarget(rc_txtCtrl));
         rc_txtCtrl->Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(rcbasic_edit_frame::onDropFiles), NULL, this);
@@ -4569,7 +5036,7 @@ void rcbasic_edit_frame::onTextCtrlUpdated( wxStyledTextEvent& event )
     notebook_mutex.Lock();
     int selected_tab = sourceFile_auinotebook->GetSelection();
     wxString selection_string = sourceFile_auinotebook->GetPageText(selected_tab);
-    wxStyledTextCtrl* rc_txtCtrl = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_tab);
+    rc_styledTextCtrl* rc_txtCtrl = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_tab);
 
 
 
@@ -4587,6 +5054,410 @@ void rcbasic_edit_frame::onTextCtrlUpdated( wxStyledTextEvent& event )
     notebook_mutex.Unlock();
 }
 
+void rcbasic_edit_frame::showCodeComp(wxArrayString cc_list)
+{
+    if(codeHint)
+    {
+        delete codeHint;
+        codeHint = NULL;
+
+        show_codeHint = false;
+    }
+
+    rc_styledTextCtrl* m_textCtrl = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(sourceFile_auinotebook->GetSelection());
+
+    if(!m_textCtrl)
+        return;
+
+    wxSize txtSize = m_textCtrl->GetSize();
+	wxPoint txtBottom(txtSize.GetWidth(),txtSize.GetHeight());
+	wxTextCoord col, topRow, botRow;
+
+	// get which row is on top
+	wxPoint pt(0, 0);
+	m_textCtrl->HitTest(pt, &col, &topRow);
+
+	// get which row is on the bottom
+	m_textCtrl->HitTest(txtBottom, &col, &botRow);
+
+	// get the row & column of the insertion point
+	long insRow, insCol;
+	m_textCtrl->PositionToXY(m_textCtrl->GetInsertionPoint(),&insCol, &insRow);
+
+	// get the position of the first character in the insertion point row
+	long insertionPointRowStart = m_textCtrl->XYToPosition(0,insRow);
+
+	// x, y will be the points for the insertion point
+	int x = 0;	// default to the top of the screen
+	int y = 0;
+
+	int f = 0;
+
+	// check if the insertion point is displayed
+	if(m_textCtrl->GetCurrentLine() >= (m_textCtrl->GetLineCount()-1))
+    {
+        insRow = m_textCtrl->GetCurrentLine();
+        y = m_textCtrl->TextHeight(0);
+		y *= ((insRow+1) - topRow);
+
+		int prev_line = m_textCtrl->GetCurrentLine()-1;
+		if(prev_line < 0)
+            insCol = m_textCtrl->GetCurrentPos();
+		else
+            insCol = m_textCtrl->GetCurrentPos() - (m_textCtrl->GetLineEndPosition(prev_line)+1);
+
+        x = insCol;
+    }
+	else if ((insRow >= topRow) && (insRow <= botRow)) {
+
+		// get the string that starts on the row we want up to the insertion point
+		wxString subStr= m_textCtrl->GetValue().Mid(insertionPointRowStart, insCol);
+
+		// work out how big it is
+		m_textCtrl->GetTextExtent(subStr,&x,&y);
+
+		// scale the y value for the row number...
+		// this assumes that each row has the same font size...
+		y = m_textCtrl->TextHeight(0); // GetTextExtent is fine for x but the text height doesn't always match what it returns
+		//std::cout << "pre y = " << y << std::endl;
+		y *= ((insRow+1) - topRow);
+	} else if (insRow > botRow) {
+
+		// if the insertion point is not shown, the Y position is set to the bottom
+		y = txtBottom.y;
+	}
+
+	int ln_num = m_textCtrl->GetCurrentLine();
+	wxString ln_txt = _("");
+
+	if(ln_num >= 0 && ln_num < m_textCtrl->GetLineCount())
+        ln_txt = m_textCtrl->GetLine(ln_num);
+
+    bool is_valid_pos = true;
+
+    //std::cout << "DBG:[" << ln_txt.ToStdString() << "] -> " << insCol << " -> [" << ln_txt.substr(insCol, 1) << "]" << std::endl;
+
+    for(int i = 0; i < insCol; i++)
+    {
+        if(ln_txt.substr(i,1).compare(_("\""))==0)
+            is_valid_pos = !is_valid_pos;
+
+        if(is_valid_pos && ln_txt.substr(i,1).compare(_("'"))==0)
+        {
+            is_valid_pos = false;
+            break;
+        }
+    }
+
+    if(!is_valid_pos)
+    {
+        if(codeComp)
+            delete codeComp;
+
+        codeComp = NULL;
+        codeComp_lockIn = false;
+        codeComp_isUDT = false;
+        codeComp_udt_index = -1;
+        m_textCtrl->setShowComp(false);
+
+        return;
+    }
+
+	int tf_size = 0;
+
+	if(!codeComp)
+    {
+        codeComp = new rcbasic_edit_codeCompletion_window(this, &codeComp_symbol_db, &codeComp_user_db, &codeComp_udt_db, codeComp_isUDT, codeComp_udt_index);
+        codeComp->Show(false);
+    }
+
+	codeComp->setCompList(cc_list);
+
+	int prev_line = m_textCtrl->GetCurrentLine()-1;
+	prev_line = prev_line < 0 ? 0 : prev_line;
+	//std::cout << "xy: " << x << ", " << y << " : " << m_textCtrl->GetCurrentPos() << ", " << m_textCtrl->GetLineEndPosition(prev_line) << std::endl;
+
+	if(x >= 0 && y >= 0 && (!codeComp->IsShown()) && cc_list.size() > 0)
+    {
+        if(codeComp->GetParent() != m_textCtrl)
+            codeComp->Reparent(m_textCtrl);
+
+        codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
+        codeComp->Show();
+        codeComp->forceResize();
+
+        tf_size = m_textCtrl->TextHeight(0);
+
+        int scroll_pos = m_textCtrl->GetScrollPos(wxHORIZONTAL);
+        int char_width = m_textCtrl->TextWidth(m_textCtrl->GetStyleAt(0), _("A"));
+
+        x = (insCol - (scroll_pos/char_width)) * char_width;
+
+        if((x+codeComp->GetClientSize().GetWidth()) > (m_textCtrl->GetClientSize().GetWidth()))
+        {
+            x = m_textCtrl->GetClientSize().GetWidth() - codeComp->GetClientSize().GetWidth();
+        }
+
+        codeComp->Move(x, y);
+
+        wxPoint posInWindow = this->ScreenToClient(codeComp->GetScreenPosition());
+
+        codeComp-> wxWindow::Reparent(this);
+        codeComp->SetPosition(posInWindow);
+
+        //std::cout << "SET SHOW TRUE" << std::endl;
+        m_textCtrl->setShowComp(true);
+
+        codeComp_lockIn = false;
+
+    }
+
+    //wxMessageBox(wxString::Format("POS: %i, %i\nTOP: %i\nBOTTOM: %i\nF: %i, %i", x, y, (int)topRow, (int)botRow, f, tf_size));
+
+    return;
+}
+
+void rcbasic_edit_frame::showCodeHint(wxString cc_token, int arg_num)
+{
+    rc_styledTextCtrl* m_textCtrl = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(sourceFile_auinotebook->GetSelection());
+
+    //std::cout << "CODE HINT START" << std::endl;
+
+    if(m_textCtrl->codeCompIsShown())
+        return; // These windows both grab the same events so should not be displayed at the same time
+
+    //std::cout << "CODE HINT PROGRESS" << std::endl;
+
+    if(!m_textCtrl)
+        return;
+
+    wxSize txtSize = m_textCtrl->GetSize();
+	wxPoint txtBottom(txtSize.GetWidth(),txtSize.GetHeight());
+	wxTextCoord col, topRow, botRow;
+
+	// get which row is on top
+	wxPoint pt(0, 0);
+	m_textCtrl->HitTest(pt, &col, &topRow);
+
+	// get which row is on the bottom
+	m_textCtrl->HitTest(txtBottom, &col, &botRow);
+
+	// get the row & column of the insertion point
+	long insRow, insCol;
+	m_textCtrl->PositionToXY(m_textCtrl->GetInsertionPoint(),&insCol, &insRow);
+
+	// get the position of the first character in the insertion point row
+	long insertionPointRowStart = m_textCtrl->XYToPosition(0,insRow);
+
+	// x, y will be the points for the insertion point
+	int x = 0;	// default to the top of the screen
+	int y = 0;
+
+	// check if the insertion point is displayed
+	if ((insRow >= topRow) && (insRow <= botRow))
+    {
+
+		// get the string that starts on the row we want up to the insertion point
+		wxString subStr= m_textCtrl->GetValue().Mid(insertionPointRowStart, insCol);
+
+		// work out how big it is
+		m_textCtrl->GetTextExtent(subStr,&x,&y);
+
+		// scale the y value for the row number...
+		// this assumes that each row has the same font size...
+		y = m_textCtrl->TextHeight(0); // GetTextExtent is fine for x but the text height doesn't always match what it returns
+		//std::cout << "pre y = " << y << std::endl;
+		y *= ((insRow+1) - topRow);
+	}
+	else if (insRow > botRow)
+	{
+
+		// if the insertion point is not shown, the Y position is set to the bottom
+		y = txtBottom.y;
+	}
+
+
+	int ln_num = m_textCtrl->GetCurrentLine();
+	wxString ln_txt = _("");
+
+	if(ln_num >= 0 && ln_num < m_textCtrl->GetLineCount())
+        ln_txt = m_textCtrl->GetLine(ln_num);
+
+    bool is_valid_pos = true;
+
+    //std::cout << "DBG:[" << ln_txt.ToStdString() << "] -> " << insCol << " -> [" << ln_txt.substr(insCol, 1) << "]" << std::endl;
+
+    for(int i = 0; i < insCol; i++)
+    {
+        if(ln_txt.substr(i,1).compare(_("\""))==0)
+            is_valid_pos = !is_valid_pos;
+
+        if(is_valid_pos && ln_txt.substr(i,1).compare(_("'"))==0)
+        {
+            is_valid_pos = false;
+            break;
+        }
+    }
+
+    if(!is_valid_pos)
+    {
+        if(codeComp)
+            delete codeComp;
+
+        if(codeHint)
+            delete codeHint;
+
+        codeHint = NULL;
+
+        show_codeHint = false;
+        codeComp_comma = false;
+
+        codeComp = NULL;
+        codeComp_lockIn = false;
+        codeComp_isUDT = false;
+        codeComp_udt_index = -1;
+        m_textCtrl->setShowComp(false);
+
+        return;
+    }
+
+
+	int tf_size = 0;
+
+    wxArrayString args;
+
+    wxString display_name = cc_token;
+    cc_token = cc_token.Lower().Trim();
+
+    if(codeHint_current_symbol != cc_token)
+    {
+        codeHint_current_symbol = cc_token;
+        codeHint_current_symbol_index = -1;
+        codeHint_current_user_index = -1;
+
+        for(int i = 0; i < codeComp_symbol_db.symbol.size(); i++)
+        {
+            if(codeComp_symbol_db.symbol[i].symbol_name.compare(cc_token)==0)
+            {
+                codeHint_current_symbol_index = i;
+                break;
+            }
+        }
+
+        if(codeHint_current_symbol_index < 0)
+        {
+            for(int i = 0; i < codeComp_user_db.symbol.size(); i++)
+            {
+                if(codeComp_user_db.symbol[i].symbol_name.Lower().Trim().compare(cc_token)==0)
+                {
+                    codeHint_current_user_index = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    int sym_type = -1;
+
+    if(codeHint_current_symbol_index >= 0)
+    {
+        sym_type = codeComp_symbol_db.symbol[codeHint_current_symbol_index].symbol_type;
+
+        for(int i = 0; i < codeComp_symbol_db.symbol[codeHint_current_symbol_index].args.size(); i++)
+        {
+            args.push_back(codeComp_symbol_db.symbol[codeHint_current_symbol_index].args[i]);
+        }
+    }
+    else if(codeHint_current_user_index >= 0)
+    {
+        sym_type = codeComp_user_db.symbol[codeHint_current_user_index].symbol_type;
+
+        for(int i = 0; i < codeComp_user_db.symbol[codeHint_current_user_index].args.size(); i++)
+        {
+            args.push_back(codeComp_user_db.symbol[codeHint_current_user_index].args[i]);
+        }
+    }
+
+    if(sym_type < 0)
+    {
+        if(codeComp)
+            delete codeComp;
+
+        if(codeHint)
+            delete codeHint;
+
+        codeHint = NULL;
+
+        show_codeHint = false;
+        codeComp_comma = false;
+
+        codeComp = NULL;
+        codeComp_lockIn = false;
+        codeComp_isUDT = false;
+        codeComp_udt_index = -1;
+        m_textCtrl->setShowComp(false);
+
+        return;
+    }
+
+    if(!codeHint)
+    {
+        codeHint = new rcbasic_edit_codeHint_window(this);
+        codeHint->Show(false);
+    }
+
+
+	codeHint->setCodeHint(sym_type, display_name, args, arg_num);
+
+	if(x < 0)
+        x = 0;
+
+    if(y < 0)
+        y = 0;
+
+	if(codeHint->IsShown())
+    {
+        codeHint->updateDoc();
+
+    }
+	else if(cc_token.length() > 0)
+    {
+        wxPoint pos = m_textCtrl->GetPosition();
+        if(codeHint->GetParent() != m_textCtrl)
+            codeHint->Reparent(m_textCtrl);
+
+        codeHint->updateDoc();
+        codeHint->Show();
+
+        tf_size = m_textCtrl->TextHeight(0);
+
+        int scroll_pos = m_textCtrl->GetScrollPos(wxHORIZONTAL);
+        int char_width = m_textCtrl->TextWidth(m_textCtrl->GetStyleAt(0), _("A"));
+
+        x = (insCol - (scroll_pos/char_width)) * char_width;
+
+        if((x+codeHint->GetClientSize().GetWidth()) > (m_textCtrl->GetClientSize().GetWidth()))
+        {
+            x = m_textCtrl->GetClientSize().GetWidth() - codeHint->GetClientSize().GetWidth();
+        }
+
+        codeHint->Move(x, y);
+
+        wxPoint posInWindow = this->ScreenToClient(codeHint->GetScreenPosition());
+
+        codeHint-> wxWindow::Reparent(this);
+        codeHint->SetPosition(posInWindow);
+
+        //std::cout << "SET SHOW TRUE" << std::endl;
+        //m_textCtrl->setShowComp(true);
+
+    }
+
+    //wxMessageBox(wxString::Format("POS: %i, %i\nTOP: %i\nBOTTOM: %i\nF: %i, %i", x, y, (int)topRow, (int)botRow, f, tf_size));
+
+    return;
+}
+
 void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
 {
     notebook_mutex.Lock();
@@ -4596,7 +5467,7 @@ void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
         return;
     }
 
-    wxStyledTextCtrl * t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(sourceFile_auinotebook->GetSelection());
+    rc_styledTextCtrl * t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(sourceFile_auinotebook->GetSelection());
 
     if(!t)
     {
@@ -4632,14 +5503,17 @@ void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
     }
     else if(enable_codeCompletion)
     {
-        wxStyledTextCtrl* rc_txtCtrl = t;
+        rc_styledTextCtrl* rc_txtCtrl = t;
         // Find the word start
         int currentPos = rc_txtCtrl->GetCurrentPos();
         int wordStartPos = rc_txtCtrl->WordStartPosition( currentPos, true );
 
+        codeComp_startPos = wordStartPos;
+        codeComp_currentPos = currentPos;
+
         // Display the autocompletion list
         int lenEntered = currentPos - wordStartPos;
-        if (lenEntered >= lenCompletionCheck)
+        if ( (lenEntered >= lenCompletionCheck) || (codeComp_isUDT && lenEntered >= 1) )
         {
             wxString cc_list = _("");
             wxString current_word = rc_txtCtrl->GetTextRange(wordStartPos, currentPos).MakeLower();
@@ -4647,21 +5521,55 @@ void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
 
             bool item_added = false;
 
-            for(int i = cc_index; i < user_id_list.GetCount(); i++)
+            wxArrayString n_cc_list;
+
+            if(codeComp_isUDT)
             {
-                //wxPuts(_("compare [") + id_list[i].substr(0, lenEntered) + _("] to [") + current_word + _("]"));
-                if(user_id_list[i].substr(0, lenEntered).MakeLower().compare(current_word)==0)
+                if(codeComp_udt_index >= 0 && codeComp_udt_index < codeComp_udt_db.udt.size())
                 {
-                    cc_list += user_id_list[i] + _(" ");
-                    item_added = true;
+                    for(int i = 0; i < codeComp_udt_db.udt[codeComp_udt_index].field.size(); i++)
+                    {
+                        //wxPuts(_("compare [") + id_list[i].substr(0, lenEntered) + _("] to [") + current_word + _("]"));
+                        if(codeComp_udt_db.udt[codeComp_udt_index].field[i].name.substr(0, lenEntered).MakeLower().compare(current_word)==0)
+                        {
+                            //cc_list += user_id_list[i] + _(" ");
+                            n_cc_list.Add(codeComp_udt_db.udt[codeComp_udt_index].field[i].display_name);
+                            item_added = true;
+                        }
+                        //else if(item_added)
+                        //    break;
+                    }
                 }
-                //else if(item_added)
-                //    break;
+                else
+                {
+                    if(codeComp)
+                        delete codeComp;
+                    codeComp = NULL;
+                    codeComp_lockIn = false;
+                    codeComp_isUDT = false;
+                    codeComp_udt_index = -1;
+                }
+            }
+            else
+            {
+                for(int i = cc_index; i < user_id_list.GetCount(); i++)
+                {
+                    //wxPuts(_("compare [") + id_list[i].substr(0, lenEntered) + _("] to [") + current_word + _("]"));
+                    if(user_id_list[i].substr(0, lenEntered).MakeLower().compare(current_word)==0)
+                    {
+                        //cc_list += user_id_list[i] + _(" ");
+                        n_cc_list.Add(user_id_list[i]);
+                        item_added = true;
+                    }
+                    //else if(item_added)
+                    //    break;
+                }
             }
 
-            cc_list += "_____________________________________ ";
+            //cc_list += "_____________________________________ ";
 
-            rc_txtCtrl->AutoCompShow(lenEntered, cc_list);
+            //rc_txtCtrl->AutoCompShow(lenEntered, cc_list);
+            showCodeComp(n_cc_list);
         }
     }
 
@@ -4779,7 +5687,7 @@ void rcbasic_edit_frame::onSymbolSelectionChanged( wxTreeEvent& event )
     //wxPrintf(_("Symbol: ") + sym.id + _(" -- line=%d"), sym.line );
 
 
-    wxStyledTextCtrl* t = (wxStyledTextCtrl*) sourceFile_auinotebook->GetPage(sourceFile_auinotebook->GetSelection());
+    rc_styledTextCtrl* t = (rc_styledTextCtrl*) sourceFile_auinotebook->GetPage(sourceFile_auinotebook->GetSelection());
 
     if(!t)
     {
@@ -4828,9 +5736,30 @@ void rcbasic_edit_frame::onSymbolSelectionChanging( wxTreeEvent& event )
     notebook_mutex.Unlock();
 }
 
+void rcbasic_edit_frame::onNotebookPageIsChanging( wxAuiNotebookEvent& event )
+{
+    notebook_mutex.Lock();
+    if(codeComp)
+    {
+        show_codeComp = false;
+        codeComp->Show(false);
+
+        //???
+        delete codeComp;
+        codeComp = NULL;
+        codeComp_isUDT = false;
+        codeComp_udt_index = -1;
+        //wxMessageBox(wxString::Format("HIDE: %i", (t->codeCompIsShown() ? 3 : 4)));
+    }
+    notebook_mutex.Unlock();
+
+    event.Skip();
+}
+
 void rcbasic_edit_frame::onNotebookPageChanged( wxAuiNotebookEvent& event )
 {
     notebook_mutex.Lock();
+
     for(int i = 0; i < var_nodes.size(); i++)
     {
         rcbasic_treeItem_data * data = NULL;
@@ -4898,6 +5827,375 @@ void rcbasic_edit_frame::onDropFiles( wxDropFilesEvent& event )
     }
 }
 
+wxString rcbasic_edit_frame::getTokenAtCaret(int pos, int* arg_num)
+{
+
+    rc_styledTextCtrl * rc_txtCtrl = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(sourceFile_auinotebook->GetSelection());
+
+    int currentLine = rc_txtCtrl->GetCurrentLine();
+    int indent = 0;
+
+    wxString current_word = _("");
+
+    if(enable_codeCompletion)
+    {
+        int line_start = 0;
+
+        if(currentLine > 0)
+            line_start = rc_txtCtrl->GetLineEndPosition(currentLine - 1) + 1;
+
+        line_start = (line_start < 0 ? 0 : line_start);
+
+        int line_pos = pos - line_start;
+
+        wxString current_line = rc_txtCtrl->GetLine(currentLine);
+
+        //std::cout << "line substr: " << current_line.substr(line_pos) << std::endl;
+
+        wxArrayString line_tokens;
+        std::vector<rcbasic_parse_udt_item> udt_tokens;
+        rcbasic_parse_udt_item udt_current_token;
+        int udt_base_scope = -1;
+        int udt_scope = -1;
+        int udt_current_index = -1;
+        wxString prev_char = _("");
+        wxString current_token = _("");
+        int current_scope = 0;
+
+        wxString udt_str = _("");
+
+        bool in_string = false;
+        bool invalid_udt = false;
+
+        wxArrayInt current_arg_num;
+        current_arg_num.push_back(0);
+
+        bool scope_touched_out_of_bounds = false;
+
+        for(int i = 0; i < line_pos; i++)
+        {
+            wxString current_char = current_line.substr(i, 1);
+
+            udt_current_index = -1; //This should only be >= 0 outside loop if period was the last character
+
+            if(current_char.compare(_("\""))==0)
+            {
+                if(!in_string)
+                {
+                    in_string = true;
+                }
+                else if(prev_char.compare("\\")!=0)
+                {
+                    in_string = false;
+                }
+            }
+
+            prev_char = current_char;
+
+            if(in_string)
+            {
+                continue;
+            }
+
+            if(current_scope == 0 && current_token.compare(_(""))==0)
+            {
+                line_tokens.Clear();
+                current_arg_num.Clear();
+                current_arg_num.push_back(0);
+            }
+
+            if(current_char.compare(_(" ")) == 0 || current_char.compare(_("\t"))==0 ||
+               current_char.compare(_(","))==0 || current_char.compare(_("^"))==0 ||
+               current_char.compare(_("*"))==0 || current_char.compare(_("("))==0 ||
+               current_char.compare(_(")"))==0 || current_char.compare(_("-"))==0 ||
+               current_char.compare(_("+"))==0 || current_char.compare(_("="))==0 ||
+               current_char.compare(_(":"))==0 || current_char.compare(_(";"))==0 ||
+               current_char.compare(_("<"))==0 || current_char.compare(_(">"))==0 ||
+               current_char.compare(_("/"))==0)
+            {
+                if(current_scope >= 0)
+                {
+                    if(current_char.compare(_(","))==0)
+                    {
+                        if(current_arg_num.size() > current_scope)
+                            current_arg_num[current_scope]++;
+                    }
+
+                    if(line_tokens.size() < (current_scope+1))
+                        line_tokens.SetCount(current_scope+30); //Allocate big chunks at a time to avoid doing it a lot
+
+                    //std::cout << "Scope: " << current_scope << "  Token: " << current_token << std::endl;
+                    line_tokens[current_scope] = current_token;
+                }
+
+                if(current_scope <= udt_base_scope)
+                {
+                    //if(udt_tokens.size() > 0)
+                        //std::cout << "clear char:[" << current_char.ToStdString() << "]:" << std::endl;
+                    udt_tokens.clear();
+                    udt_str = _("");
+                }
+                else
+                {
+                    for(int u_index = 0; u_index < udt_tokens.size(); u_index++)
+                    {
+                        if(udt_tokens[u_index].scope == current_scope)
+                        {
+                            //std::cout << "clear char:[" << current_char.ToStdString() << "]:" << u_index << std::endl;
+                            udt_tokens.erase(udt_tokens.begin()+u_index, udt_tokens.end());
+                            break;
+                        }
+                    }
+                    udt_str = _("");
+                }
+
+                current_token = _("");
+            }
+            else if(current_char.compare(_("."))==0)
+            {
+                //std::cout << "udt push: " << current_token.ToStdString() << std::endl;
+
+                if(udt_tokens.size() == 0)
+                    udt_base_scope = current_scope;
+
+                udt_current_index = -1;
+
+                for(int u_index = 0; u_index < udt_tokens.size(); u_index++)
+                {
+                    if(udt_tokens[u_index].scope == current_scope)
+                    {
+                        udt_current_index = u_index;
+                        break;
+                    }
+                }
+
+                if(udt_str.compare(_("]"))==0)
+                {
+                    //This is a valid state but I don't need to do anything here
+                }
+                else if(udt_str.compare(_(""))==0)
+                {
+                    invalid_udt = true;
+                    break;
+                }
+                else
+                {
+                    if(udt_current_index < 0)
+                    {
+                        udt_current_token.scope = current_scope;
+                        udt_current_token.symbol_name.Clear();
+                        udt_current_index = udt_tokens.size();
+                        udt_tokens.push_back(udt_current_token);
+                    }
+
+                    //std::cout << "SCP: " << udt_str.ToStdString() << ", " << current_scope << std::endl;
+                    udt_tokens[udt_current_index].symbol_name.push_back(udt_str);
+                }
+
+                udt_str = _("");
+            }
+            else
+            {
+                if(current_char.compare(_("["))==0 || current_char.compare(_("]"))==0)
+                {
+                    if(udt_tokens.size() == 0)
+                        udt_base_scope = current_scope;
+
+                    int n_udt_current_index = -1;
+
+                    for(int u_index = 0; u_index < udt_tokens.size(); u_index++)
+                    {
+                        if(udt_tokens[u_index].scope == current_scope)
+                        {
+                            n_udt_current_index = u_index;
+                            break;
+                        }
+                    }
+
+                    if(current_char.compare(_("["))==0)
+                    {
+                        if(n_udt_current_index < 0)
+                        {
+                            udt_current_token.scope = current_scope;
+                            udt_current_token.symbol_name.Clear();
+                            n_udt_current_index = udt_tokens.size();
+                            udt_tokens.push_back(udt_current_token);
+                        }
+
+                        //std::cout << "SCP_N: " << udt_str.ToStdString() << ", " << current_scope << std::endl;
+                        udt_tokens[n_udt_current_index].symbol_name.push_back(udt_str);
+                        udt_str = _("");
+                    }
+                    else
+                    {
+                        if(n_udt_current_index >= 0)
+                        {
+                            udt_tokens.erase(udt_tokens.begin() + n_udt_current_index, udt_tokens.end());
+                        }
+                        udt_str = _("]");
+                    }
+
+                }
+                else
+                {
+                    udt_str += current_char;
+                }
+
+                current_token += current_char;
+            }
+
+            if(current_char.compare(_("("))==0 || current_char.compare(_("["))==0)
+            {
+                current_scope++;
+                current_arg_num.push_back(0);
+            }
+            else if(current_char.compare(_(")"))==0 || current_char.compare(_("]"))==0)
+            {
+                current_scope--;
+
+                if(current_arg_num.size() > 0)
+                    current_arg_num.pop_back();
+
+                if(current_scope < 0)
+                {
+                    scope_touched_out_of_bounds = true;
+                    break;
+                }
+            }
+        }
+
+        //std::cout << "final dbg: " << current_scope << ", " << (int)line_tokens.size() << std::endl;
+
+        if(scope_touched_out_of_bounds || invalid_udt)
+        {
+            if(arg_num)
+                *arg_num = -1;
+
+            return _("");
+
+        }
+
+        if(udt_current_index >= 0 && udt_current_index < udt_tokens.size())
+        {
+            current_word = _("");
+            for(int i = 0; i < udt_tokens[udt_current_index].symbol_name.size(); i++)
+                current_word += udt_tokens[udt_current_index].symbol_name[i] + _(".");
+
+            //std::cout << "type_word: " << current_word.ToStdString() << std::endl;
+        }
+        else if(current_scope > 0 && line_tokens.size() > current_scope && (!in_string))
+            current_word = line_tokens[current_scope-1];
+
+        //std::cout << "word = " << current_word.ToStdString() << std::endl;
+
+        if(arg_num)
+        {
+            if(current_word.compare(_(""))==0)
+                *arg_num = -1;
+            else if(current_arg_num.size() > 0)
+                *arg_num = current_arg_num[current_arg_num.size()-1];
+            else
+                *arg_num = -1;
+        }
+    }
+
+    return current_word;
+}
+
+int rcbasic_edit_frame::getCodeCompUDT(wxString udt_scope)
+{
+    wxArrayString id;
+
+    wxString current_token = _("");
+
+    for(int i = 0; i < udt_scope.Length(); i++)
+    {
+        wxString c = udt_scope.substr(i, 1).Lower();
+
+        if(c.compare(_("."))==0)
+        {
+            id.push_back(current_token);
+            current_token = _("");
+        }
+        else
+        {
+            current_token += c;
+        }
+    }
+
+    int id_index = -1;
+
+    for(int i = 0; i < codeComp_user_db.symbol.size(); i++)
+    {
+        if(codeComp_user_db.symbol[i].symbol_name.Lower().Trim().compare(id[0])==0)
+        {
+            id_index = i;
+            break;
+        }
+    }
+
+    if(id_index < 0)
+    {
+        return -1;
+    }
+
+    int db_index = -1;
+
+    wxString udt_name = codeComp_user_db.symbol[id_index].user_type.Lower().Trim();
+
+    for(int i = 0; i < codeComp_udt_db.udt.size(); i++)
+    {
+        if(codeComp_udt_db.udt[i].type_name.compare(udt_name)==0)
+        {
+            db_index = i;
+            break;
+        }
+    }
+
+    if(db_index < 0)
+    {
+        return -1;
+    }
+
+    for(int i = 1; i < id.size(); i++)
+    {
+        int dbi = db_index;
+        db_index = -1;
+        wxString field_udt_name = _("");
+        bool field_found = false;
+
+        for(int field_index = 0; field_index < codeComp_udt_db.udt[dbi].field.size(); field_index++)
+        {
+            if(codeComp_udt_db.udt[dbi].field[field_index].name.Lower().Trim().compare(id[i])==0)
+            {
+                field_udt_name = codeComp_udt_db.udt[dbi].field[field_index].type_name.Lower().Trim();
+                field_found = true;
+                break;
+            }
+        }
+
+        if(field_found)
+        {
+            for(int n = 0; n < codeComp_udt_db.udt.size(); n++)
+            {
+                if(codeComp_udt_db.udt[n].type_name.Lower().Trim().compare(field_udt_name)==0)
+                {
+                    db_index = n;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            break;
+        }
+
+        if(db_index < 0)
+            break;
+    }
+
+    return db_index;
+}
 
 void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
 {
@@ -4912,7 +6210,7 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
 
     if(selected_page >= 0)
     {
-        wxStyledTextCtrl* t = (wxStyledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
+        rc_styledTextCtrl* t = (rc_styledTextCtrl*)sourceFile_auinotebook->GetPage(selected_page);
 
         if(t)
         {
@@ -4920,6 +6218,225 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
             total_lines = t->GetLineCount();
             col_num = t->GetColumn(t->GetCurrentPos());
             total_col = t->GetColumn(t->GetLineEndPosition(line_num));
+
+            //if(t->debug && !t->codeCompIsShown())
+            //    std::cout << "DBG: " << (t->debug ? "TRUE" : "FALSE") << " -- " << (t->codeCompIsShown() ? "TRUE" : "FALSE") << std::endl;
+
+            if(codeComp_comma || show_codeHint)
+            {
+                int arg_num = 0;
+                wxString current_symbol = getTokenAtCaret(t->GetCurrentPos(), &arg_num);
+
+                bool is_udt_expr = false;
+                if(current_symbol.length() > 0)
+                {
+                    if(current_symbol.substr(current_symbol.length()-1, 1).compare(_("."))==0)
+                        is_udt_expr = true;
+                }
+
+                if(is_udt_expr)
+                {
+                    codeComp_udt_index = getCodeCompUDT(current_symbol);
+                    if(codeComp_udt_index >= 0)
+                    {
+                        wxArrayString cc_list;
+                        for(int i = 0; i < codeComp_udt_db.udt[codeComp_udt_index].field.size(); i++)
+                            cc_list.push_back(codeComp_udt_db.udt[codeComp_udt_index].field[i].display_name);
+
+                        if(cc_list.size() > 0)
+                        {
+                            codeComp_isUDT = true;
+
+                            showCodeComp(cc_list);
+                        }
+                    }
+                    else
+                        codeComp_isUDT = false;
+                    //std::cout << "UDT: " << current_symbol.ToStdString() << ", " << udt_index << ", " << (udt_index >= 0 ? codeComp_udt_db.udt[udt_index].type_name.ToStdString() : "-1") << std::endl;
+
+                    delete codeHint;
+                    codeHint = NULL;
+
+                    show_codeHint = false;
+                    codeComp_comma = false;
+
+                    //std::cout << "Codehint should be closed" << std::endl;
+                }
+                else
+                {
+                    if(arg_num >= 0)
+                    {
+                        if(codeComp && codeComp_comma)
+                        {
+                            t->setShowComp(false);
+                            codeComp->Show(false);
+                            delete codeComp;
+                            codeComp = NULL;
+                            codeComp_lockIn = false;
+                            codeComp_isUDT = false;
+                            codeComp_udt_index = -1;
+                        }
+                    }
+
+                    showCodeHint(current_symbol, arg_num);
+
+                    //std::cout << "Token: " << current_symbol.ToStdString() << ", " << arg_num << std::endl;
+                    codeComp_comma = false;
+
+                    if(arg_num >= 0)
+                    {
+                        show_codeHint = true;
+                    }
+                    else
+                    {
+                        show_codeHint = false;
+
+                        if(codeHint)
+                        {
+                            delete codeHint;
+                            codeHint = NULL;
+                        }
+                    }
+                }
+            }
+            else if(codeHint)
+            {
+                delete codeHint;
+                codeHint = NULL;
+            }
+
+            if(codeComp)
+            {
+                if(codeComp_mouseClick)
+                {
+                    wxPoint mpos = wxGetMousePosition();
+
+                    if(!codeComp->pointInPanel(mpos))
+                    {
+                        t->setShowComp(false);
+                    }
+                }
+
+                if(codeComp->getListBox()->GetCount() <= 0)
+                {
+                    t->setShowComp(false);
+                }
+
+                if((!t->codeCompIsShown()) && codeComp->IsShown())
+                {
+                    codeComp->Show(false);
+
+                    //???
+                    delete codeComp;
+                    codeComp = NULL;
+                    codeComp_lockIn = false;
+                    codeComp_isUDT = false;
+                    codeComp_udt_index = -1;
+                    //wxMessageBox(wxString::Format("HIDE: %i", (t->codeCompIsShown() ? 3 : 4)));
+                }
+                else if(codeComp_scroll == WXK_UP)
+                {
+                    int n = codeComp->getListBox()->GetSelection() - 1;
+                    if(n >= 0)
+                        codeComp->getListBox()->SetSelection(n);
+
+                    codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
+                }
+                else if(codeComp_scroll == WXK_DOWN)
+                {
+                    int n = codeComp->getListBox()->GetSelection() + 1;
+                    if(n < codeComp->getListBox()->GetCount())
+                        codeComp->getListBox()->SetSelection(n);
+
+                    codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
+                }
+                else if(codeComp_tabComplete || codeComp->getDBLClick())
+                {
+                    //std::cout << "DBL Click: " << (codeComp->getDBLClick() ? "TRUE" : "FALSE") << std::endl;
+                    codeComp->setDBLClick(false);
+                    int n = codeComp->getListBox()->GetSelection();
+
+                    if(n >= 0 && n < codeComp->getListBox()->GetCount() && (!codeComp_lockIn))
+                    {
+                        wxString item_str = codeComp->getListBox()->GetString(n);
+
+                        int sym_type = -1;
+                        wxString tmp_str = item_str.Lower().Trim();
+                        int sym_index = -1;
+
+                        for(int i = 0; i < codeComp_symbol_db.symbol.size(); i++)
+                        {
+                            if(codeComp_symbol_db.symbol[i].symbol_name.compare(tmp_str)==0)
+                            {
+                                sym_type = codeComp_symbol_db.symbol[i].symbol_type;
+                                sym_index = i;
+                                break;
+                            }
+                        }
+
+                        if(sym_index < 0)
+                        {
+                            for(int i = 0; i < codeComp_user_db.symbol.size(); i++)
+                            {
+                                if(codeComp_user_db.symbol[i].symbol_name.Lower().Trim().compare(tmp_str)==0)
+                                {
+                                    sym_type = codeComp_user_db.symbol[i].symbol_type;
+                                    sym_index = i;
+                                    break;
+                                }
+                            }
+                        }
+
+
+
+                        if(sym_type == CC_SYMBOL_TYPE_FN || sym_type == CC_SYMBOL_TYPE_SUB)
+                            item_str += _("()");
+
+                        t->Replace(codeComp_startPos, codeComp_currentPos, item_str);
+                        int new_caret_pos = ( (sym_type == CC_SYMBOL_TYPE_FN || sym_type == CC_SYMBOL_TYPE_SUB) ? codeComp_startPos + item_str.find_last_of(_(")")) : codeComp_startPos + item_str.length() );
+
+                        t->SetCurrentPos(new_caret_pos);
+                        t->SetSelection(new_caret_pos, new_caret_pos);
+                        t->SetSelEOLFilled(false);
+
+                        wxString list_item = codeComp->getListBox()->GetString(n);
+                        codeComp->getListBox()->Clear();
+                        codeComp->getListBox()->AppendAndEnsureVisible(list_item);
+
+                        if(sym_type != CC_SYMBOL_TYPE_FN && sym_type != CC_SYMBOL_TYPE_SUB)
+                        {
+                            t->setShowComp(false);
+                            codeComp->Show(false);
+                            delete codeComp;
+                            codeComp = NULL;
+                            codeComp_lockIn = false;
+                            codeComp_isUDT = false;
+                            codeComp_udt_index = -1;
+                        }
+                        else
+                        {
+                            codeComp_lockIn = true;
+                        }
+                    }
+                }
+                else
+                {
+                    int n = codeComp->getListBox()->GetSelection();
+                    if(n >= 0 && n < codeComp->getListBox()->GetCount())
+                    {
+                        if(codeComp->getListBox()->GetString(n).Lower().Trim().compare(codeComp_current_symbol)!=0)
+                        {
+                            codeComp_current_symbol = codeComp->getListBox()->GetString(n).Lower().Trim();
+                            codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
+                        }
+                    }
+                }
+
+                codeComp_scroll = 0;
+                codeComp_tabComplete = false;
+                codeComp_mouseClick = false;
+
+            }
         }
 
         for(int i = 0; i < open_files.size(); i++)

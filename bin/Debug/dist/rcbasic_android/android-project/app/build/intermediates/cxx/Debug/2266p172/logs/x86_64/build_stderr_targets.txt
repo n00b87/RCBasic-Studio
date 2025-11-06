@@ -1,0 +1,233 @@
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:50:
+/home/n00b/Experimental/android-project/app/jni/src/rc_stdlib.h:124:35: warning: implicit conversion from 'const typename basic_string<char, char_traits<char>, allocator<char>>::size_type' (aka 'const unsigned long') to 'unsigned int' changes value from 18446744073709551615 to 4294967295 [-Wconstant-conversion]
+  124 |     unsigned int c, i, ix, q, min=std::string::npos, max=std::string::npos;
+      |                               ~~~ ^~~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/rc_stdlib.h:124:58: warning: implicit conversion from 'const typename basic_string<char, char_traits<char>, allocator<char>>::size_type' (aka 'const unsigned long') to 'unsigned int' changes value from 18446744073709551615 to 4294967295 [-Wconstant-conversion]
+  124 |     unsigned int c, i, ix, q, min=std::string::npos, max=std::string::npos;
+      |                                                      ~~~ ^~~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/rc_stdlib.h:128:34: warning: result of comparison of constant 18446744073709551615 with expression of type 'unsigned int' is always false [-Wtautological-constant-out-of-range-compare]
+  128 |         if (q<=start+leng || leng==std::string::npos){ max=i; }
+      |                              ~~~~^ ~~~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/rc_stdlib.h:141:30: warning: result of comparison of constant 18446744073709551615 with expression of type 'unsigned int' is always false [-Wtautological-constant-out-of-range-compare]
+  141 |     if (q<=start+leng || leng==std::string::npos){ max=i; }
+      |                          ~~~~^ ~~~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/rc_stdlib.h:142:38: warning: result of comparison of constant 18446744073709551615 with expression of type 'unsigned int' is always false [-Wtautological-constant-out-of-range-compare]
+  142 |     if (min==std::string::npos || max==std::string::npos) { return ""; }
+      |                                   ~~~^ ~~~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/rc_stdlib.h:142:12: warning: result of comparison of constant 18446744073709551615 with expression of type 'unsigned int' is always false [-Wtautological-constant-out-of-range-compare]
+  142 |     if (min==std::string::npos || max==std::string::npos) { return ""; }
+      |         ~~~^ ~~~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/rc_stdlib.h:196:31: warning: 'codecvt_utf8<char32_t>' is deprecated [-Wdeprecated-declarations]
+  196 |     std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
+      |                               ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/codecvt:194:28: note: 'codecvt_utf8<char32_t>' has been explicitly marked deprecated here
+  194 | class _LIBCPP_TEMPLATE_VIS _LIBCPP_DEPRECATED_IN_CXX17 codecvt_utf8 : public __codecvt_utf8<_Elem> {
+      |                            ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:942:41: note: expanded from macro '_LIBCPP_DEPRECATED_IN_CXX17'
+  942 | #    define _LIBCPP_DEPRECATED_IN_CXX17 _LIBCPP_DEPRECATED
+      |                                         ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:915:49: note: expanded from macro '_LIBCPP_DEPRECATED'
+  915 | #      define _LIBCPP_DEPRECATED __attribute__((__deprecated__))
+      |                                                 ^
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:50:
+/home/n00b/Experimental/android-project/app/jni/src/rc_stdlib.h:196:10: warning: 'wstring_convert<std::codecvt_utf8<char32_t>, char32_t>' is deprecated [-Wdeprecated-declarations]
+  196 |     std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
+      |          ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/locale:3114:28: note: 'wstring_convert<std::codecvt_utf8<char32_t>, char32_t>' has been explicitly marked deprecated here
+ 3114 | class _LIBCPP_TEMPLATE_VIS _LIBCPP_DEPRECATED_IN_CXX17 wstring_convert {
+      |                            ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:942:41: note: expanded from macro '_LIBCPP_DEPRECATED_IN_CXX17'
+  942 | #    define _LIBCPP_DEPRECATED_IN_CXX17 _LIBCPP_DEPRECATED
+      |                                         ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:915:49: note: expanded from macro '_LIBCPP_DEPRECATED'
+  915 | #      define _LIBCPP_DEPRECATED __attribute__((__deprecated__))
+      |                                                 ^
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:51:
+In file included from /home/n00b/Experimental/android-project/app/jni/src/rc_gfx.h:28:
+In file included from /home/n00b/Experimental/android-project/app/jni/src/rc_gfx_core.h:24:
+/home/n00b/Experimental/android-project/app/jni/src/rc_utf8.h:10:35: warning: implicit conversion from 'const typename basic_string<char, char_traits<char>, allocator<char>>::size_type' (aka 'const unsigned long') to 'unsigned int' changes value from 18446744073709551615 to 4294967295 [-Wconstant-conversion]
+   10 |     unsigned int c, i, ix, q, min=std::string::npos, max=std::string::npos;
+      |                               ~~~ ^~~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/rc_utf8.h:10:58: warning: implicit conversion from 'const typename basic_string<char, char_traits<char>, allocator<char>>::size_type' (aka 'const unsigned long') to 'unsigned int' changes value from 18446744073709551615 to 4294967295 [-Wconstant-conversion]
+   10 |     unsigned int c, i, ix, q, min=std::string::npos, max=std::string::npos;
+      |                                                      ~~~ ^~~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/rc_utf8.h:14:34: warning: result of comparison of constant 18446744073709551615 with expression of type 'unsigned int' is always false [-Wtautological-constant-out-of-range-compare]
+   14 |         if (q<=start+leng || leng==std::string::npos){ max=i; }
+      |                              ~~~~^ ~~~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/rc_utf8.h:27:30: warning: result of comparison of constant 18446744073709551615 with expression of type 'unsigned int' is always false [-Wtautological-constant-out-of-range-compare]
+   27 |     if (q<=start+leng || leng==std::string::npos){ max=i; }
+      |                          ~~~~^ ~~~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/rc_utf8.h:28:38: warning: result of comparison of constant 18446744073709551615 with expression of type 'unsigned int' is always false [-Wtautological-constant-out-of-range-compare]
+   28 |     if (min==std::string::npos || max==std::string::npos) { return ""; }
+      |                                   ~~~^ ~~~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/rc_utf8.h:28:12: warning: result of comparison of constant 18446744073709551615 with expression of type 'unsigned int' is always false [-Wtautological-constant-out-of-range-compare]
+   28 |     if (min==std::string::npos || max==std::string::npos) { return ""; }
+      |         ~~~^ ~~~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/rc_utf8.h:41:31: warning: 'codecvt_utf8<wchar_t>' is deprecated [-Wdeprecated-declarations]
+   41 |     std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+      |                               ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/codecvt:194:28: note: 'codecvt_utf8<wchar_t>' has been explicitly marked deprecated here
+  194 | class _LIBCPP_TEMPLATE_VIS _LIBCPP_DEPRECATED_IN_CXX17 codecvt_utf8 : public __codecvt_utf8<_Elem> {
+      |                            ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:942:41: note: expanded from macro '_LIBCPP_DEPRECATED_IN_CXX17'
+  942 | #    define _LIBCPP_DEPRECATED_IN_CXX17 _LIBCPP_DEPRECATED
+      |                                         ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:915:49: note: expanded from macro '_LIBCPP_DEPRECATED'
+  915 | #      define _LIBCPP_DEPRECATED __attribute__((__deprecated__))
+      |                                                 ^
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:51:
+In file included from /home/n00b/Experimental/android-project/app/jni/src/rc_gfx.h:28:
+In file included from /home/n00b/Experimental/android-project/app/jni/src/rc_gfx_core.h:24:
+/home/n00b/Experimental/android-project/app/jni/src/rc_utf8.h:41:10: warning: 'wstring_convert<std::codecvt_utf8<wchar_t>>' is deprecated [-Wdeprecated-declarations]
+   41 |     std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+      |          ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/locale:3114:28: note: 'wstring_convert<std::codecvt_utf8<wchar_t>>' has been explicitly marked deprecated here
+ 3114 | class _LIBCPP_TEMPLATE_VIS _LIBCPP_DEPRECATED_IN_CXX17 wstring_convert {
+      |                            ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:942:41: note: expanded from macro '_LIBCPP_DEPRECATED_IN_CXX17'
+  942 | #    define _LIBCPP_DEPRECATED_IN_CXX17 _LIBCPP_DEPRECATED
+      |                                         ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:915:49: note: expanded from macro '_LIBCPP_DEPRECATED'
+  915 | #      define _LIBCPP_DEPRECATED __attribute__((__deprecated__))
+      |                                                 ^
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:51:
+In file included from /home/n00b/Experimental/android-project/app/jni/src/rc_gfx.h:28:
+/home/n00b/Experimental/android-project/app/jni/src/rc_gfx_core.h:417:27: warning: 'codecvt_utf8_utf16<wchar_t>' is deprecated [-Wdeprecated-declarations]
+  417 | std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+      |                           ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/codecvt:569:28: note: 'codecvt_utf8_utf16<wchar_t>' has been explicitly marked deprecated here
+  569 | class _LIBCPP_TEMPLATE_VIS _LIBCPP_DEPRECATED_IN_CXX17 codecvt_utf8_utf16 : public __codecvt_utf8_utf16<_Elem> {
+      |                            ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:942:41: note: expanded from macro '_LIBCPP_DEPRECATED_IN_CXX17'
+  942 | #    define _LIBCPP_DEPRECATED_IN_CXX17 _LIBCPP_DEPRECATED
+      |                                         ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:915:49: note: expanded from macro '_LIBCPP_DEPRECATED'
+  915 | #      define _LIBCPP_DEPRECATED __attribute__((__deprecated__))
+      |                                                 ^
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:51:
+In file included from /home/n00b/Experimental/android-project/app/jni/src/rc_gfx.h:28:
+/home/n00b/Experimental/android-project/app/jni/src/rc_gfx_core.h:417:6: warning: 'wstring_convert<std::codecvt_utf8_utf16<wchar_t>>' is deprecated [-Wdeprecated-declarations]
+  417 | std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+      |      ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/locale:3114:28: note: 'wstring_convert<std::codecvt_utf8_utf16<wchar_t>>' has been explicitly marked deprecated here
+ 3114 | class _LIBCPP_TEMPLATE_VIS _LIBCPP_DEPRECATED_IN_CXX17 wstring_convert {
+      |                            ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:942:41: note: expanded from macro '_LIBCPP_DEPRECATED_IN_CXX17'
+  942 | #    define _LIBCPP_DEPRECATED_IN_CXX17 _LIBCPP_DEPRECATED
+      |                                         ^
+/home/n00b/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/__config:915:49: note: expanded from macro '_LIBCPP_DEPRECATED'
+  915 | #      define _LIBCPP_DEPRECATED __attribute__((__deprecated__))
+      |                                                 ^
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:51:
+In file included from /home/n00b/Experimental/android-project/app/jni/src/rc_gfx.h:33:
+/home/n00b/Experimental/android-project/app/jni/src/rc_spritelib.h:1266:11: warning: enumeration value 'e_typeCount' not handled in switch [-Wswitch]
+ 1266 |                         switch(fixdef.shape->GetType())
+      |                                ^~~~~~~~~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/rc_spritelib.h:1553:15: warning: 'clearBuffers' is deprecated [-Wdeprecated-declarations]
+ 1553 |         VideoDriver->clearBuffers(true, true, true, irr::video::SColor(0,0,0,0));
+      |                      ^
+/home/n00b/Experimental/android-project/app/jni/src/../RCIrrlicht/include/IVideoDriver.h:1405:3: note: 'clearBuffers' has been explicitly marked deprecated here
+ 1405 |                 IRR_DEPRECATED void clearBuffers(bool backBuffer, bool depthBuffer, bool stencilBuffer, SColor color)
+      |                 ^
+/home/n00b/Experimental/android-project/app/jni/src/../RCIrrlicht/include/irrTypes.h:202:41: note: expanded from macro 'IRR_DEPRECATED'
+  202 | #define IRR_DEPRECATED  __attribute__ ((deprecated))
+      |                                         ^
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:51:
+In file included from /home/n00b/Experimental/android-project/app/jni/src/rc_gfx.h:34:
+/home/n00b/Experimental/android-project/app/jni/src/rc_tilelib.h:380:5: warning: logical not is only applied to the left hand side of this comparison [-Wlogical-not-parentheses]
+  380 |         if(!rc_canvas[rc_active_canvas].type == RC_CANVAS_TYPE_2D)
+      |            ^                                 ~~
+/home/n00b/Experimental/android-project/app/jni/src/rc_tilelib.h:380:5: note: add parentheses after the '!' to evaluate the comparison first
+  380 |         if(!rc_canvas[rc_active_canvas].type == RC_CANVAS_TYPE_2D)
+      |            ^                                                     
+      |             (                                                    )
+/home/n00b/Experimental/android-project/app/jni/src/rc_tilelib.h:380:5: note: add parentheses around left hand side expression to silence this warning
+  380 |         if(!rc_canvas[rc_active_canvas].type == RC_CANVAS_TYPE_2D)
+      |            ^
+      |            (                                )
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:51:
+/home/n00b/Experimental/android-project/app/jni/src/rc_gfx.h:193:16: warning: 6 enumeration values not handled in switch: 'SDL_SENSOR_INVALID', 'SDL_SENSOR_UNKNOWN', 'SDL_SENSOR_ACCEL_L'... [-Wswitch]
+  193 |         switch(SDL_SensorGetDeviceType(i))
+      |                ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/rc_gfx.h:408:26: warning: 'clearBuffers' is deprecated [-Wdeprecated-declarations]
+  408 |             VideoDriver->clearBuffers(true, true, true, rc_clear_color);
+      |                          ^
+/home/n00b/Experimental/android-project/app/jni/src/../RCIrrlicht/include/IVideoDriver.h:1405:3: note: 'clearBuffers' has been explicitly marked deprecated here
+ 1405 |                 IRR_DEPRECATED void clearBuffers(bool backBuffer, bool depthBuffer, bool stencilBuffer, SColor color)
+      |                 ^
+/home/n00b/Experimental/android-project/app/jni/src/../RCIrrlicht/include/irrTypes.h:202:41: note: expanded from macro 'IRR_DEPRECATED'
+  202 | #define IRR_DEPRECATED  __attribute__ ((deprecated))
+      |                                         ^
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:52:
+In file included from /home/n00b/Experimental/android-project/app/jni/src/rc_gfx3D.h:28:
+/home/n00b/Experimental/android-project/app/jni/src/rc_base_actor.h:1676:1: warning: non-void function does not return a value in all control paths [-Wreturn-type]
+ 1676 | }
+      | ^
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:52:
+In file included from /home/n00b/Experimental/android-project/app/jni/src/rc_gfx3D.h:29:
+/home/n00b/Experimental/android-project/app/jni/src/rc_actor_material.h:411:11: warning: enumeration values 'ESVT_MAT4' and 'ESVT_PREDEFINED' not handled in switch [-Wswitch]
+  411 |                         switch(rc_material[material_id].shader->getUniformVariable(i)->type)
+      |                                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:52:
+In file included from /home/n00b/Experimental/android-project/app/jni/src/rc_gfx3D.h:32:
+/home/n00b/Experimental/android-project/app/jni/src/rc_constraint.h:1622:10: warning: implicit conversion turns floating-point number into bool: 'double' to 'bool' [-Wimplicit-conversion-floating-point-to-bool]
+ 1622 |                 return rc_util_degrees(slide->getSolveAngLimit());
+      |                 ~~~~~~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:54:
+/home/n00b/Experimental/android-project/app/jni/src/rc_geometry.h:55:25: warning: result of '10^-6' is -16; did you mean '1e-6'? [-Wxor-used-as-pow]
+   55 |         if(plane_distance < (10^-6))
+      |                              ~~^~~
+      |                              1e-6
+/home/n00b/Experimental/android-project/app/jni/src/rc_geometry.h:55:25: note: replace expression with '0xA ^ -6' or use 'xor' instead of '^' to silence this warning
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:59:
+/home/n00b/Experimental/android-project/app/jni/src/rc_windowclose.h:12:18: warning: 'clearBuffers' is deprecated [-Wdeprecated-declarations]
+   12 |                                 VideoDriver->clearBuffers(true, true, true, rc_clear_color);
+      |                                              ^
+/home/n00b/Experimental/android-project/app/jni/src/../RCIrrlicht/include/IVideoDriver.h:1405:3: note: 'clearBuffers' has been explicitly marked deprecated here
+ 1405 |                 IRR_DEPRECATED void clearBuffers(bool backBuffer, bool depthBuffer, bool stencilBuffer, SColor color)
+      |                 ^
+/home/n00b/Experimental/android-project/app/jni/src/../RCIrrlicht/include/irrTypes.h:202:41: note: expanded from macro 'IRR_DEPRECATED'
+  202 | #define IRR_DEPRECATED  __attribute__ ((deprecated))
+      |                                         ^
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:59:
+/home/n00b/Experimental/android-project/app/jni/src/rc_windowclose.h:15:18: warning: 'clearBuffers' is deprecated [-Wdeprecated-declarations]
+   15 |                                 VideoDriver->clearBuffers(true, true, true, rc_clear_color);
+      |                                              ^
+/home/n00b/Experimental/android-project/app/jni/src/../RCIrrlicht/include/IVideoDriver.h:1405:3: note: 'clearBuffers' has been explicitly marked deprecated here
+ 1405 |                 IRR_DEPRECATED void clearBuffers(bool backBuffer, bool depthBuffer, bool stencilBuffer, SColor color)
+      |                 ^
+/home/n00b/Experimental/android-project/app/jni/src/../RCIrrlicht/include/irrTypes.h:202:41: note: expanded from macro 'IRR_DEPRECATED'
+  202 | #define IRR_DEPRECATED  __attribute__ ((deprecated))
+      |                                         ^
+In file included from /home/n00b/Experimental/android-project/app/jni/src/main.cpp:59:
+/home/n00b/Experimental/android-project/app/jni/src/rc_windowclose.h:35:18: warning: 'clearBuffers' is deprecated [-Wdeprecated-declarations]
+   35 |                                 VideoDriver->clearBuffers(true, true, true, rc_clear_color);
+      |                                              ^
+/home/n00b/Experimental/android-project/app/jni/src/../RCIrrlicht/include/IVideoDriver.h:1405:3: note: 'clearBuffers' has been explicitly marked deprecated here
+ 1405 |                 IRR_DEPRECATED void clearBuffers(bool backBuffer, bool depthBuffer, bool stencilBuffer, SColor color)
+      |                 ^
+/home/n00b/Experimental/android-project/app/jni/src/../RCIrrlicht/include/irrTypes.h:202:41: note: expanded from macro 'IRR_DEPRECATED'
+  202 | #define IRR_DEPRECATED  __attribute__ ((deprecated))
+      |                                         ^
+/home/n00b/Experimental/android-project/app/jni/src/main.cpp:1866:5: warning: ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+ 1866 |     n_stack.empty();
+      |     ^~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/main.cpp:1872:5: warning: ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+ 1872 |     s_stack.empty();
+      |     ^~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/main.cpp:4323:5: warning: ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+ 4323 |     byref_addr_table.empty();
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/main.cpp:4324:5: warning: ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+ 4324 |     loop_stack.empty();
+      |     ^~~~~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/main.cpp:4325:5: warning: ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+ 4325 |     n_stack.empty();
+      |     ^~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/main.cpp:4326:5: warning: ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+ 4326 |     s_stack.empty();
+      |     ^~~~~~~~~~~~~
+/home/n00b/Experimental/android-project/app/jni/src/main.cpp:4327:5: warning: ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+ 4327 |     gosub_return_addr.empty();
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+37 warnings generated.

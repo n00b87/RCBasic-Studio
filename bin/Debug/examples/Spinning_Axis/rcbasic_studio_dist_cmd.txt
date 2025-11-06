@@ -1,0 +1,8 @@
+TGT_PLATFORM=WIN_32,ANDROID PROJECT_NAME="Spinning Axis" PROJECT_CATEGORY=AudioVideo APP_TYPE=Application TERMINAL_FLAG=false PROJECT_DIR="/home/n00b/Projects/RCBasic-Studio/bin/Debug/examples/Spinning_Axis/" OUTPUT_DIR="/home/n00b/Music/" ENABLE_WEB_THREADS=false ICON="/home/n00b/Projects/RCBasic-Studio/gfx/rcbasic.png" SOURCE="main.bas" ANDROID_APP_ID="com.rct.test" ANDROID_ORIENTATION="landscape" ANDROID_KEYSTORE="/home/n00b/Projects/RCBasic-Studio/bin/Debug/examples/Spinning_Axis/util.bas" ANDROID_KEYSTORE_PASS="" ANDROID_ALIAS="rcbasic_alias" ANDROID_ALIAS_PASS="" ANDROID_RELEASE=0 ANDROID_DEBUG=1 ANDROID_JAVA_DIR="" RCBASIC_STUDIO=1 
+X:/home/n00b/Projects/RCBasic-Studio/bin/Debug/examples/Spinning_Axis/Spinning Axis.rcprj
+X:app.properties
+X:rcbasic_studio_dist_cmd.txt
+X:rcbasic.dbgi
+X:rcbasic.dbgs
+X:main.bas
+X:util.bas

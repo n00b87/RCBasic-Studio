@@ -1,0 +1,8 @@
+/home/n00b/Programs/RCBasic_v401_Linux64/examples/Spinning_Axis/rcbasic.dbgm
+/home/n00b/Programs/RCBasic_v401_Linux64/examples/Spinning_Axis/rcbasic.dbgi
+/home/n00b/Programs/RCBasic_v401_Linux64/examples/Spinning_Axis/rcbasic.dbgs
+/home/n00b/Programs/RCBasic_v401_Linux64/examples/Spinning_Axis/rcbasic_dbg.cl
+/home/n00b/Programs/RCBasic_v401_Linux64/examples/Spinning_Axis/rcbasic_dbg.sp
+/home/n00b/Programs/RCBasic_v401_Linux64/examples/Spinning_Axis/rcbasic_dbg.rt
+main.bas
+util.bas

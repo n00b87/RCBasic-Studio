@@ -1,0 +1,2 @@
+/home/n00b/Programs/emsdk/upstream/emscripten/emar qc libBullet3Common.a CMakeFiles/Bullet3Common.dir/b3AlignedAllocator.o CMakeFiles/Bullet3Common.dir/b3Vector3.o CMakeFiles/Bullet3Common.dir/b3Logging.o
+/home/n00b/Programs/emsdk/upstream/emscripten/emranlib libBullet3Common.a

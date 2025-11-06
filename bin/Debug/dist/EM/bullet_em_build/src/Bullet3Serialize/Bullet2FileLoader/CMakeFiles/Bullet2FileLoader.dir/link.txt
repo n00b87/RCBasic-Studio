@@ -1,0 +1,2 @@
+/home/n00b/Programs/emsdk/upstream/emscripten/emar qc libBullet2FileLoader.a CMakeFiles/Bullet2FileLoader.dir/b3BulletFile.o CMakeFiles/Bullet2FileLoader.dir/b3Chunk.o CMakeFiles/Bullet2FileLoader.dir/b3DNA.o CMakeFiles/Bullet2FileLoader.dir/b3File.o CMakeFiles/Bullet2FileLoader.dir/b3Serializer.o
+/home/n00b/Programs/emsdk/upstream/emscripten/emranlib libBullet2FileLoader.a

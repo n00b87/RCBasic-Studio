@@ -1,0 +1,5 @@
+#title TileSetExists [RCBasic Doc]
+#header Function TileSetExists(tileset)
+
+Returns true if the given id represents and existing tileset
+

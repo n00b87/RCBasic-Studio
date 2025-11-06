@@ -451,6 +451,7 @@ rc_ideFrame::rc_ideFrame( wxWindow* parent, wxWindowID id, const wxString& title
 	symbol_tree->Connect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( rc_ideFrame::onSymbolSelectionChanged ), NULL, this );
 	symbol_tree->Connect( wxEVT_COMMAND_TREE_SEL_CHANGING, wxTreeEventHandler( rc_ideFrame::onSymbolSelectionChanging ), NULL, this );
 	sourceFile_auinotebook->Connect( wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler( rc_ideFrame::onNotebookPageChanged ), NULL, this );
+	sourceFile_auinotebook->Connect( wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGING, wxAuiNotebookEventHandler( rc_ideFrame::onNotebookPageIsChanging ), NULL, this );
 	sourceFile_auinotebook->Connect( wxEVT_COMMAND_AUINOTEBOOK_PAGE_CLOSE, wxAuiNotebookEventHandler( rc_ideFrame::onSourceFileTabClose ), NULL, this );
 	m_searchResults_listBox->Connect( wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler( rc_ideFrame::onSearchResultSelection ), NULL, this );
 	m_searchResults_listBox->Connect( wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, wxCommandEventHandler( rc_ideFrame::onSearchResultSelection ), NULL, this );
@@ -475,6 +476,7 @@ rc_ideFrame::~rc_ideFrame()
 	symbol_tree->Disconnect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( rc_ideFrame::onSymbolSelectionChanged ), NULL, this );
 	symbol_tree->Disconnect( wxEVT_COMMAND_TREE_SEL_CHANGING, wxTreeEventHandler( rc_ideFrame::onSymbolSelectionChanging ), NULL, this );
 	sourceFile_auinotebook->Disconnect( wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler( rc_ideFrame::onNotebookPageChanged ), NULL, this );
+	sourceFile_auinotebook->Disconnect( wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGING, wxAuiNotebookEventHandler( rc_ideFrame::onNotebookPageIsChanging ), NULL, this );
 	sourceFile_auinotebook->Disconnect( wxEVT_COMMAND_AUINOTEBOOK_PAGE_CLOSE, wxAuiNotebookEventHandler( rc_ideFrame::onSourceFileTabClose ), NULL, this );
 	m_searchResults_listBox->Disconnect( wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler( rc_ideFrame::onSearchResultSelection ), NULL, this );
 	m_searchResults_listBox->Disconnect( wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, wxCommandEventHandler( rc_ideFrame::onSearchResultSelection ), NULL, this );
@@ -3019,5 +3021,76 @@ rc_debugger::~rc_debugger()
 	m_super_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( rc_debugger::onSuper ), NULL, this );
 	m_end_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( rc_debugger::onEnd ), NULL, this );
 	m_close_button->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( rc_debugger::onClose ), NULL, this );
+
+}
+
+rc_codeCompletion_window::rc_codeCompletion_window( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name ) : wxPanel( parent, id, pos, size, style, name )
+{
+	this->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_GRAYTEXT ) );
+
+	bSizer135 = new wxBoxSizer( wxHORIZONTAL );
+
+	m_symbol_listBox = new wxListBox( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, NULL, 0 );
+	m_symbol_listBox->SetBackgroundColour( wxColour( 229, 229, 229 ) );
+
+	bSizer135->Add( m_symbol_listBox, 2, wxALL|wxEXPAND, 0 );
+
+	m_doc_htmlWin = new wxHtmlWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO );
+	m_doc_htmlWin->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_ACTIVECAPTION ) );
+
+	bSizer135->Add( m_doc_htmlWin, 5, wxALL|wxEXPAND, 0 );
+
+
+	this->SetSizer( bSizer135 );
+	this->Layout();
+
+	// Connect Events
+	this->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( rc_codeCompletion_window::OnSetFocus ) );
+	this->Connect( wxEVT_SIZE, wxSizeEventHandler( rc_codeCompletion_window::OnWindowResize ) );
+	m_symbol_listBox->Connect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( rc_codeCompletion_window::OnLeftDClick_ListBox ), NULL, this );
+	m_symbol_listBox->Connect( wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler( rc_codeCompletion_window::OnListBoxSelection ), NULL, this );
+	m_symbol_listBox->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( rc_codeCompletion_window::OnSetFocus_ListBox ), NULL, this );
+	m_doc_htmlWin->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( rc_codeCompletion_window::OnSetFocus_Doc ), NULL, this );
+}
+
+rc_codeCompletion_window::~rc_codeCompletion_window()
+{
+	// Disconnect Events
+	this->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( rc_codeCompletion_window::OnSetFocus ) );
+	this->Disconnect( wxEVT_SIZE, wxSizeEventHandler( rc_codeCompletion_window::OnWindowResize ) );
+	m_symbol_listBox->Disconnect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( rc_codeCompletion_window::OnLeftDClick_ListBox ), NULL, this );
+	m_symbol_listBox->Disconnect( wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler( rc_codeCompletion_window::OnListBoxSelection ), NULL, this );
+	m_symbol_listBox->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( rc_codeCompletion_window::OnSetFocus_ListBox ), NULL, this );
+	m_doc_htmlWin->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( rc_codeCompletion_window::OnSetFocus_Doc ), NULL, this );
+
+}
+
+rc_codeHint_window::rc_codeHint_window( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name ) : wxPanel( parent, id, pos, size, style, name )
+{
+	this->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_GRAYTEXT ) );
+
+	bSizer135 = new wxBoxSizer( wxHORIZONTAL );
+
+	m_doc_htmlWin = new wxHtmlWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO );
+	m_doc_htmlWin->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_ACTIVECAPTION ) );
+
+	bSizer135->Add( m_doc_htmlWin, 1, wxALL|wxEXPAND, 0 );
+
+
+	this->SetSizer( bSizer135 );
+	this->Layout();
+
+	// Connect Events
+	this->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( rc_codeHint_window::OnSetFocus ) );
+	this->Connect( wxEVT_SIZE, wxSizeEventHandler( rc_codeHint_window::OnWindowResize ) );
+	m_doc_htmlWin->Connect( wxEVT_SET_FOCUS, wxFocusEventHandler( rc_codeHint_window::OnSetFocus_Doc ), NULL, this );
+}
+
+rc_codeHint_window::~rc_codeHint_window()
+{
+	// Disconnect Events
+	this->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( rc_codeHint_window::OnSetFocus ) );
+	this->Disconnect( wxEVT_SIZE, wxSizeEventHandler( rc_codeHint_window::OnWindowResize ) );
+	m_doc_htmlWin->Disconnect( wxEVT_SET_FOCUS, wxFocusEventHandler( rc_codeHint_window::OnSetFocus_Doc ), NULL, this );
 
 }

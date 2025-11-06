@@ -1,0 +1,33 @@
+RCBasic Setup Guide
+
+Welcome to the RCBasic Programming Language. If this is your first time
+using RCBasic then you might want to do a few things before getting
+started.
+
+First, to avoid any potential issues with tools not working because of 
+directory permissions, insure you place the RCBasic folder in a location 
+where it will have permissions to read, write, and execute code from.
+
+Next, to be able to use the distribute tool to export for the web, you 
+will need to install python 3 and git.
+
+NOTE TO LINUX USERS: You will need to install xterm in order to use
+RCBasic Studio.
+
+Also, if you want to use an editor other than RCBasic Studio
+ 
+* On Linux, you can change the last line in RCBasic_Studio.sh from
+"./rcs" to the editor of your choice.
+
+* On Windows, just have your build command point to bin\rcbasic_build4.exe
+and your run command point to bin\rcbasic4.exe
+
+
+Finally, check out the included examples and documentation. If you have
+any trouble, feel free to reach to me or anyone in the community for help
+at rcbasic.freeforums.net.
+
+I look forward to seeing what you make.
+
+
+Rodney Cunningham (aka n00b)

@@ -1,0 +1,7 @@
+#Tue Jul 08 13:23:45 EDT 2025
+base.0=/home/n00b/Experimental/android-project/app/build/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex
+base.1=/home/n00b/Experimental/android-project/app/build/intermediates/dex/debug/mergeProjectDexDebug/2/classes.dex
+path.0=0/classes.dex
+path.1=2/classes.dex
+renamed.0=classes.dex
+renamed.1=classes2.dex

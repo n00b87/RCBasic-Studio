@@ -71,7 +71,7 @@ bool isSubDelimToken(int token_index)
     return false;
 }
 
-bool tokens(const std::string &data)
+bool tokens(const std::string &data, std::string* doc_comment = NULL)
 {
     string::size_type x = 0;
     bool esc_char = false;
@@ -189,7 +189,7 @@ bool tokens(const std::string &data)
                             tmp_token.push_back("<mul>");
                             tmp_token.push_back(s_data);
                             if(arg_data.compare("")!=0)
-                                tokens(arg_data);
+                                tokens(arg_data, doc_comment);
                             tmp_token.push_back("</par>");
                         }
                     }
@@ -313,7 +313,15 @@ bool tokens(const std::string &data)
                 tmp_token.push_back("</square>");
                 break;
             case '\'':
-                return true;
+                {
+                    std::string comment_str = data.substr(x, 3);
+                    if(comment_str.compare("'''")==0)
+                    {
+                        if(doc_comment)
+                            *doc_comment = data.substr(x+2);
+                    }
+                    return true;
+                }
                 break;
             case '\"':
                 s_data = "<string>";
