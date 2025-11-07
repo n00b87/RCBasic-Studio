@@ -6503,7 +6503,9 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
                 if(codeComp_redrawDoc)
                 {
                     codeComp_redrawDoc = false;
-                    codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
+
+                    if(codeComp)
+                        codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
                 }
 
                 codeComp_redrawDoc = false;
