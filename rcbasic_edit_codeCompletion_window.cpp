@@ -261,6 +261,9 @@ void rcbasic_edit_codeCompletion_window::updateDoc(bool is_udt, int udt_index)
     //m_symbol_listBox->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_GRAYTEXT ) );
 	//m_symbol_listBox->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHT ) );
 
+    #ifdef __WIN32__
+    this->Refresh();
+    #else
     bSizer135->Layout();
 
     //2, 5
@@ -270,6 +273,7 @@ void rcbasic_edit_codeCompletion_window::updateDoc(bool is_udt, int udt_index)
     this->SetClientSize(wxSize(list_width*3, this->GetClientSize().GetHeight()));
     m_doc_htmlWin->SetClientSize(wxSize(list_width*2, m_doc_htmlWin->GetClientSize().GetHeight()));
     m_doc_htmlWin->Layout();
+    #endif // __WIN32__
 
 }
 

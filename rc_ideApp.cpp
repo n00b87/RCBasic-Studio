@@ -39,9 +39,9 @@ bool rc_ideApp::OnInit()
 int rc_ideApp::OnExit()
 {
     #ifdef COS_BASIC
-    wxPuts(_("RCBasic Studio Shutdown Complete"));
-    #else
     wxPuts(_("Commodore OS BASIC Shutdown Complete"));
+    #else
+    wxPuts(_("RCBasic Studio Shutdown Complete"));
     #endif
     return 0;
 }

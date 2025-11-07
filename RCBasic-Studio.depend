@@ -6,7 +6,7 @@
 	<wx/utils.h>
 	"rc_debugger_dialog.h"
 
-1762420742 /home/n00b/Projects/RCBasic-Studio/rcbasic_edit_frame.h
+1762503240 /home/n00b/Projects/RCBasic-Studio/rcbasic_edit_frame.h
 	"rcbasic_edit.h"
 	"rc_closeProjectSavePrompt_dialog.h"
 	"rc_newFile_dialog.h"
@@ -2021,7 +2021,7 @@
 	<vector>
 	<cstdint>
 
-1754968596 source:/home/n00b/Projects/RCBasic-Studio/help_menu.cpp
+1762497022 source:/home/n00b/Projects/RCBasic-Studio/help_menu.cpp
 	"rcbasic_edit_frame.h"
 
 1762420742 source:/home/n00b/Projects/RCBasic-Studio/parserThread.cpp
@@ -2079,7 +2079,7 @@
 	"rcbasic_edit.h"
 	"projects.h"
 
-1762464432 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit_frame.cpp
+1762468734 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit_frame.cpp
 	<wx/string.h>
 	<wx/arrstr.h>
 	<wx/dir.h>
@@ -2393,7 +2393,7 @@
 	"rcbasic_edit.h"
 	"rcbasic_symbol.h"
 
-1762461401 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit_codeCompletion_window.cpp
+1762501964 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit_codeCompletion_window.cpp
 	<wx/wx.h>
 	<wx/simplebook.h>
 	"rcbasic_edit_codeCompletion_window.h"
@@ -2430,7 +2430,7 @@
 	"wx/treebase.h"
 	"wx/vector.h"
 
-1762461510 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit_codeHint_window.cpp
+1762466065 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit_codeHint_window.cpp
 	"rcbasic_edit_codeHint_window.h"
 	"rcbasic_symbol.h"
 

@@ -62,6 +62,11 @@ int codeComp_udt_index = -1;
 
 bool show_codeHint = false;
 
+#ifdef __WIN32__
+bool codeComp_redrawTextCtrl = false;
+bool codeComp_redrawDoc = false;
+#endif // __WIN32__
+
 class rc_styledTextCtrl : public wxStyledTextCtrl
 {
     private:
@@ -82,6 +87,10 @@ class rc_styledTextCtrl : public wxStyledTextCtrl
 		void OnRightClick( wxMouseEvent& event );
 
 		void OnKillFocus( wxFocusEvent& event );
+
+		#ifdef __WIN32__
+		void OnPaint( wxPaintEvent& event );
+		#endif // __WIN32__
 
 		bool debug;
 };

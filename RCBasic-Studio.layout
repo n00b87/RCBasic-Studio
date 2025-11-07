@@ -2,6 +2,39 @@
 <CodeBlocks_layout_file>
 	<FileVersion major="1" minor="0" />
 	<ActiveTarget name="Debug" />
+	<File name="rc_find_dialog.cpp" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2154" topLine="60" />
+		</Cursor>
+	</File>
+	<File name="rcbasic_edit_codeCompletion_window.h" open="1" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="828" topLine="13" />
+		</Cursor>
+	</File>
+	<File name="rc_debugger_dialog.h" open="0" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="226" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="rcbasic_editrc_genKey_dialog.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="88" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="rcbasic_edit.h" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="29234" topLine="717" />
+		</Cursor>
+	</File>
+	<File name="parserThread.cpp" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4869" topLine="152" />
+		</Cursor>
+		<Folding>
+			<Collapse line="121" />
+		</Folding>
+	</File>
 	<File name="build_menu.cpp" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="6227" topLine="225" />
@@ -17,39 +50,9 @@
 			<Collapse line="844" />
 		</Folding>
 	</File>
-	<File name="help_menu.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="rcbasic_edit.cpp" open="1" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1042" topLine="11" />
-		</Cursor>
-	</File>
-	<File name="rcbasic_edit_preference_dialog.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="280" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="rcbasic_edit_replace_dialog.cpp" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="8988" topLine="310" />
-		</Cursor>
-	</File>
-	<File name="rcbasic_edit.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="42100" topLine="770" />
-		</Cursor>
-	</File>
-	<File name="rcbasic_editrc_distribute_dialog.h" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="943" topLine="14" />
-		</Cursor>
-	</File>
-	<File name="rcbasic_editrc_distribute_dialog.cpp" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="19728" topLine="520" />
-		</Cursor>
-	</File>
-	<File name="rcbasic_edit_codeHint_window.h" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1027" topLine="2" />
+			<Cursor1 position="124236" topLine="3006" />
 		</Cursor>
 	</File>
 	<File name="rcbasic_editrc_distProcess_dialog.cpp" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -57,7 +60,57 @@
 			<Cursor1 position="1879" topLine="72" />
 		</Cursor>
 	</File>
-	<File name="tokenizer.h" open="1" top="1" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="rcbasic_symbol.h" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1176" topLine="30" />
+		</Cursor>
+	</File>
+	<File name="rc_utility.h" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="169" topLine="10" />
+		</Cursor>
+	</File>
+	<File name="rcbasic_edit_frame.cpp" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="71207" topLine="1947" />
+		</Cursor>
+		<Folding>
+			<Collapse line="5018" />
+			<Collapse line="5497" />
+			<Collapse line="5588" />
+			<Collapse line="5619" />
+			<Collapse line="5659" />
+			<Collapse line="5768" />
+			<Collapse line="5799" />
+			<Collapse line="5839" />
+		</Folding>
+	</File>
+	<File name="eval.h" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1447" topLine="52" />
+		</Cursor>
+	</File>
+	<File name="projects.cpp" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4398" topLine="146" />
+		</Cursor>
+	</File>
+	<File name="rcbasic_editrc_distribute_dialog.h" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="943" topLine="14" />
+		</Cursor>
+	</File>
+	<File name="rcbasic_edit_preference_dialog.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="280" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="rcbasic_edit_codeCompletion_window.cpp" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="7293" topLine="234" />
+		</Cursor>
+	</File>
+	<File name="tokenizer.h" open="1" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="10696" topLine="290" />
 		</Cursor>
@@ -66,82 +119,9 @@
 			<Collapse line="214" />
 		</Folding>
 	</File>
-	<File name="rc_find_dialog.cpp" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2154" topLine="60" />
-		</Cursor>
-	</File>
-	<File name="rcbasic_edit.h" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="29234" topLine="717" />
-		</Cursor>
-	</File>
-	<File name="rcbasic_editrc_genKey_dialog.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="88" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="eval.h" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1447" topLine="52" />
-		</Cursor>
-	</File>
-	<File name="projects.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="0" topLine="33" />
-		</Cursor>
-	</File>
-	<File name="tools_menu.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="229" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="parserThread.cpp" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="4869" topLine="152" />
-		</Cursor>
-		<Folding>
-			<Collapse line="121" />
-		</Folding>
-	</File>
-	<File name="rcbasic_edit_codeHint_window.cpp" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="3048" topLine="108" />
-		</Cursor>
-	</File>
-	<File name="rcbasic_edit_frame.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1523" topLine="47" />
-		</Cursor>
-	</File>
-	<File name="rcbasic_edit_codeCompletion_window.h" open="1" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1196" topLine="31" />
-		</Cursor>
-	</File>
-	<File name="rcbasic_symbol.h" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1176" topLine="30" />
-		</Cursor>
-	</File>
-	<File name="rc_debugger_dialog.h" open="0" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="226" topLine="0" />
-		</Cursor>
-	</File>
 	<File name="rcbasic_edit_projectSettings_dialog.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="4965" topLine="148" />
-		</Cursor>
-	</File>
-	<File name="rcbasic_edit_newProject_dialog.cpp" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1210" topLine="38" />
-		</Cursor>
-	</File>
-	<File name="projects.cpp" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="4398" topLine="146" />
 		</Cursor>
 	</File>
 	<File name="rc_ideApp.cpp" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -149,34 +129,54 @@
 			<Cursor1 position="765" topLine="9" />
 		</Cursor>
 	</File>
-	<File name="rcbasic_edit_frame.cpp" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="rcbasic_edit_frame.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="33933" topLine="1030" />
+			<Cursor1 position="1523" topLine="47" />
 		</Cursor>
-		<Folding>
-			<Collapse line="5012" />
-			<Collapse line="5488" />
-			<Collapse line="5579" />
-			<Collapse line="5610" />
-			<Collapse line="5650" />
-			<Collapse line="5759" />
-			<Collapse line="5790" />
-			<Collapse line="5830" />
-		</Folding>
+	</File>
+	<File name="help_menu.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1042" topLine="11" />
+		</Cursor>
+	</File>
+	<File name="rcbasic_edit_newProject_dialog.cpp" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1210" topLine="38" />
+		</Cursor>
+	</File>
+	<File name="tools_menu.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="229" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="projects.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="33" />
+		</Cursor>
+	</File>
+	<File name="rcbasic_edit_replace_dialog.cpp" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="8988" topLine="310" />
+		</Cursor>
+	</File>
+	<File name="rcbasic_edit_codeHint_window.h" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1027" topLine="2" />
+		</Cursor>
+	</File>
+	<File name="rcbasic_editrc_distribute_dialog.cpp" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="19728" topLine="520" />
+		</Cursor>
 	</File>
 	<File name="parserThread.h" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="860" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="rc_utility.h" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="rcbasic_edit_codeHint_window.cpp" open="1" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="169" topLine="10" />
-		</Cursor>
-	</File>
-	<File name="rcbasic_edit_codeCompletion_window.cpp" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="7422" topLine="241" />
+			<Cursor1 position="2252" topLine="72" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

@@ -212,6 +212,10 @@ rc_styledTextCtrl::rc_styledTextCtrl(wxWindow* parent_nb, wxString src_name) : w
 	this->Connect( wxEVT_RIGHT_DOWN, wxMouseEventHandler( rc_styledTextCtrl::OnRightClick ), NULL, this );
 	this->Connect( wxEVT_KILL_FOCUS, wxFocusEventHandler( rc_styledTextCtrl::OnKillFocus ) );
 
+	#ifdef __WIN32__
+	this->Connect( wxEVT_PAINT, wxPaintEventHandler( rc_styledTextCtrl::OnPaint ) );
+	#endif // __WIN32__
+
 	show_codeComp = false;
 	debug = false;
 	codeComp_mouseClick = false;
@@ -228,6 +232,10 @@ rc_styledTextCtrl::~rc_styledTextCtrl()
 	this->Disconnect( wxEVT_MIDDLE_DOWN, wxMouseEventHandler( rc_styledTextCtrl::OnMiddleClick ), NULL, this );
 	this->Disconnect( wxEVT_RIGHT_DOWN, wxMouseEventHandler( rc_styledTextCtrl::OnRightClick ), NULL, this );
 	this->Disconnect( wxEVT_KILL_FOCUS, wxFocusEventHandler( rc_styledTextCtrl::OnKillFocus ) );
+
+	#ifdef __WIN32__
+	this->Disconnect( wxEVT_PAINT, wxPaintEventHandler( rc_styledTextCtrl::OnPaint ) );
+	#endif // __WIN32__
 }
 
 void rc_styledTextCtrl::OnKillFocus( wxFocusEvent& event )
@@ -243,6 +251,27 @@ void rc_styledTextCtrl::OnKillFocus( wxFocusEvent& event )
         event.Skip();
     }
 }
+
+#ifdef __WIN32__
+void rc_styledTextCtrl::OnPaint( wxPaintEvent& event )
+{
+    if(show_codeComp)
+    {
+        if(codeComp_redrawTextCtrl)
+        {
+            codeComp_redrawTextCtrl = false;
+            codeComp_redrawDoc = true;
+            event.Skip();
+        }
+        else
+        {
+            event.Skip(false);
+        }
+    }
+    else
+        event.Skip();
+}
+#endif // __WIN32__
 
 void rc_styledTextCtrl::setShowComp(bool flag)
 {
@@ -265,6 +294,10 @@ void rc_styledTextCtrl::OnWindowResize( wxSizeEvent& event )
 void rc_styledTextCtrl::OnKeyDown( wxKeyEvent& event )
 {
     bool skip_flag = true;
+
+    #ifdef __WIN32__
+    codeComp_redrawTextCtrl = true;
+    #endif // __WIN32__
 
     switch(event.GetKeyCode())
     {
@@ -5189,7 +5222,11 @@ void rcbasic_edit_frame::showCodeComp(wxArrayString cc_list)
             codeComp->Reparent(m_textCtrl);
 
         codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
-        codeComp->Show();
+        #ifdef __WIN32__
+        codeComp_redrawDoc = false;
+        #endif // __WIN32__
+
+        //codeComp->Show();
         //codeComp->forceResize();
 
         tf_size = m_textCtrl->TextHeight(0);
@@ -5216,6 +5253,8 @@ void rcbasic_edit_frame::showCodeComp(wxArrayString cc_list)
 
         //std::cout << "SET SHOW TRUE" << std::endl;
         m_textCtrl->setShowComp(true);
+
+        codeComp->Show();
 
         codeComp_lockIn = false;
 
@@ -6350,6 +6389,10 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
                         codeComp->getListBox()->SetSelection(n);
 
                     codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
+
+                    #ifdef __WIN32__
+                    codeComp_redrawDoc = false;
+                    #endif // __WIN32__
                 }
                 else if(codeComp_scroll == WXK_DOWN)
                 {
@@ -6358,6 +6401,10 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
                         codeComp->getListBox()->SetSelection(n);
 
                     codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
+
+                    #ifdef __WIN32__
+                    codeComp_redrawDoc = false;
+                    #endif // __WIN32__
                 }
                 else if(codeComp_tabComplete || codeComp->getDBLClick())
                 {
@@ -6437,9 +6484,30 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
                         {
                             codeComp_current_symbol = codeComp->getListBox()->GetString(n).Lower().Trim();
                             codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
+
+                            #ifdef __WIN32__
+                            codeComp_redrawDoc = false;
+                            #endif // __WIN32__
                         }
                     }
+                    #ifdef __WIN32__
+                    else if(codeComp_redrawDoc)
+                    {
+                        codeComp_redrawDoc = false;
+                        codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
+                    }
+                    #endif // __WIN32__
                 }
+
+                #ifdef __WIN32__
+                if(codeComp_redrawDoc)
+                {
+                    codeComp_redrawDoc = false;
+                    codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
+                }
+
+                codeComp_redrawDoc = false;
+                #endif // __WIN32__
 
                 codeComp_scroll = 0;
                 codeComp_tabComplete = false;
