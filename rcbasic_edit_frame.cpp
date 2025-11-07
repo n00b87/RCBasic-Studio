@@ -383,7 +383,7 @@ rcbasic_edit_txtCtrl::rcbasic_edit_txtCtrl(wxFileName src_path, wxAuiNotebook* p
 
     txtCtrl = new rc_styledTextCtrl(parent_nb, src_path.GetFullName());
     text_changed = false;
-    codeComp = cc;
+    //codeComp = cc;
 }
 
 rcbasic_edit_txtCtrl::~rcbasic_edit_txtCtrl()
@@ -5097,8 +5097,12 @@ void rcbasic_edit_frame::showCodeComp(wxArrayString cc_list)
 {
     if(codeHint)
     {
+        #ifdef __WIN32__
+        codeHint->Show(false);
+        #else
         delete codeHint;
         codeHint = NULL;
+        #endif // __WIN32__
 
         show_codeHint = false;
     }
@@ -5190,10 +5194,20 @@ void rcbasic_edit_frame::showCodeComp(wxArrayString cc_list)
 
     if(!is_valid_pos)
     {
+        #ifdef __WIN32__
+        if(codeComp)
+        {
+            codeComp->getListBox()->Clear();
+            codeComp->Show(false);
+        }
+
+        #else
         if(codeComp)
             delete codeComp;
 
         codeComp = NULL;
+        #endif // __WIN32__
+
         codeComp_lockIn = false;
         codeComp_isUDT = false;
         codeComp_udt_index = -1;
@@ -5349,6 +5363,19 @@ void rcbasic_edit_frame::showCodeHint(wxString cc_token, int arg_num)
 
     if(!is_valid_pos)
     {
+        #ifdef __WIN32__
+        if(codeComp)
+        {
+            codeComp->getListBox()->Clear();
+            codeComp->Show(false);
+        }
+
+        if(codeHint)
+        {
+            codeHint->Show(false);
+        }
+
+        #else
         if(codeComp)
             delete codeComp;
 
@@ -5356,11 +5383,13 @@ void rcbasic_edit_frame::showCodeHint(wxString cc_token, int arg_num)
             delete codeHint;
 
         codeHint = NULL;
+        codeComp = NULL;
+
+        #endif // __WIN32__
 
         show_codeHint = false;
         codeComp_comma = false;
 
-        codeComp = NULL;
         codeComp_lockIn = false;
         codeComp_isUDT = false;
         codeComp_udt_index = -1;
@@ -5428,6 +5457,19 @@ void rcbasic_edit_frame::showCodeHint(wxString cc_token, int arg_num)
 
     if(sym_type < 0)
     {
+        #ifdef __WIN32__
+        if(codeComp)
+        {
+            codeComp->getListBox()->Clear();
+            codeComp->Show(false);
+        }
+
+        if(codeHint)
+        {
+            codeHint->Show(false);
+        }
+
+        #else
         if(codeComp)
             delete codeComp;
 
@@ -5435,11 +5477,13 @@ void rcbasic_edit_frame::showCodeHint(wxString cc_token, int arg_num)
             delete codeHint;
 
         codeHint = NULL;
+        codeComp = NULL;
+
+        #endif // __WIN32__
 
         show_codeHint = false;
         codeComp_comma = false;
 
-        codeComp = NULL;
         codeComp_lockIn = false;
         codeComp_isUDT = false;
         codeComp_udt_index = -1;
@@ -5590,9 +5634,14 @@ void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
                 }
                 else
                 {
+                    #ifndef __WIN32__
                     if(codeComp)
                         delete codeComp;
                     codeComp = NULL;
+                    #else
+                    codeComp->getListBox()->Clear();
+                    codeComp->Show(false);
+                    #endif
                     codeComp_lockIn = false;
                     codeComp_isUDT = false;
                     codeComp_udt_index = -1;
@@ -5793,8 +5842,13 @@ void rcbasic_edit_frame::onNotebookPageIsChanging( wxAuiNotebookEvent& event )
         codeComp->Show(false);
 
         //???
+        #ifndef __WIN32__
         delete codeComp;
         codeComp = NULL;
+        #else
+        codeComp->getListBox()->Clear();
+        #endif
+
         codeComp_isUDT = false;
         codeComp_udt_index = -1;
         //wxMessageBox(wxString::Format("HIDE: %i", (t->codeCompIsShown() ? 3 : 4)));
@@ -6302,8 +6356,12 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
                         codeComp_isUDT = false;
                     //std::cout << "UDT: " << current_symbol.ToStdString() << ", " << udt_index << ", " << (udt_index >= 0 ? codeComp_udt_db.udt[udt_index].type_name.ToStdString() : "-1") << std::endl;
 
+                    #ifndef __WIN32__
                     delete codeHint;
                     codeHint = NULL;
+                    #else
+                    codeHint->Show(false);
+                    #endif
 
                     show_codeHint = false;
                     codeComp_comma = false;
@@ -6318,8 +6376,15 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
                         {
                             t->setShowComp(false);
                             codeComp->Show(false);
+
+                            #ifndef __WIN32__
                             delete codeComp;
                             codeComp = NULL;
+                            #else
+                            codeComp->getListBox()->Clear();
+                            codeComp->Show(false);
+                            #endif
+
                             codeComp_lockIn = false;
                             codeComp_isUDT = false;
                             codeComp_udt_index = -1;
@@ -6341,16 +6406,24 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
 
                         if(codeHint)
                         {
+                            #ifndef __WIN32__
                             delete codeHint;
                             codeHint = NULL;
+                            #else
+                            codeHint->Show(false);
+                            #endif // __WIN32__
                         }
                     }
                 }
             }
             else if(codeHint)
             {
+                #ifndef __WIN32__
                 delete codeHint;
                 codeHint = NULL;
+                #else
+                codeHint->Show(false);
+                #endif // __WIN32__
             }
 
             if(codeComp)
@@ -6375,8 +6448,13 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
                     codeComp->Show(false);
 
                     //???
+                    #ifndef __WIN32__
                     delete codeComp;
                     codeComp = NULL;
+                    #else
+                    codeComp->getListBox()->Clear();
+                    #endif // __WIN32__
+
                     codeComp_lockIn = false;
                     codeComp_isUDT = false;
                     codeComp_udt_index = -1;
@@ -6463,8 +6541,14 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
                         {
                             t->setShowComp(false);
                             codeComp->Show(false);
+
+                            #ifndef __WIN32__
                             delete codeComp;
                             codeComp = NULL;
+                            #else
+                            codeComp->getListBox()->Clear();
+                            #endif // __WIN32__
+
                             codeComp_lockIn = false;
                             codeComp_isUDT = false;
                             codeComp_udt_index = -1;

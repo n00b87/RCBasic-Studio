@@ -100,13 +100,20 @@ void rcbasic_edit_codeHint_window::updateDoc()
 
     //std::cout << "TST: " << ln_width << ", " << str_len << std::endl;
 
-    if(this->GetClientSize().GetWidth() < ln_width)
-    {
+    //if(this->GetClientSize().GetWidth() < ln_width)
+    //{
         m_doc_htmlWin->SetClientSize( ln_width, m_doc_htmlWin->GetClientSize().GetHeight());
         this->SetClientSize( ln_width, this->GetClientSize().GetHeight());
+
+        //m_doc_htmlWin->Layout();
+
         this->Refresh();
-        this->Update();
-    }
+        //this->Update();
+    //}
+    //else
+    //{
+    //    this->Refresh();
+    //}
 }
 
 wxHtmlWindow* rcbasic_edit_codeHint_window::getHtmlWindow()

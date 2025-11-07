@@ -909,7 +909,7 @@ class rc_codeCompletion_window : public wxPanel
 
 	public:
 
-		rc_codeCompletion_window( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 857,212 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+		rc_codeCompletion_window( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 857,212 ), long style = wxCLIP_CHILDREN|wxNO_FULL_REPAINT_ON_RESIZE|wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
 
 		~rc_codeCompletion_window();
 
