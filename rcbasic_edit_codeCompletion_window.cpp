@@ -51,6 +51,7 @@ void rcbasic_edit_codeCompletion_window::setCompList(wxArrayString cc_list)
 
     if(cc_list.size() > 0)
     {
+        //std::cout << "ballz" << std::endl;
         m_symbol_listBox->SetSelection(0);
         m_symbol_listBox->EnsureVisible(0);
     }
@@ -114,8 +115,14 @@ void rcbasic_edit_codeCompletion_window::updateDoc(bool is_udt, int udt_index)
     utype_index = udt_index;
     use_udt_db = is_udt;
 
+    if(is_udt && (udt_index < 0))
+        return;
+
     if(m_symbol_listBox->GetSelection() >= 0 & m_symbol_listBox->GetSelection() < m_symbol_listBox->GetCount())
         current_symbol = m_symbol_listBox->GetString(m_symbol_listBox->GetSelection()).Lower().Trim();
+
+    if(current_symbol.Trim().compare(_(""))==0)
+        return;
 
     if(is_udt)
     {

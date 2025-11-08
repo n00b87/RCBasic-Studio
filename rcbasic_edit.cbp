@@ -10,45 +10,61 @@
 				<Option output="bin/Debug/rcbasic_edit" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="mingw64" />
 				<Compiler>
 					<Add option="-g" />
+					<Add directory="C:/dev/wxWidgets-3.2.8/include" />
+					<Add directory="C:/dev/wxWidgets-3.2.8/lib/gcc810_x64_dll/mswud" />
 				</Compiler>
+				<ResourceCompiler>
+					<Add directory="C:/dev/wxWidgets-3.2.8/include" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-Wl,--allow-multiple-definition" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxbase32ud.a" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxmsw32ud_aui.a" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxmsw32ud_core.a" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxmsw32ud_richtext.a" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxmsw32ud_stc.a" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxpngd.a" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxzlibd.a" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxmsw32ud_html.a" />
+					<Add directory="C:/dev/wxWidgets-3.2.8/lib/gcc810_x64_dll" />
+				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/rcbasic_edit" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
-				<Option type="1" />
+				<Option type="0" />
 				<Option compiler="mingw64" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add directory="C:/dev/wxWidgets-3.2.6/include" />
-					<Add directory="C:/dev/wxWidgets-3.2.6/lib/gcc810_x64_dll/mswu" />
+					<Add directory="C:/dev/wxWidgets-3.2.8/include" />
+					<Add directory="C:/dev/wxWidgets-3.2.8/lib/gcc810_x64_dll/mswu" />
 				</Compiler>
 				<ResourceCompiler>
-					<Add directory="C:/dev/wxWidgets-3.2.6/include" />
+					<Add directory="C:/dev/wxWidgets-3.2.8/include" />
 				</ResourceCompiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="-Wl,--allow-multiple-definition -mwindows" />
-					<Add library="../wxWidgets-3.2.6/lib/gcc810_x64_dll/libwxbase32u.a" />
-					<Add library="../wxWidgets-3.2.6/lib/gcc810_x64_dll/libwxmsw32u_aui.a" />
-					<Add library="../wxWidgets-3.2.6/lib/gcc810_x64_dll/libwxmsw32u_core.a" />
-					<Add library="../wxWidgets-3.2.6/lib/gcc810_x64_dll/libwxmsw32u_richtext.a" />
-					<Add library="../wxWidgets-3.2.6/lib/gcc810_x64_dll/libwxmsw32u_stc.a" />
-					<Add library="../wxWidgets-3.2.6/lib/gcc810_x64_dll/libwxpng.a" />
-					<Add library="../wxWidgets-3.2.6/lib/gcc810_x64_dll/libwxzlib.a" />
-					<Add directory="C:/dev/wxWidgets-3.2.6/lib/gcc810_x64_dll" />
+					<Add option="-Wl,--allow-multiple-definition" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxbase32u.a" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxmsw32u_aui.a" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxmsw32u_core.a" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxmsw32u_richtext.a" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxmsw32u_stc.a" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxpng.a" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxzlib.a" />
+					<Add library="../wxWidgets-3.2.8/lib/gcc810_x64_dll/libwxmsw32u_html.a" />
+					<Add directory="C:/dev/wxWidgets-3.2.8/lib/gcc810_x64_dll" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
-			<Add directory="C:/dev/wxWidgets-3.2.6/include" />
+			<Add option="-DRCBASIC_STUDIO_VERSION=4.7" />
 		</Compiler>
-		<Unit filename="GUIDialog.cpp" />
-		<Unit filename="GUIDialog.h" />
 		<Unit filename="build_menu.cpp" />
 		<Unit filename="constants.h" />
 		<Unit filename="drag_files.h" />
@@ -75,10 +91,10 @@
 		<Unit filename="rc_utility.h" />
 		<Unit filename="rcbasic_edit.cpp" />
 		<Unit filename="rcbasic_edit.h" />
-		<Unit filename="rcbasic_editApp.cpp" />
-		<Unit filename="rcbasic_editApp.h" />
-		<Unit filename="rcbasic_editMain.cpp" />
-		<Unit filename="rcbasic_editMain.h" />
+		<Unit filename="rcbasic_edit_codeCompletion_window.cpp" />
+		<Unit filename="rcbasic_edit_codeCompletion_window.h" />
+		<Unit filename="rcbasic_edit_codeHint_window.cpp" />
+		<Unit filename="rcbasic_edit_codeHint_window.h" />
 		<Unit filename="rcbasic_edit_fileProperties_dialog.cpp" />
 		<Unit filename="rcbasic_edit_fileProperties_dialog.h" />
 		<Unit filename="rcbasic_edit_frame.cpp" />
