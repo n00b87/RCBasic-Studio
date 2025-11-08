@@ -100,8 +100,10 @@ void rcbasic_edit_codeHint_window::updateDoc()
 
     //std::cout << "TST: " << ln_width << ", " << str_len << std::endl;
 
-    //if(this->GetClientSize().GetWidth() < ln_width)
-    //{
+    #ifndef __WIN32__
+    if(this->GetClientSize().GetWidth() < ln_width)
+    #endif // __WIN32__
+    {
         m_doc_htmlWin->SetClientSize( ln_width, m_doc_htmlWin->GetClientSize().GetHeight());
         this->SetClientSize( ln_width, this->GetClientSize().GetHeight());
 
@@ -109,7 +111,8 @@ void rcbasic_edit_codeHint_window::updateDoc()
 
         this->Refresh();
         //this->Update();
-    //}
+
+    }
     //else
     //{
     //    this->Refresh();
