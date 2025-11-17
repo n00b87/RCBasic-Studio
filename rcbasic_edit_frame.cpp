@@ -5639,8 +5639,11 @@ void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
                         delete codeComp;
                     codeComp = NULL;
                     #else
-                    codeComp->getListBox()->Clear();
-                    codeComp->Show(false);
+                    if(codeComp)
+                    {
+                        codeComp->getListBox()->Clear();
+                        codeComp->Show(false);
+                    }
                     #endif
                     codeComp_lockIn = false;
                     codeComp_isUDT = false;
@@ -6356,12 +6359,15 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
                         codeComp_isUDT = false;
                     //std::cout << "UDT: " << current_symbol.ToStdString() << ", " << udt_index << ", " << (udt_index >= 0 ? codeComp_udt_db.udt[udt_index].type_name.ToStdString() : "-1") << std::endl;
 
-                    #ifndef __WIN32__
-                    delete codeHint;
-                    codeHint = NULL;
-                    #else
-                    codeHint->Show(false);
-                    #endif
+                    if(codeHint)
+                    {
+                        #ifndef __WIN32__
+                        delete codeHint;
+                        codeHint = NULL;
+                        #else
+                        codeHint->Show(false);
+                        #endif
+                    }
 
                     show_codeHint = false;
                     codeComp_comma = false;
@@ -6561,26 +6567,30 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
                 }
                 else
                 {
-                    int n = codeComp->getListBox()->GetSelection();
-                    if(n >= 0 && n < codeComp->getListBox()->GetCount())
+                    if(codeComp)
                     {
-                        if(codeComp->getListBox()->GetString(n).Lower().Trim().compare(codeComp_current_symbol)!=0)
+                        int n = codeComp->getListBox()->GetSelection();
+                        if(n >= 0 && n < codeComp->getListBox()->GetCount())
                         {
-                            codeComp_current_symbol = codeComp->getListBox()->GetString(n).Lower().Trim();
-                            codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
+                            if(codeComp->getListBox()->GetString(n).Lower().Trim().compare(codeComp_current_symbol)!=0)
+                            {
+                                codeComp_current_symbol = codeComp->getListBox()->GetString(n).Lower().Trim();
+                                codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
 
-                            #ifdef __WIN32__
-                            codeComp_redrawDoc = false;
-                            #endif // __WIN32__
+                                #ifdef __WIN32__
+                                codeComp_redrawDoc = false;
+                                #endif // __WIN32__
+                            }
                         }
+                        #ifdef __WIN32__
+                        else if(codeComp_redrawDoc)
+                        {
+                            codeComp_redrawDoc = false;
+                            if(codeComp)
+                                codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
+                        }
+                        #endif // __WIN32__
                     }
-                    #ifdef __WIN32__
-                    else if(codeComp_redrawDoc)
-                    {
-                        codeComp_redrawDoc = false;
-                        codeComp->updateDoc(codeComp_isUDT, codeComp_udt_index);
-                    }
-                    #endif // __WIN32__
                 }
 
                 #ifdef __WIN32__
