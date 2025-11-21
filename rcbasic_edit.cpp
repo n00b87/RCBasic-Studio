@@ -3071,7 +3071,7 @@ rc_codeHint_window::rc_codeHint_window( wxWindow* parent, wxWindowID id, const w
 
 	bSizer135 = new wxBoxSizer( wxHORIZONTAL );
 
-	m_doc_htmlWin = new wxHtmlWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO );
+	m_doc_htmlWin = new wxHtmlWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_NEVER );
 	m_doc_htmlWin->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_ACTIVECAPTION ) );
 
 	bSizer135->Add( m_doc_htmlWin, 1, wxALL|wxEXPAND, 0 );

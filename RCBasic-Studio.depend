@@ -26,7 +26,7 @@
 	<wx/txtstrm.h>
 	<vector>
 
-1762571376 /home/n00b/Projects/RCBasic-Studio/rcbasic_edit.h
+1763714192 /home/n00b/Projects/RCBasic-Studio/rcbasic_edit.h
 	<wx/artprov.h>
 	<wx/xrc/xmlres.h>
 	<wx/string.h>
@@ -2068,7 +2068,7 @@
 1694061647 source:/home/n00b/Projects/RCBasic-Studio/rc_newFile_dialog.cpp
 	"rc_newFile_dialog.h"
 
-1762464800 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit.cpp
+1763714192 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit.cpp
 	"rcbasic_edit.h"
 
 1694061647 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit_fileProperties_dialog.cpp
@@ -2393,7 +2393,7 @@
 	"rcbasic_edit.h"
 	"rcbasic_symbol.h"
 
-1762571376 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit_codeCompletion_window.cpp
+1763714235 source:/home/n00b/Projects/RCBasic-Studio/rcbasic_edit_codeCompletion_window.cpp
 	<wx/wx.h>
 	<wx/simplebook.h>
 	"rcbasic_edit_codeCompletion_window.h"

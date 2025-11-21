@@ -5533,6 +5533,9 @@ void rcbasic_edit_frame::showCodeHint(wxString cc_token, int arg_num)
             x = m_textCtrl->GetClientSize().GetWidth() - codeHint->GetClientSize().GetWidth();
         }
 
+        if(x < 0)
+            x = 0;
+
         codeHint->Move(x, y);
 
         wxPoint posInWindow = this->ScreenToClient(codeHint->GetScreenPosition());
