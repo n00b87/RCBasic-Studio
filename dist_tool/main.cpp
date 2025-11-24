@@ -750,7 +750,7 @@ bool dist_android()
     build_file << droid_cmd << std::endl;
     build_file.close();
 
-    system("./build_droid.sh");
+    system("chmod +x build_droid.sh && ./build_droid.sh");
 
 
     if(!fileExist(out_file))
