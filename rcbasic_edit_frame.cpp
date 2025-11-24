@@ -5182,6 +5182,9 @@ void rcbasic_edit_frame::showCodeComp(wxArrayString cc_list)
 
     for(int i = 0; i < insCol; i++)
     {
+        if(i >= ln_txt.Length())
+            break;
+
         if(ln_txt.substr(i,1).compare(_("\""))==0)
             is_valid_pos = !is_valid_pos;
 
@@ -5351,6 +5354,9 @@ void rcbasic_edit_frame::showCodeHint(wxString cc_token, int arg_num)
 
     for(int i = 0; i < insCol; i++)
     {
+        if(i >= ln_txt.Length())
+            break;
+
         if(ln_txt.substr(i,1).compare(_("\""))==0)
             is_valid_pos = !is_valid_pos;
 
