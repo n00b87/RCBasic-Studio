@@ -1,6 +1,7 @@
 #include "rcbasic_editrc_genKey_dialog.h"
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
+#include <wx/stdpaths.h>
 
 rcbasic_editrc_genKey_dialog::rcbasic_editrc_genKey_dialog( wxWindow* parent )
 :
@@ -75,7 +76,24 @@ void rcbasic_editrc_genKey_dialog::onOKButtonClick( wxCommandEvent& event )
     //wxPuts(_("\nKeystore cmd = ") + keystore_cmd);
     //wxPuts(_("\n"));
 
-    int exit_code = wxSystem(keystore_cmd);
+    wxFile gen_script;
+    wxString editor_path = wxStandardPaths::Get().GetExecutablePath();
+
+    wxFileName gen_script_fname(editor_path);
+    gen_script_fname.AppendDir(_("bin"));
+    gen_script_fname.SetFullName(_("key_gen.sh"));
+
+    if(!gen_script.Create(gen_script_fname.GetFullPath(), true))
+    {
+        wxMessageBox(_("Could not output key generate script"));
+        return;
+    }
+
+    gen_script.Write(keystore_cmd + _("\n"));
+    gen_script.Close();
+
+    int exit_code = wxSystem(_("cd ") + gen_script_fname.GetPath() + _(" && chmod +x key_gen.sh && ./key_gen.sh"));
+    //int exit_code = wxSystem(keystore_cmd);
 
     if(exit_code != 0)
     {
