@@ -5988,6 +5988,9 @@ wxString rcbasic_edit_frame::getTokenAtCaret(int pos, int* arg_num)
 
         for(int i = 0; i < line_pos; i++)
         {
+            if(i >= current_line.Length())
+                break;
+
             wxString current_char = current_line.substr(i, 1);
 
             udt_current_index = -1; //This should only be >= 0 outside loop if period was the last character
