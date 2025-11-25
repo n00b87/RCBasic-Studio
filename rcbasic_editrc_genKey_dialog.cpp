@@ -114,21 +114,6 @@ void rcbasic_editrc_genKey_dialog::onOKButtonClick( wxCommandEvent& event )
     }
 
 	isRunning = true;
-
-	return;
-
-
-    int exit_code = wxSystem(_("cd ") + gen_script_fname.GetPath() + _(" && chmod +x key_gen.sh && ./key_gen.sh"));
-    //int exit_code = wxSystem(keystore_cmd);
-
-    if(exit_code != 0)
-    {
-        wxMessageBox(_("Failed to create keystore."));
-        return;
-    }
-
-    wxMessageBox(_("Keystore was successfully created"));
-    Close();
 }
 
 void rcbasic_editrc_genKey_dialog::onCancelButtonClick( wxCommandEvent& event )
