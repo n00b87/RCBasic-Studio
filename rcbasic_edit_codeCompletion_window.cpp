@@ -187,18 +187,24 @@ void rcbasic_edit_codeCompletion_window::updateDoc(bool is_udt, int udt_index)
         comments.Replace(_("\n"), _("<br>"));
 
         //std::cout << "ID: " << id_name.ToStdString() << std::endl;
+        int symbol_type = ( field_index >= 0 ? CC_SYMBOL_TYPE_VAR : user_db->symbol[user_index].symbol_type);
 
         if(user_index >= 0)
         {
             if(user_db->symbol[user_index].symbol_type == CC_SYMBOL_TYPE_VAR)
             {
-                for(int i = 0; i < user_db->symbol[user_index].dimensions; i++)
+                /*
+                if(user_db->symbol[user_index].dimensions > 0 && user_db->symbol[user_index].dimensions <= 3)
                 {
-                    if(i > 0)
-                        id_args += _(", ");
+                    for(int i = 0; i < user_db->symbol[user_index].dimensions; i++)
+                    {
+                        if(i > 0)
+                            id_args += _(", ");
 
-                    id_args += _("N");
+                        id_args += _("N");
+                    }
                 }
+                */
             }
             else
             {
@@ -213,16 +219,20 @@ void rcbasic_edit_codeCompletion_window::updateDoc(bool is_udt, int udt_index)
         }
         else
         {
-            for(int i = 0; i < utype_db->udt[udt_index].field[field_index].num_dimensions; i++)
+            /*
+            if(utype_db->udt[udt_index].field[field_index].num_dimensions > 0 && utype_db->udt[udt_index].field[field_index].num_dimensions <= 3)
             {
-                if(i > 0)
-                    id_args += _(", ");
+                for(int i = 0; i < utype_db->udt[udt_index].field[field_index].num_dimensions; i++)
+                {
+                    if(i > 0)
+                        id_args += _(", ");
 
-                id_args += _("N");
+                    id_args += _("N");
+                }
             }
+            */
         }
 
-        int symbol_type = ( field_index >= 0 ? CC_SYMBOL_TYPE_VAR : user_db->symbol[user_index].symbol_type);
 
         switch(symbol_type)
         {
