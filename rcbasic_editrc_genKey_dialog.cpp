@@ -12,13 +12,15 @@ rc_genKey_dialog( parent )
 
 void rcbasic_editrc_genKey_dialog::onOKButtonClick( wxCommandEvent& event )
 {
+    if(isRunning)
+       return;
 // TODO: Implement onOKButtonClick
 
     wxFileDialog openFileDialog(this, _("Save Keystore As"), _(""), _(""), _("Keystore (*.keystore)|*.keystore"), wxFD_SAVE);
     if (openFileDialog.ShowModal() == wxID_CANCEL)
         return;     // the user changed idea...
 
-    wxFileName fname(openFileDialog.GetPath());
+    fname = wxFileName(openFileDialog.GetPath());
 
     if(fname.GetFullName().Length() <= 0)
     {
@@ -92,6 +94,30 @@ void rcbasic_editrc_genKey_dialog::onOKButtonClick( wxCommandEvent& event )
     gen_script.Write(keystore_cmd + _("\n"));
     gen_script.Close();
 
+
+    process = new wxProcess(this);
+    if(!process)
+        return;
+
+    process->Redirect();
+	process->Connect( wxEVT_END_PROCESS, wxProcessEventHandler( rcbasic_editrc_genKey_dialog::onKeyGenProcessTerminate ), NULL, this );
+
+
+	pid = wxExecute(gen_script_fname.GetAbsolutePath(), wxEXEC_ASYNC, process, NULL);
+
+	if(pid < 0)
+    {
+        if(process)
+            delete process;
+        process = NULL;
+        return;
+    }
+
+	isRunning = true;
+
+	return;
+
+
     int exit_code = wxSystem(_("cd ") + gen_script_fname.GetPath() + _(" && chmod +x key_gen.sh && ./key_gen.sh"));
     //int exit_code = wxSystem(keystore_cmd);
 
@@ -107,6 +133,33 @@ void rcbasic_editrc_genKey_dialog::onOKButtonClick( wxCommandEvent& event )
 
 void rcbasic_editrc_genKey_dialog::onCancelButtonClick( wxCommandEvent& event )
 {
-// TODO: Implement onCancelButtonClick
+    if(isRunning)
+       return;
+
+    Close();
+}
+
+
+
+void rcbasic_editrc_genKey_dialog::onKeyGenProcessTerminate( wxProcessEvent& event )
+{
+    process->CloseOutput();
+
+    wxKill(pid);
+    if(process)
+        delete process;
+    process = NULL;
+
+    isRunning = false;
+
+    if(fname.Exists())
+    {
+        wxMessageBox(_("Successfully created key"));
+    }
+    else
+    {
+        wxMessageBox(_("Failed to create key"));
+    }
+
     Close();
 }
