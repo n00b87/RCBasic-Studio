@@ -883,10 +883,10 @@ int main(int argc, char * argv[])
         PROJECT_CBC = "main.cbc";
     }
 
-    if(dirExist(appendFileToPath(PROJECT_DIR,".shaders")))
-        dirDelete(appendFileToPath(PROJECT_DIR,".shaders"));
+    if(dirExist(appendFileToPath(PROJECT_DIR,"shaders")))
+        dirDelete(appendFileToPath(PROJECT_DIR,"shaders"));
 
-    dirCopy(appendFileToPath(DIST_PKG_PATH,".shaders"), appendFileToPath(PROJECT_DIR,".shaders"));
+    dirCopy(appendFileToPath(DIST_PKG_PATH,".shaders"), appendFileToPath(PROJECT_DIR,"shaders"));
 
 
     bool win32_status = dist_desktop(DIST_OS_WIN, 32);
