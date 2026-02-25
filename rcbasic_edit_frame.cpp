@@ -79,7 +79,7 @@ int rcbasic_edit_frame::pfile_addSymbol(rcbasic_project* p, rcbasic_symbol sym)
 
 
 
-bool rcbasic_edit_frame::pfile_runParser(rcbasic_project* p)
+bool rcbasic_edit_frame::pfile_runParser(rcbasic_project* p, bool mutex_locked)
 {
     p->project_symbols.clear();
     std::vector<rcbasic_project_node*> source_files = p->getSourceFiles();
@@ -145,7 +145,8 @@ bool rcbasic_edit_frame::pfile_runParser(rcbasic_project* p)
 
                 sym.sub_sym.clear();
 
-                notebook_mutex.Lock();
+                if(!mutex_locked)
+                    notebook_mutex.Lock();
 
                 if(id_tokens[t_count].is_sub_token)
                 {
@@ -160,7 +161,8 @@ bool rcbasic_edit_frame::pfile_runParser(rcbasic_project* p)
                 else
                     parent_token_index = pfile_addSymbol(p, sym);;
 
-                notebook_mutex.Unlock();
+                if(!mutex_locked)
+                    notebook_mutex.Unlock();
             }
 
         }
@@ -2888,9 +2890,11 @@ void rcbasic_edit_frame::onSaveFileAsMenuSelect( wxCommandEvent& event )
 
 void rcbasic_edit_frame::onSaveProjectMenuSelect( wxCommandEvent& event )
 {
+    notebook_mutex.Lock();
     if(!active_project)
     {
         wxMessageBox(_("There is no active project selected"));
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -2905,10 +2909,12 @@ void rcbasic_edit_frame::onSaveProjectMenuSelect( wxCommandEvent& event )
         #endif
 
         if(project_fname.GetFullPath().compare(_(""))==0)
+        {
+            notebook_mutex.Unlock();
             return;
+        }
     }
 
-    notebook_mutex.Lock();
     //SAVE FILES IN PROJECT
     std::vector<rcbasic_project_node*> pf_nodes = active_project->getSourceFiles();
     for(int i = 0; i < open_files.size(); i++)
@@ -2932,16 +2938,18 @@ void rcbasic_edit_frame::onSaveProjectMenuSelect( wxCommandEvent& event )
     }
 
     active_project->saveProject(project_fname);
-    pfile_runParser(active_project);
+    pfile_runParser(active_project, true);
 
     notebook_mutex.Unlock();
 }
 
 void rcbasic_edit_frame::onSaveProjectAsMenuSelect( wxCommandEvent& event )
 {
+    notebook_mutex.Lock();
     if(!active_project)
     {
         wxMessageBox(_("There is no active project selected"));
+        notebook_mutex.Unlock();
         return;
     }
 
@@ -2954,9 +2962,11 @@ void rcbasic_edit_frame::onSaveProjectAsMenuSelect( wxCommandEvent& event )
     #endif
 
     if(project_fname.GetFullPath().compare(_(""))==0)
+    {
+        notebook_mutex.Unlock();
         return;
+    }
 
-    notebook_mutex.Lock();
     for(int i = 0; i < open_files.size(); i++)
     {
         if(!open_files[i])
@@ -2975,6 +2985,7 @@ void rcbasic_edit_frame::onSaveProjectAsMenuSelect( wxCommandEvent& event )
     }
 
     active_project->saveProject(project_fname);
+    pfile_runParser(active_project, true);
     notebook_mutex.Unlock();
 }
 
@@ -5166,8 +5177,13 @@ void rcbasic_edit_frame::showCodeComp(wxArrayString cc_list)
 		y *= ((insRow+1) - topRow);
 	} else if (insRow > botRow) {
 
+		y = m_textCtrl->TextHeight(0); // GetTextExtent is fine for x but the text height doesn't always match what it returns
+		y *= ((insRow+1) - topRow);
+
 		// if the insertion point is not shown, the Y position is set to the bottom
-		y = txtBottom.y;
+    }
+    else {
+            y = txtBottom.y;
 	}
 
 	int ln_num = m_textCtrl->GetCurrentLine();
@@ -5223,6 +5239,7 @@ void rcbasic_edit_frame::showCodeComp(wxArrayString cc_list)
 
 	if(!codeComp)
     {
+        //std::cout << "xy: " << x << ", " << y << ",  Bottom = " << txtBottom.y << ", botRow = " << botRow << ",  insRow = " << insRow << ",  topRow = " << topRow << ", txt_h = " << m_textCtrl->TextHeight(0) << std::endl;
         codeComp = new rcbasic_edit_codeCompletion_window(this, &codeComp_symbol_db, &codeComp_user_db, &codeComp_udt_db, codeComp_isUDT, codeComp_udt_index);
         codeComp->Show(false);
     }
