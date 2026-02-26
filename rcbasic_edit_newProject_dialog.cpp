@@ -6,6 +6,8 @@ rcbasic_edit_newProject_dialog::rcbasic_edit_newProject_dialog( wxWindow* parent
 rc_newProject_dialog( parent )
 {
     newProjectValue = false;
+
+    projectNewMain_field->SetValue(_("main.bas"));
 }
 
 void rcbasic_edit_newProject_dialog::cancelNewProject( wxCommandEvent& event )

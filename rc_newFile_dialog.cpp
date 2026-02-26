@@ -5,6 +5,8 @@ rcbasic_edit_newFile_dialog::rcbasic_edit_newFile_dialog( wxWindow* parent )
 rc_newFile_dialog( parent )
 {
     newFileFlag = 0;
+
+    createNewSource_addToProject_checkBox->SetValue(true);
 }
 
 void rcbasic_edit_newFile_dialog::onCreateNewSourceCancel( wxCommandEvent& event )
