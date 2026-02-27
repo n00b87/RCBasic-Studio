@@ -477,6 +477,8 @@ class rcbasic_edit_frame : public rc_ideFrame
 
         wxArrayString id_list;
         wxArrayString user_id_list;
+        wxArrayInt cc_word_size;
+        wxArrayString cc_word_tmp;
         int kw_count;
         int lenCompletionCheck;
 
@@ -490,6 +492,8 @@ class rcbasic_edit_frame : public rc_ideFrame
         void pfile_readContents(wxString file_path);
         int pfile_addSymbol(rcbasic_project* p, rcbasic_symbol sym);
         bool pfile_runParser(rcbasic_project* p, bool mutex_locked=false);
+
+        bool isInCCArrayList(int n);
 
 		DECLARE_EVENT_TABLE();
 		//void replaceInSelection(int findDialog_flag, wxString txt);

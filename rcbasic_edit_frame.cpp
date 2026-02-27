@@ -5580,6 +5580,16 @@ void rcbasic_edit_frame::showCodeHint(wxString cc_token, int arg_num)
     return;
 }
 
+bool rcbasic_edit_frame::isInCCArrayList(int n)
+{
+    for(int i = 0; i < cc_word_size.size(); i++)
+    {
+        if(cc_word_size[i] == n)
+            return true;
+    }
+    return false;
+}
+
 void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
 {
     notebook_mutex.Lock();
@@ -5644,6 +5654,7 @@ void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
             bool item_added = false;
 
             wxArrayString n_cc_list;
+            cc_word_size.clear();
 
             if(codeComp_isUDT)
             {
@@ -5656,6 +5667,9 @@ void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
                         {
                             //cc_list += user_id_list[i] + _(" ");
                             n_cc_list.Add(codeComp_udt_db.udt[codeComp_udt_index].field[i].display_name);
+                            int word_size = (int)codeComp_udt_db.udt[codeComp_udt_index].field[i].display_name.Length();
+                            if(!isInCCArrayList(word_size))
+                                cc_word_size.push_back(word_size);
                             item_added = true;
                         }
                         //else if(item_added)
@@ -5689,6 +5703,11 @@ void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
                     {
                         //cc_list += user_id_list[i] + _(" ");
                         n_cc_list.Add(user_id_list[i]);
+
+                        int word_size = (int)user_id_list[i].Length();
+                        if(!isInCCArrayList(word_size))
+                            cc_word_size.push_back(word_size);
+
                         item_added = true;
                     }
                     //else if(item_added)
@@ -5699,7 +5718,36 @@ void rcbasic_edit_frame::onTextCtrlModified( wxStyledTextEvent& event )
             //cc_list += "_____________________________________ ";
 
             //rc_txtCtrl->AutoCompShow(lenEntered, cc_list);
-            showCodeComp(n_cc_list);
+
+            //Sort list
+            int tmp_i = 0;
+            for(int a = 0; a < cc_word_size.size(); a++)
+            {
+                for(int b = a+1; b < cc_word_size.size(); b++)
+                {
+                    if(cc_word_size[b] < cc_word_size[a])
+                    {
+                        tmp_i = cc_word_size[a];
+                        cc_word_size[a] = cc_word_size[b];
+                        cc_word_size[b] = tmp_i;
+                    }
+                }
+            }
+
+            cc_word_tmp.clear();
+            for(int i = 0; i < cc_word_size.size(); i++)
+            {
+                for(int word_index = 0; word_index < n_cc_list.size(); word_index++)
+                {
+                    if(n_cc_list[word_index].Length() == cc_word_size[i])
+                    {
+                        cc_word_tmp.push_back(n_cc_list[word_index]);
+                    }
+                }
+            }
+
+            showCodeComp(cc_word_tmp);
+            //showCodeComp(n_cc_list);
         }
     }
 
