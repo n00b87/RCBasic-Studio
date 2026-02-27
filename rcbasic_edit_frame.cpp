@@ -25,6 +25,9 @@
 
 void rcbasic_edit_frame::pfile_readContents(wxString file_path)
 {
+    if(!wxFileExists(file_path))
+        return;
+
     pfile_contents.clear();
 
     //rcbasic_edit_frame* frame = (rcbasic_edit_frame*) parent_frame;
@@ -317,6 +320,7 @@ void rc_styledTextCtrl::OnKeyDown( wxKeyEvent& event )
             }
             break;
 
+        case 41:  //close parenthesis
         case WXK_ESCAPE:
             codeComp_comma = false;
             show_codeHint = false;
