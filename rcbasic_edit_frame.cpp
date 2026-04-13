@@ -175,7 +175,9 @@ bool rcbasic_edit_frame::pfile_runParser(rcbasic_project* p, bool mutex_locked)
 
     for(int i = 0; i < p->project_symbols.size(); i++)
     {
-        notebook_mutex.Lock();
+        if(!mutex_locked)
+            notebook_mutex.Lock();
+
         rcbasic_symbol sym = p->project_symbols[i];
 
         if(sym.symbol_type == CC_SYMBOL_TYPE_UDT)
@@ -199,7 +201,9 @@ bool rcbasic_edit_frame::pfile_runParser(rcbasic_project* p, bool mutex_locked)
             }
             codeComp_udt_db.udt.push_back(n_type);
         }
-        notebook_mutex.Unlock();
+
+        if(!mutex_locked)
+            notebook_mutex.Unlock();
     }
 
     return true;
