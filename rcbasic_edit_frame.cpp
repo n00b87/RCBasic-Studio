@@ -6833,6 +6833,7 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
         if(dbg_message_file.Exists())
         {
             m_debugMessage_richText->AppendText(getDebugMessage());
+            m_results_notebook->SetSelection(RESULTS_LISTBOX_DEBUGMSG);
         }
         isDebug_Started = false;
         dbg_message_file.SetFullName(_(""));
