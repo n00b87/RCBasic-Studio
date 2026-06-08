@@ -27,7 +27,7 @@ void rcbasic_edit_frame::onAboutMenuSelect( wxCommandEvent& event )
     #ifdef COS_BASIC
     wxString msg = _("Commodore OS BASIC Studio v[Version]");
     #else
-    wxString msg = _("RCBASIC Studio v[Version]\nCopyright (C) 2025 Rodney Cunningham ( aka n00b )\n\nFor latest release, updates, and info go to \nhttp://www.rcbasic.com\n\nAnd the forum at \nhttp://rcbasic.freeforums.net");
+    wxString msg = _("RCBASIC Studio v[Version]\nCopyright (C) 2026 Rodney Cunningham ( aka n00b )\n\nFor latest release, updates, and info go to \nhttp://www.rcbasic.com\n\nAnd the forum at \nhttp://rcbasic.freeforums.net");
     #endif
 
     msg.Replace(_("[Version]"), wxString::FromDouble(RCBASIC_STUDIO_VERSION,1));

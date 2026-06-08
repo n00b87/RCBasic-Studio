@@ -457,7 +457,20 @@ void rcbasic_edit_frame::runProject()
     main_source.SetExt(_("cbc"));
 
     #ifdef _WIN32
-    run_file.Write(_("\"") + rcbasic_run_path.GetFullPath() + _("\" \"") + main_source.GetFullPath() + _("\" \r\n"));
+    if(isDebugging)
+    {
+        wxFileName debug_path = rcbasic_run_path;
+        debug_path.SetName(_("rcbasic_studio_debug"));
+
+        wxFileName debug_source = main_source;
+        debug_source.SetName(_("debug"));
+
+        run_file.Write(_("\"") + debug_path.GetFullPath() + _("\" \"") + debug_source.GetFullPath() + _("\" \r\n"));
+    }
+    else
+    {
+        run_file.Write(_("\"") + rcbasic_run_path.GetFullPath() + _("\" \"") + main_source.GetFullPath() + _("\" \r\n"));
+    }
     run_file.Write(_("PAUSE\r\n"));
     run_file.Close();
 

@@ -63,7 +63,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
-			<Add option="-DRCBASIC_STUDIO_VERSION=4.7" />
+			<Add option="-DRCBASIC_STUDIO_VERSION=4.9" />
 		</Compiler>
 		<Unit filename="build_menu.cpp" />
 		<Unit filename="constants.h" />
