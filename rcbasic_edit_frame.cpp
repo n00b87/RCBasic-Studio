@@ -2118,7 +2118,10 @@ void rcbasic_edit_frame::applyScheme(rc_styledTextCtrl* rc_txtCtrl)
     if(editor_scheme.comment_fg_color_set)
     {
         if(rc_txtCtrl)
+        {
             rc_txtCtrl->StyleSetForeground(wxSTC_B_COMMENT, editor_scheme.comment_fg_color);
+            rc_txtCtrl->StyleSetForeground(wxSTC_B_COMMENTBLOCK, editor_scheme.comment_fg_color);
+        }
     }
 
     //wxPuts(_("Debug 8"));
@@ -4208,6 +4211,7 @@ void rcbasic_edit_frame::onGotoMenuSelect( wxCommandEvent& event )
 void rcbasic_edit_frame::updateFont(rc_styledTextCtrl* t)
 {
     t->StyleSetFont(wxSTC_B_COMMENT, editor_font);
+    t->StyleSetFont(wxSTC_B_COMMENTBLOCK, editor_font);
     t->StyleSetFont(wxSTC_B_CONSTANT, editor_font);
     t->StyleSetFont(wxSTC_B_DATE, editor_font);
     t->StyleSetFont(wxSTC_B_DEFAULT, editor_font);
