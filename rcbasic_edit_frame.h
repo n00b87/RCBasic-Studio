@@ -282,6 +282,8 @@ class rcbasic_edit_frame : public rc_ideFrame
         bool isRunning;
         bool isBuildingAndRunning;
         bool isDebugging;
+        bool isDebug_Started;
+        wxFileName dbg_message_file;
 
         int build_pid;
         int run_pid;
@@ -450,6 +452,8 @@ class rcbasic_edit_frame : public rc_ideFrame
 		bool loadEditorProperties(wxFileName fname);
 		bool saveEditorProperties(wxFileName fname);
 		bool loadDefaultViewProperties(wxFileName fname);
+
+		wxString getDebugMessage();
 
 		wxString getRCBasicBasePath();
         wxFileName getRCBasicBuildPath();

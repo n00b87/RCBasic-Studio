@@ -47,6 +47,7 @@ void rcbasic_edit_frame::onBuildProcessTerminate( wxProcessEvent& event )
         isBuildingAndRunning = false;
         build_success = false;
         isDebugging = false;
+        isDebug_Started = false;
     }
 
 
@@ -74,15 +75,13 @@ void rcbasic_edit_frame::onBuildProcessTerminate( wxProcessEvent& event )
             //wxMessageBox(_("Run Project: ") + main_fname.GetFullPath());
             runProject();
         }
-    }
 
-    if(isDebugging && build_success)
-    {
-        debugProject();
+        if(isDebugging)
+            isDebug_Started = true;
     }
-    else if(isDebugging)
+    else
     {
-        isDebugging = false;
+        isDebug_Started = false;
     }
 
     //wxPuts(_("PROCESS is dead"));
@@ -96,6 +95,10 @@ void rcbasic_edit_frame::onRunProcessTerminate( wxProcessEvent& event )
 
     isRunning = false;
     isBuildingAndRunning = false;
+    isDebugging = false;
+
+    dbg_message_file = build_run_project->getMainSource();
+    dbg_message_file.SetFullName(_("rcbasic.dbgm"));
 
     if(wxProcess::Exists(run_pid))
         wxKill(run_pid);
@@ -111,6 +114,8 @@ void rcbasic_edit_frame::onRunProcessTerminate( wxProcessEvent& event )
 
 void rcbasic_edit_frame::onBuildMenuSelect( wxCommandEvent& event )
 {
+    isDebugging = false;
+    isDebug_Started = false;
     buildProject();
 }
 
@@ -122,7 +127,7 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
     int rt = -1;
     rt = wxExecute(fs, wxEXEC_SYNC);*/
 
-    if(isBuilding || isRunning || isDebugging)
+    if(isBuilding || isRunning)
     {
         wxMessageBox(_("A Program is currently running"));
         return;
@@ -284,6 +289,7 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
 
     build_process->Connect( wxEVT_END_PROCESS, wxProcessEventHandler( rcbasic_edit_frame::onBuildProcessTerminate ), NULL, this );
 
+    m_debugMessage_richText->Clear();
     m_messageWindow_richText->Clear();
 
     build_process->Redirect();
@@ -351,12 +357,14 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
 
 void rcbasic_edit_frame::onRunMenuSelect( wxCommandEvent& event )
 {
+    isDebugging = false;
+    isDebug_Started = false;
     runProject();
 }
 
 void rcbasic_edit_frame::runProject()
 {
-    if(isBuilding || isRunning || isDebugging)
+    if(isBuilding || isRunning)
     {
         wxMessageBox(_("A Program is currently running"));
         return;
@@ -467,6 +475,19 @@ void rcbasic_edit_frame::runProject()
 
     wxString run_cmd = _("\"") + rcbasic_run_path.GetFullPath() + _("\" \"") + main_source.GetFullPath() + _("\"");
 
+    if(isDebugging)
+    {
+        wxFileName debug_path = rcbasic_run_path;
+        debug_path.SetName(_("rcbasic_studio_debug"));
+
+        wxFileName debug_source = main_source;
+        debug_source.SetName(_("debug"));
+
+        run_cmd = _("\"") + debug_path.GetFullPath() + _("\" \"") + debug_source.GetFullPath() + _("\"");
+
+        //wxMessageBox(_("DBG:") + run_cmd);
+    }
+
     //run_pid = wxExecute(_("\"") + run_file_fname.GetFullPath() + _("\"") , wxEXEC_SHOW_CONSOLE | wxEXEC_ASYNC, run_process, NULL);
     run_pid = wxExecute( run_cmd , wxEXEC_SHOW_CONSOLE | wxEXEC_ASYNC, run_process, NULL);
 
@@ -489,7 +510,7 @@ void rcbasic_edit_frame::runProject()
 
 void rcbasic_edit_frame::onBuildRunMenuSelect( wxCommandEvent& event )
 {
-    if(isBuilding || isRunning || isBuildingAndRunning || isDebugging)
+    if(isBuilding || isRunning || isBuildingAndRunning)
     {
         wxMessageBox(_("A Program is currently running"));
         return;
@@ -504,6 +525,8 @@ void rcbasic_edit_frame::onBuildRunMenuSelect( wxCommandEvent& event )
     m_results_notebook->SetSelection(RESULTS_LISTBOX_BUILDMSG);
 
     isBuildingAndRunning = true;
+    isDebugging = false;
+    isDebug_Started = false;
     buildProject();
 }
 
@@ -528,10 +551,15 @@ void rcbasic_edit_frame::onStopExecuteMenuSelect( wxCommandEvent& event )
         }
 
         wxString term_cmd = _("cd [editor_path] && echo $( ps ax | grep rcbasic_studio_run | grep [editor_path] ) > run_pid.txt");
+        wxString dbg_term_cmd = _("cd [editor_path] && echo $( ps ax | grep rcbasic_studio_debug | grep [editor_path] ) > run_pid.txt");
         term_cmd.Replace(_("[editor_path]"), editor_path_dir.GetFullPath());
         //wxPuts(_("-------------DEBUG-----------------"));
         //wxPuts(_("get pid: ") + term_cmd);
-        wxSystem(term_cmd);
+
+        if(isDebugging)
+            wxSystem(dbg_term_cmd);
+        else
+            wxSystem(term_cmd);
 
         wxFile pid_file;
 
@@ -570,18 +598,20 @@ void rcbasic_edit_frame::onStopExecuteMenuSelect( wxCommandEvent& event )
     isBuildingAndRunning = false;
     isBuilding = false;
     isDebugging = false;
+    isDebug_Started = false;
 }
 
 
 void rcbasic_edit_frame::onBuildFileMenuSelect( wxCommandEvent& event )
 {
     buildCurrentFile();
+    isDebugging = false;
 }
 
 void rcbasic_edit_frame::buildCurrentFile()
 {
 
-    if(isBuilding || isRunning || isDebugging)
+    if(isBuilding || isRunning)
     {
         wxMessageBox(_("A Program is currently running"));
         return;
@@ -673,12 +703,14 @@ void rcbasic_edit_frame::buildCurrentFile()
 
 void rcbasic_edit_frame::onRunFileMenuSelect( wxCommandEvent& event )
 {
+    isDebugging = false;
+    isDebug_Started = false;
     runCurrentFile();
 }
 
 void rcbasic_edit_frame::runCurrentFile()
 {
-    if(isBuilding || isRunning || isDebugging)
+    if(isBuilding || isRunning)
     {
         wxMessageBox(_("A Program is currently running"));
         return;
@@ -765,7 +797,7 @@ void rcbasic_edit_frame::runCurrentFile()
 
 void rcbasic_edit_frame::onBuildRunFileMenuSelect( wxCommandEvent& event )
 {
-    if(isBuilding || isRunning || isBuildingAndRunning || isDebugging)
+    if(isBuilding || isRunning || isBuildingAndRunning)
     {
         wxMessageBox(_("A Program is currently running"));
         return;
@@ -774,6 +806,8 @@ void rcbasic_edit_frame::onBuildRunFileMenuSelect( wxCommandEvent& event )
     m_results_notebook->SetSelection(RESULTS_LISTBOX_BUILDMSG);
 
     isBuildingAndRunning = true;
+    isDebugging = false;
+    isDebug_Started = false;
     buildCurrentFile();
 }
 
@@ -843,8 +877,22 @@ void rcbasic_edit_frame::debugProject()
 
 void rcbasic_edit_frame::onDebugMenuSelect( wxCommandEvent& event )
 {
-    buildProject(_("--debug"));
+    if(isBuilding || isRunning || isBuildingAndRunning)
+    {
+        wxMessageBox(_("A Program is currently running"));
+        return;
+    }
 
-    if(build_run_project)
-        isDebugging = true;
+    if(!active_project)
+    {
+        wxMessageBox(_("No project has been selected"));
+        return;
+    }
+
+    m_results_notebook->SetSelection(RESULTS_LISTBOX_BUILDMSG);
+
+    isBuildingAndRunning = true;
+    isDebugging = true;
+    isDebug_Started = false;
+    buildProject(_("--debug"));
 }

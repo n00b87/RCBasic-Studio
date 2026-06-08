@@ -134,6 +134,8 @@ class rc_ideFrame : public wxFrame
 		wxRichTextCtrl* m_messageWindow_richText;
 		wxPanel* m_searchResults_panel;
 		wxListBox* m_searchResults_listBox;
+		wxPanel* m_debugLog_panel;
+		wxRichTextCtrl* m_debugMessage_richText;
 		wxStatusBar* m_statusBar;
 
 		// Virtual event handlers, override them in your derived class
@@ -181,6 +183,7 @@ class rc_ideFrame : public wxFrame
 		virtual void onBuildMenuSelect( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onRunMenuSelect( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onBuildRunMenuSelect( wxCommandEvent& event ) { event.Skip(); }
+		virtual void onDebugMenuSelect( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onStopExecuteMenuSelect( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onBuildFileMenuSelect( wxCommandEvent& event ) { event.Skip(); }
 		virtual void onRunFileMenuSelect( wxCommandEvent& event ) { event.Skip(); }

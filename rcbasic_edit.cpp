@@ -207,6 +207,12 @@ rc_ideFrame::rc_ideFrame( wxWindow* parent, wxWindowID id, const wxString& title
 
 	m_build_menu->AppendSeparator();
 
+	wxMenuItem* m_debug_menuItem;
+	m_debug_menuItem = new wxMenuItem( m_build_menu, wxID_ANY, wxString( wxT("Debug") ) , wxEmptyString, wxITEM_NORMAL );
+	m_build_menu->Append( m_debug_menuItem );
+
+	m_build_menu->AppendSeparator();
+
 	m_abort_menuItem = new wxMenuItem( m_build_menu, wxID_ANY, wxString( wxT("Stop Execution") ) , wxEmptyString, wxITEM_NORMAL );
 	m_build_menu->Append( m_abort_menuItem );
 
@@ -365,6 +371,18 @@ rc_ideFrame::rc_ideFrame( wxWindow* parent, wxWindowID id, const wxString& title
 	m_searchResults_panel->Layout();
 	bSizer57->Fit( m_searchResults_panel );
 	m_results_notebook->AddPage( m_searchResults_panel, wxT("Search Results"), false );
+	m_debugLog_panel = new wxPanel( m_results_notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer137;
+	bSizer137 = new wxBoxSizer( wxVERTICAL );
+
+	m_debugMessage_richText = new wxRichTextCtrl( m_debugLog_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxVSCROLL|wxHSCROLL|wxNO_BORDER|wxWANTS_CHARS );
+	bSizer137->Add( m_debugMessage_richText, 1, wxEXPAND | wxALL, 5 );
+
+
+	m_debugLog_panel->SetSizer( bSizer137 );
+	m_debugLog_panel->Layout();
+	bSizer137->Fit( m_debugLog_panel );
+	m_results_notebook->AddPage( m_debugLog_panel, wxT("Debug Log"), false );
 
 	bSizer17->Add( m_results_notebook, 1, wxEXPAND | wxALL, 5 );
 
@@ -430,6 +448,7 @@ rc_ideFrame::rc_ideFrame( wxWindow* parent, wxWindowID id, const wxString& title
 	m_build_menu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( rc_ideFrame::onBuildMenuSelect ), this, m_build_menuItem->GetId());
 	m_build_menu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( rc_ideFrame::onRunMenuSelect ), this, m_run_menuItem->GetId());
 	m_build_menu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( rc_ideFrame::onBuildRunMenuSelect ), this, m_buildRun_menuItem->GetId());
+	m_build_menu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( rc_ideFrame::onDebugMenuSelect ), this, m_debug_menuItem->GetId());
 	m_build_menu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( rc_ideFrame::onStopExecuteMenuSelect ), this, m_abort_menuItem->GetId());
 	m_build_menu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( rc_ideFrame::onBuildFileMenuSelect ), this, m_buildFile_menuItem->GetId());
 	m_build_menu->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( rc_ideFrame::onRunFileMenuSelect ), this, m_runFile_menuItem->GetId());

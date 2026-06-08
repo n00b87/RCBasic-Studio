@@ -2066,6 +2066,7 @@ void rcbasic_edit_frame::applyScheme(rc_styledTextCtrl* rc_txtCtrl)
     symbol_tree->SetBackgroundColour(editor_scheme.style_bkg_color);
     m_messageWindow_richText->SetBackgroundColour(editor_scheme.style_bkg_color);
     m_searchResults_listBox->SetBackgroundColour(editor_scheme.style_bkg_color);
+    m_debugMessage_richText->SetBackgroundColour(editor_scheme.style_bkg_color);
 
     //wxPuts(_("Debug 2"));
 
@@ -2139,6 +2140,12 @@ void rcbasic_edit_frame::applyScheme(rc_styledTextCtrl* rc_txtCtrl)
         m_messageWindow_richText->Refresh();
         m_searchResults_listBox->SetForegroundColour(editor_scheme.identifier_fg_color);
         m_searchResults_listBox->Refresh();
+
+        m_debugMessage_richText->SetDefaultStyle(wxTextAttr( editor_scheme.identifier_fg_color, m_debugMessage_richText->GetBackgroundColour()) );
+        current_value = m_debugMessage_richText->GetValue();
+        m_debugMessage_richText->Clear();
+        m_debugMessage_richText->SetValue(current_value);
+        m_debugMessage_richText->Refresh();
     }
 
     //wxPuts(_("Debug 9"));
@@ -6391,6 +6398,88 @@ int rcbasic_edit_frame::getCodeCompUDT(wxString udt_scope)
     return db_index;
 }
 
+wxString rcbasic_edit_frame::getDebugMessage()
+{
+    wxFile mfile(dbg_message_file.GetFullPath());
+
+    if(!mfile.IsOpened())
+    {
+        return _("");
+    }
+
+    wxString m_contents = _("");
+    mfile.ReadAll(&m_contents);
+    mfile.Close();
+
+    m_contents += _("\n");
+
+    wxArrayString m_args;
+    wxString m_word;
+    wxString m_line;
+
+    wxString dbgm_src = _("");
+    wxString dbgm_line = _("");
+    wxString dbgm_error = _("");
+
+    for(int i = 0; i < m_contents.Length(); i++)
+    {
+        wxString current_char = m_contents.substr(i,1);
+        if(current_char.compare(_("\n"))==0)
+        {
+            if(m_args.Count() == 0)
+            {
+                m_word = _("");
+                m_line = _("");
+                continue;
+            }
+
+            m_args.push_back(m_word);
+
+            //std::cout << "[" << m_line.ToStdString() << "]" << std::endl;
+
+            if(m_args.Item(0).compare(_("LN"))==0 && m_args.Count() >= 2)
+            {
+                dbgm_line = m_args.Item(1);
+            }
+            else if(m_args.Item(0).compare(_("SRC"))==0 && m_line.Length() > 3)
+            {
+                //std::cout << "[" << m_args.Item(1).ToStdString() << "]" << std::endl;
+                dbgm_src = m_line.substr(3).Trim();
+            }
+            else if(m_args.Item(0).compare(_("E"))==0 && m_line.Length() > 1)
+            {
+                dbgm_error = m_line.substr(1).Trim();
+            }
+
+            m_args.Clear();
+
+            m_word = _("");
+            m_line = _("");
+        }
+        else
+        {
+            m_line += current_char; //storing each line here incase its the error message
+
+            if(current_char.compare(_(" "))==0)
+            {
+                m_args.push_back(m_word);
+                m_word = _("");
+            }
+            else
+            {
+                m_word += current_char;
+            }
+        }
+    }
+
+    wxString dbg_msg_out  = _("");
+    dbg_msg_out += _("FILE: ") + dbgm_src + _("\n");
+    dbg_msg_out += _("LINE: ") + dbgm_line + _("\n\n");
+    dbg_msg_out += _("ERROR: ") + dbgm_error + _("\n");
+
+    return dbg_msg_out;
+}
+
 void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
 {
     notebook_mutex.Lock();
@@ -6737,5 +6826,15 @@ void rcbasic_edit_frame::onEditorUpdateUI( wxUpdateUIEvent& event )
         {
             m_messageWindow_richText->AppendText(build_stream.ReadLine() + _("\n"));
         }
+    }
+
+    if(isDebug_Started && (!isDebugging))
+    {
+        if(dbg_message_file.Exists())
+        {
+            m_debugMessage_richText->AppendText(getDebugMessage());
+        }
+        isDebug_Started = false;
+        dbg_message_file.SetFullName(_(""));
     }
 }
