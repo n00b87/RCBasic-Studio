@@ -636,10 +636,10 @@ bool dist_web()
     //-----COPY PROJECT FILES TO OUTPUT DIRECTORY-----
     string out_file = appendFileToPath(DIST_OUTPUT_DIR, PROJECT_OUTDIR_NAME + ".html");
 
-    string em_cmd = "cd " + DIST_PKG_PATH;
+    string em_cmd = "cd \"" + DIST_PKG_PATH + "\"";
     em_cmd = appendFileToPath(em_cmd, "EM");
     #if defined(WIN32) || defined(WIN64)
-    em_cmd = appendFileToPath(em_cmd, "em_build.bat");
+    em_cmd = appendFileToPath(em_cmd, " && python -m pip install --upgrade certifi && for /f \"delims=\" %i in ('python -m certifi') do set SSL_CERT_FILE=%i && em_build.bat");
     #else
     em_cmd = appendFileToPath(em_cmd, " && chmod +x em_build.sh && ./em_build.sh");
     #endif // defined
@@ -648,7 +648,11 @@ bool dist_web()
     std::cout << "Web Build CMD: " << em_cmd << std::endl;
     std::cout << ".." << std::endl;
 
+    #if defined(WIN32) || defined(WIN64)
     fstream build_file("build_web.sh", fstream::out);
+    #else
+    fstream build_file("build_web.bat", fstream::out);
+    #endif
     build_file << em_cmd << std::endl;
     build_file.close();
 
