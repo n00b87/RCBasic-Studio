@@ -7,7 +7,7 @@ rcbasic_editrc_genKey_dialog::rcbasic_editrc_genKey_dialog( wxWindow* parent )
 :
 rc_genKey_dialog( parent )
 {
-
+    isRunning = false;
 }
 
 void rcbasic_editrc_genKey_dialog::onOKButtonClick( wxCommandEvent& event )
@@ -83,7 +83,12 @@ void rcbasic_editrc_genKey_dialog::onOKButtonClick( wxCommandEvent& event )
 
     wxFileName gen_script_fname(editor_path);
     gen_script_fname.AppendDir(_("bin"));
+
+    #ifdef _WIN32
+    gen_script_fname.SetFullName(_("key_gen.bat"));
+    #else
     gen_script_fname.SetFullName(_("key_gen.sh"));
+    #endif // _WIN32
 
     if(!gen_script.Create(gen_script_fname.GetFullPath(), true))
     {
@@ -91,7 +96,12 @@ void rcbasic_editrc_genKey_dialog::onOKButtonClick( wxCommandEvent& event )
         return;
     }
 
+    #ifdef _WIN32
+    gen_script.Write("set PATH=%JAVA_HOME%\\bin;%PATH% \r\n");
+    gen_script.Write(keystore_cmd + _("\r\n"));
+    #else
     gen_script.Write(keystore_cmd + _("\n"));
+    #endif // _WIN32
     gen_script.Close();
 
 

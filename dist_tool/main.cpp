@@ -636,10 +636,10 @@ bool dist_web()
     //-----COPY PROJECT FILES TO OUTPUT DIRECTORY-----
     string out_file = appendFileToPath(DIST_OUTPUT_DIR, PROJECT_OUTDIR_NAME + ".html");
 
-    string em_cmd = "cd " + DIST_PKG_PATH;
+    string em_cmd = "cd \"" + DIST_PKG_PATH + "\"";
     em_cmd = appendFileToPath(em_cmd, "EM");
     #if defined(WIN32) || defined(WIN64)
-    em_cmd = appendFileToPath(em_cmd, "em_build.bat");
+    em_cmd = appendFileToPath(em_cmd, " && python -m pip install --upgrade certifi && for /f \"delims=\" %i in ('python -m certifi') do set SSL_CERT_FILE=%i && em_build.bat");
     #else
     em_cmd = appendFileToPath(em_cmd, " && chmod +x em_build.sh && ./em_build.sh");
     #endif // defined
@@ -648,7 +648,11 @@ bool dist_web()
     std::cout << "Web Build CMD: " << em_cmd << std::endl;
     std::cout << ".." << std::endl;
 
+    #if defined(WIN32) || defined(WIN64)
     fstream build_file("build_web.sh", fstream::out);
+    #else
+    fstream build_file("build_web.bat", fstream::out);
+    #endif
     build_file << em_cmd << std::endl;
     build_file.close();
 
@@ -718,6 +722,39 @@ bool dist_android()
     std::cout << "Android Build CMD: " << droid_cmd << std::endl;
     std::cout << ".." << std::endl;
 
+    #if defined(WIN32) || defined(WIN64)
+    fstream build_file("build_droid.bat", fstream::out);
+
+    build_file << "set PLATFORM_WIN_32=" << (PLATFORM_WIN_32 == true ? "true" : "false") << "\r\n";
+    build_file << "set PLATFORM_WIN_64=" << (PLATFORM_WIN_64 == true ? "true" : "false") << "\r\n";
+    build_file << "set PLATFORM_LINUX_32=" << (PLATFORM_LINUX_32 == true ? "true" : "false") << "\r\n";
+    build_file << "set PLATFORM_LINUX_64=" << (PLATFORM_LINUX_64 == true ? "true" : "false") << "\r\n";
+    build_file << "set PLATFORM_WEB=" << (PLATFORM_WEB == true ? "true" : "false") << "\r\n";
+    build_file << "set PLATFORM_ANDROID=" << (PLATFORM_ANDROID == true ? "true" : "false") << "\r\n";
+    build_file << "set PROJECT_NAME=" << PROJECT_NAME << "\r\n";
+    build_file << "set PROJECT_CATEGORY=" << PROJECT_CATEGORY << "\r\n";
+    build_file << "set APP_TYPE=" << APP_TYPE << "\r\n";
+    build_file << "set TERMINAL_FLAG=" << (TERMINAL_FLAG == true ? "true" : "false") << "\r\n";
+    build_file << "set PROJECT_DIR=" << PROJECT_DIR << "\r\n";
+    build_file << "set OUTPUT_DIR=" << OUTPUT_DIR << "\r\n";
+    build_file << "set ENABLE_WEB_THREADS=" << (ENABLE_WEB_THREADS == true ? "true" : "false") << "\r\n";
+    build_file << "set ICON=" << ICON << "\r\n";
+    build_file << "set SOURCE=" << SOURCE << "\r\n";
+    build_file << "set ANDROID_APP_ID=" << ANDROID_APP_ID << "\r\n";
+    build_file << "set ANDROID_ORIENTATION=" << ANDROID_ORIENTATION << "\r\n";
+    build_file << "set ANDROID_KEYSTORE=" << ANDROID_KEYSTORE << "\r\n";
+    build_file << "set ANDROID_KEYSTORE_PASS=" << ANDROID_KEYSTORE_PASS << "\r\n";
+    build_file << "set ANDROID_ALIAS=" << ANDROID_ALIAS << "\r\n";
+    build_file << "set ANDROID_ALIAS_PASS=" << ANDROID_ALIAS_PASS << "\r\n";
+    build_file << "set ANDROID_RELEASE=" << (ANDROID_RELEASE ? "true" : "false") << "\r\n";
+    build_file << "set ANDROID_DEBUG=" << (ANDROID_DEBUG ? "true" : "false") << "\r\n";
+    build_file << "set ANDROID_JAVA_DIR=" << ANDROID_JAVA_DIR << "\r\n";
+
+    build_file << "\r\n";
+
+    build_file << droid_cmd << "\r\n";
+
+    #else
     fstream build_file("build_droid.sh", fstream::out);
 
     build_file << "export PLATFORM_WIN_32=" << (PLATFORM_WIN_32 == true ? "true" : "false") << endl;
@@ -748,9 +785,16 @@ bool dist_android()
     build_file << std::endl;
 
     build_file << droid_cmd << std::endl;
+
+    #endif // defined
+
     build_file.close();
 
+    #if defined(WIN32) || defined(WIN64)
+    system("build_droid.bat");
+    #else
     system("chmod +x build_droid.sh && ./build_droid.sh");
+    #endif // defined
 
 
     if(!fileExist(out_file))

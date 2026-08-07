@@ -30,6 +30,6 @@ void rcbasic_edit_frame::onAboutMenuSelect( wxCommandEvent& event )
     wxString msg = _("RCBASIC Studio v[Version]\nCopyright (C) 2026 Rodney Cunningham ( aka n00b )\n\nFor latest release, updates, and info go to \nhttp://www.rcbasic.com\n\nAnd the forum at \nhttp://rcbasic.freeforums.net");
     #endif
 
-    msg.Replace(_("[Version]"), wxString::FromDouble(RCBASIC_STUDIO_VERSION,1));
+    msg.Replace(_("[Version]"), _("4.11"));
     wxMessageBox(msg);
 }
