@@ -833,6 +833,7 @@ class rc_preference_dialog : public wxDialog
 		wxCheckBox* m_enableCodeCompletion_checkBox;
 		wxStaticText* m_staticText60;
 		wxCheckBox* m_enablePresets_checkBox;
+		wxCheckBox* m_optionExplicit_checkBox;
 		wxButton* m_cancel_button;
 		wxButton* m_button54;
 

@@ -23,6 +23,7 @@ rc_preference_dialog( parent )
     m_enableParser_checkBox->SetValue(pframe->getParserFlag());
     m_enableCodeCompletion_checkBox->SetValue(pframe->getAutoCompleteFlag());
     m_enablePresets_checkBox->SetValue(pframe->getPresetFlag());
+    m_optionExplicit_checkBox->SetValue(pframe->getOptionExplicitFlag());
 }
 
 int rcbasic_edit_preference_dialog::getPreferenceDialogValue()
@@ -70,6 +71,11 @@ bool rcbasic_edit_preference_dialog::getAutoCompleteFlag()
 bool rcbasic_edit_preference_dialog::getPresetFlag()
 {
     return m_enablePresets_checkBox->GetValue();
+}
+
+bool rcbasic_edit_preference_dialog::getOptionExplicitFlag()
+{
+    return m_optionExplicit_checkBox->GetValue();
 }
 
 wxString rcbasic_edit_preference_dialog::getRCBasicDocLink()

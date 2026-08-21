@@ -228,6 +228,11 @@ void rcbasic_edit_frame::buildProject(wxString build_flags)
         additional_flags += _(" --no-presets ");
     }
 
+    if(option_explicit)
+    {
+        additional_flags += _(" --option-explicit ");
+    }
+
     #ifdef _WIN32
     build_script_fname.SetFullName(_("build_project.bat"));
     if(!build_script.Create(build_script_fname.GetFullPath(), true))
@@ -662,6 +667,9 @@ void rcbasic_edit_frame::buildCurrentFile()
 
     if(!enable_presets)
         additional_flags += _(" --no-presets ");
+
+    if(option_explicit)
+        additional_flags += _(" --option-explicit ");
 
     #ifdef _WIN32
     build_script_fname.SetFullName(_("build_project.bat"));

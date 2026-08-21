@@ -2857,6 +2857,21 @@ rc_preference_dialog::rc_preference_dialog( wxWindow* parent, wxWindowID id, con
 
 	bSizer118->Add( bSizer134, 1, wxEXPAND, 5 );
 
+	wxBoxSizer* bSizer138;
+	bSizer138 = new wxBoxSizer( wxHORIZONTAL );
+
+
+	bSizer138->Add( 0, 0, 1, wxEXPAND, 5 );
+
+	m_optionExplicit_checkBox = new wxCheckBox( m_panel15, wxID_ANY, wxT("Option Explicit"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer138->Add( m_optionExplicit_checkBox, 1, wxALL, 5 );
+
+
+	bSizer138->Add( 0, 0, 25, wxEXPAND, 5 );
+
+
+	bSizer118->Add( bSizer138, 1, wxEXPAND, 5 );
+
 	wxBoxSizer* bSizer126;
 	bSizer126 = new wxBoxSizer( wxHORIZONTAL );
 

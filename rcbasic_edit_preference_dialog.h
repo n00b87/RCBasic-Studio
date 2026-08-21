@@ -32,6 +32,7 @@ class rcbasic_edit_preference_dialog : public rc_preference_dialog
         bool getParserFlag();
         bool getAutoCompleteFlag();
         bool getPresetFlag();
+        bool getOptionExplicitFlag();
         wxString getRCBasicDocLink();
         wxString getStudioDocLink();
 	//// end generated class members

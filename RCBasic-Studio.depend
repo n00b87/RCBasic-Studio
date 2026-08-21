@@ -6,7 +6,7 @@
 	<wx/utils.h>
 	"rc_debugger_dialog.h"
 
-1780919004 /home/n00b/Projects/RCBasic-Studio/rcbasic_edit_frame.h
+1787280245 /home/n00b/Projects/RCBasic-Studio/rcbasic_edit_frame.h
 	"rcbasic_edit.h"
 	"rc_closeProjectSavePrompt_dialog.h"
 	"rc_newFile_dialog.h"
@@ -26,7 +26,7 @@
 	<wx/txtstrm.h>
 	<vector>
 
-1780901621 /home/n00b/Projects/RCBasic-Studio/rcbasic_edit.h
+1787280000 /home/n00b/Projects/RCBasic-Studio/rcbasic_edit.h
 	<wx/artprov.h>
 	<wx/xrc/xmlres.h>
 	<wx/string.h>
