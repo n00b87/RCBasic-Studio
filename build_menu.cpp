@@ -649,6 +649,12 @@ void rcbasic_edit_frame::buildCurrentFile()
 
     notebook_mutex.Lock();
 
+    if(getCurrentFile() == NULL)
+    {
+        wxMessageBox(_("No file is open to build"));
+        return;
+    }
+
     //-----------
     wxFileName project_fname = getCurrentFile()->getSourcePath();
     saveFile(getOpenFileFromSelection(), 0);
@@ -744,6 +750,12 @@ void rcbasic_edit_frame::runCurrentFile()
     }
 
     build_run_project = NULL;
+
+    if(getCurrentFile() == NULL)
+    {
+        wxMessageBox(_("No file is open to run"));
+        return;
+    }
 
     wxFileName project_fname = getCurrentFile()->getSourcePath();
 
